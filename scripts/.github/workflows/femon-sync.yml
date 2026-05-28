@@ -1,0 +1,39 @@
+name: Sync Femon Playlist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pycryptodome
+
+      - name: Run sync
+        run: python scripts/femon_sync.py
+
+      - name: Commit updated playlist
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain lista_femon.json)" ]; then
+            git add lista_femon.json
+            git commit -m "Update Femon playlist [auto]"
+            git push
+          else
+            echo "No changes to commit"
+          fi
