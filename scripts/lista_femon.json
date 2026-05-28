@@ -3,8 +3,15 @@
     "name": "📺  EVENTOS EXCLUSIVOS",
     "samples": [
       {
-        "name": "🇵🇾 Evento 1",
-        "url": "https://sam-py-edge05.tigo.com.py/ccur-session/6a070eb182/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "name": "🇵🇾 Evento 1A",
+        "url": "https://sam-py-edge05.tigo.com.py/ccur-session/6a062d284d/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 1B",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a062d284d/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
@@ -17,11 +24,10 @@
         "drm_license_uri": ""
       },
       {
-        "name": "🇵🇾 Evento 3",
-        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a070b182/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
+        "name": "🇵🇾 Evento Intermedia",
+        "url": "https://lbgo.bozztv.com/ssh101/ssh101/socerpy/playlist.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
       },
       {
         "name": "⚽ Futbol 1",
