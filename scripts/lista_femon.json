@@ -3,29 +3,50 @@
     "name": "📺  EVENTOS EXCLUSIVOS",
     "samples": [
       {
-        "name": "🇵🇾 Evento 1A",
+        "name": "🇵🇾 Evento 1",
         "url": "https://sam-py-edge05.tigo.com.py/ccur-session/6a062d284d/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
       },
       {
-        "name": "🇵🇾 Evento 1B",
+        "name": "🇵🇾 Evento 2",
         "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a062d284d/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
       },
       {
-        "name": "🇵🇾 Evento 2",
+        "name": "🇵🇾 Evento 3",
         "url": "http://45.170.130.224:8000/play/a04i/index.m3u8",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
       },
       {
-        "name": "🇵🇾 Evento Intermedia",
-        "url": "https://lbgo.bozztv.com/ssh101/ssh101/socerpy/playlist.m3u8",
+        "name": "🇵🇾 Intermedia 1",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/01_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Intermedia 2",
+        "url": "https://sam-py-edge05.tigo.com.py/ccur-session/01_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Intermedia 3",
+        "url": "https://sam-py-edge09.tigo.com.py/ccur-session/01_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Intermedia 4",
+        "url": "https://lbgo.bozztv.com/ssh101/ssh101/locotigo/playlist.m3u8",
         "type": "HLS",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
       },
@@ -3339,7 +3360,7 @@
       },
       {
         "name": "Enlace",
-        "url": "http://45.184.109.10/live/69393EAE6ADBC65A68F942022362A202/24.m3u8",
+        "url": "https://livecdnusa.enlace.plus/enlace/smil:enlace-hd.smil/chunklist_b2752000_sleng.m3u8",
         "type": "HLS",
         "icono": "https://cablego.com.pe/cache/logos/ENLACE.png"
       },
