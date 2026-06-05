@@ -4,7 +4,7 @@
     "samples": [
       {
         "name": "🇵🇾 Evento 1",
-        "url": "https://sam-py-edge09.tigo.com.py/ccur-session/6a23060153/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/04_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": "",
@@ -16,15 +16,9 @@
       },
       {
         "name": "🇵🇾 Evento 2",
-        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a23060153/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "",
-        "headers": {
-          "Origin": "https://www.tigosports.com.py",
-          "Referer": "https://www.tigosports.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
-        }
+        "url": "https://stream-hls.castr.net/67ec32432023a34fc276e590/live_b94a5e402a1311f195c253d92db64c85/index.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
       },
       {
         "name": "🇵🇾 Evento 3",
@@ -49,9 +43,15 @@
       },
       {
         "name": "🇵🇾 Evento 6",
-        "url": "https://stream-hls.castr.net/67ec32432023a34fc276e590/live_b94a5e402a1311f195c253d92db64c85/index.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a23060153/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": "",
+        "headers": {
+          "Origin": "https://www.tigosports.com.py",
+          "Referer": "https://www.tigosports.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+        }
       },
       {
         "name": "🇵🇾 Intermedia 1",
