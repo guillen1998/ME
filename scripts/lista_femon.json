@@ -4,24 +4,44 @@
     "samples": [
       {
         "name": "🇵🇾 Evento 1",
-        "url": "https://sam-py-edge05.tigo.com.py/ccur-session/6a062d284d/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/07_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
       },
       {
         "name": "🇵🇾 Evento 2",
-        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a062d284d/rolling-buffer/APP_CHN2/APP_CHN2/transmux/index.mpd",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/08_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
       },
       {
         "name": "🇵🇾 Evento 3",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/09_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 4",
+        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/06_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 5",
         "url": "http://45.170.130.224:8000/play/a04i/index.m3u8",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
         "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 6",
+        "url": "https://stream-hls.castr.net/67ec32432023a34fc276e590/live_b94a5e402a1311f195c253d92db64c85/index.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
       },
       {
         "name": "🇵🇾 Intermedia 1",
@@ -175,18 +195,6 @@
         "drm_license_uri": ""
       },
       {
-        "name": "🇵🇾 Evento 2",
-        "url": "6Ji4+Hl9nxB8r3v96JTTENDj9eGbldWNRJ+OJerlce2X0twOXiSM7ELJW/DuwjroInzjwvPWkrLXTrvaEeL4bwVR/zJQiPTryfg1+xuGtdgyfLMGTlXRmJt5ha/am7Z4",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jV6r/sYt/kERU1hXtlsCFYZnoF37bMg+FebGH4YoEEwgvKAIWrkDLby+vtqFuIqGe8MIDUaS8/I/FONQNd9DeLd+SvHLw0ke0NdzQQvEn+nMA==",
-        "headers": {
-          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
-          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
-      },
-      {
         "name": "🇵🇾 Evento 3",
         "url": "soCYdyTsWseV62TwZUDxNVz4y7STdiV11Qnhqx6aWMeQJWjQ0wi1l2da6LD/Knfs9XUgrhNbBFlCDDsFyC1zP0KiD1p5lrsUsU9XYDNKJcYyfLMGTlXRmJt5ha/am7Z4",
         "type": "CLEARKEY",
@@ -197,18 +205,6 @@
           "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
           "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
         }
-      },
-      {
-        "name": "Evento",
-        "url": "9RpluhUujV6VXfxaX9Ow7DXObh3U2KWVSN9ZlZzDnxp7bwGFrg/yNOy2C7ihA/sgeA68mr5iOZFf1cQ5VXzFmmpphcR9jjBAxbVSkxHT9SAVWDFvDQCwa5nrESherY/A",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp"
-      },
-      {
-        "name": "Evento",
-        "url": "9RpluhUujV6VXfxaX9Ow7DXObh3U2KWVSN9ZlZzDnxp7bwGFrg/yNOy2C7ihA/sgeA68mr5iOZFf1cQ5VXzFmmpphcR9jjBAxbVSkxHT9SAVWDFvDQCwa5nrESherY/A",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp"
       },
       {
         "name": "Evento",
