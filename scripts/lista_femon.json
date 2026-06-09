@@ -1,24 +1,108 @@
 [
   {
-    "name": "📺  EVENTOS EXCLUSIVOS",
+    "name": "🏆MUNDIAL FIFA 2026🏆",
     "samples": [
       {
-        "name": "Paraguay vs Nicaragua",
-        "url": "https://1qxxt4dxbbi.s3.us-east-1.amazonaws.com/hls/0/stream.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a234a6720e175.97098990.png",
+        "name": "GEN",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/GEN_TV/SA_Live_dash_enc/GEN_TV.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a26f4478855a0.67866492.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=49eb924ba998ca7fbbaee30dcef1ecb4&key=6e131b04b2e87598fb588ac205673698",
         "headers": {
-          "Origin": "https://gabito.site",
-          "Referer": "https://gabito.site/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/142.0.0.0"
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
         }
       },
       {
-        "name": "🇵🇾 Paraguay vs Nicaragua",
-        "url": "https://stream-hls.castr.net/67ec32432023a34fc276e590/live_b94a5e402a1311f195c253d92db64c85/index.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a23453ce55182.60036306.webp"
+        "name": "EL TRECE PY",
+        "url": "https://chromecast.cvattv.com.ar/live/c4eds/RPC_C4/SA_Live_dash_enc/RPC_C4.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a279e8eac9ed6.61890037.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=a8093cdcb2d504bd38f16764bd21b6e5&key=bfcf3b033b5f0b5ae020751a6746326f",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+        }
       },
+      {
+        "name": "POPU TV",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/Universo/SA_Live_dash_enc/Universo.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a279f3633e242.21426386.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=41ca5477db3048dbf731fc12604c7504&key=6c7e8e96a86333cbfb4771cbfe9f6b4b",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "UNICANAL",
+        "url": "ttps://chromecast.cvattv.com.ar/live/c4eds/UNICANAL_C4/SA_Live_dash_enc/UNICANAL_C4.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a279fa3325f08.32689900.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=63a3729cfd60f24f7e1266bee5eca02c&key=cb9ed028af40654e1aa43934ee58db58",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "DSPORTS 1",
+        "url": "https://chromecast.cvattv.com.ar/live/c3eds/DSports_1/SA_Live_dash_enc/DSports_1.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=4db80473af2ed318c41d879f2822203e&key=d30f94e60344adf0f4b242a5952575ad",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "DSPORTS 2",
+        "url": "https://chromecast.cvattv.com.ar/live/c3eds/DSports_2/SA_Live_dash_enc/DSports_2.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a27a1611e4155.61879396.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=0dd493fa74640442abd75139b67307d6&key=31cf4295392d939a97f3b60ebf1ceb44",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "TELEFE",
+        "url": "https://chromecast.cvattv.com.ar/live/c6eds/TelefeHD/SA_Live_dash_enc/TelefeHD.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a27a1cdb548f7.46434435.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=3cec1b1ea9799dda5596e64f37e5ed20&key=c69f3afde2085dcaaaddbf55246a0323",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "TV PUBLICA",
+        "url": "https://chromecast.cvattv.com.ar/live/c6eds/Canal7/SA_Live_dash_enc/Canal7.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a27a22d1539b9.35054489.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=cc8c82ac2ec7e9799527c29db7354e81&key=cc4aae173dd2ef17ae26be3f7ae87662",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      }
+    ]
+  },
+  {
+    "name": "📺  EVENTOS EXCLUSIVOS",
+    "samples": [
       {
         "name": "🇵🇾 Evento 1",
         "url": "https://sam-py-edge03.tigo.com.py/ccur-session/04_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
@@ -270,6 +354,23 @@
           "Referer": "v7Eafqf/M6nQMM0k98Rr0VVJr/jxmWn++A2TboU63kU=",
           "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0J4x1p2KuVh90MsK3t65t94AKjz2Jyt7kVe2uJi7Nu5Aw=="
         }
+      },
+      {
+        "name": "Paraguay vs Nicaragua",
+        "url": "jsieXNMDN1Df0+2hjIhVitQJVH0vveDpMccfygfBSY3EvopcaGniWletZi1IDujfW4mi6f7EdyLR3jJLOMW7OGKF2NXAFvvpml+Af7qKLtQ=",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a234a6720e175.97098990.png",
+        "headers": {
+          "Origin": "v7Eafqf/M6nQMM0k98Rr0VXVJ+84pA5XAO8kMN5AECA=",
+          "Referer": "v7Eafqf/M6nQMM0k98Rr0VVJr/jxmWn++A2TboU63kU=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFgXJSsIqWsbxT0LQfhGjSrz8vHQ8WgPCybzWh9wigzyQ="
+        }
+      },
+      {
+        "name": "🇵🇾 Paraguay vs Nicaragua",
+        "url": "PJGXwSn43gJeGD3vCN+I5NpM+y4n+cJzF9rBo7AedOAtXllvYBrGpFf+62TJ5BD7VnfO8ELgm029r4wMzqErDdr9letQucs6SK6JzNG8BjT+iV/9CRxEsyZ8GR0RN7u+MBvi1LhOT7c1vlD4v3NDTg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a23453ce55182.60036306.webp"
       }
     ]
   },
@@ -4756,35 +4857,6 @@
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0243b0d66033.65138043.png",
         "drm_license_uri": "https://results.femon.net/?keyid=f62e93559765dfa6a89d2842b2b6d64a&key=9f6a8cf0bcb1d17ce79ea93d0d9c3d83"
-      }
-    ]
-  },
-  {
-    "name": "🏆MUNDIAL FIFA 2026🏆",
-    "samples": [
-      {
-        "name": "Gen CAM1",
-        "url": "https://chromecast.cvattv.com.ar/live/c7eds/GEN_TV/SA_Live_dash_enc/GEN_TV.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a26f4478855a0.67866492.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=49eb924ba998ca7fbbaee30dcef1ecb4&key=6e131b04b2e87598fb588ac205673698",
-        "headers": {
-          "Origin": "https://portal.app.flow.com.py",
-          "Referer": "https://portal.app.flow.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-        }
-      },
-      {
-        "name": "Gen CAM2",
-        "url": "https://chromecast.cvattv.com.ar/live/c7eds/GEN__CAM1/SA_Live_dash_enc_C/GEN__CAM1.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a26f5985dbc27.92873429.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=789387a3f449419d9b6e2f6c910e0861&key=a78b627380a43ef610485082ee91277a",
-        "headers": {
-          "Origin": "https://portal.app.flow.com.py",
-          "Referer": "https://portal.app.flow.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-        }
       }
     ]
   }
