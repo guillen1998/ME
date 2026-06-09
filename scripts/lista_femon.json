@@ -40,7 +40,7 @@
       },
       {
         "name": "UNICANAL",
-        "url": "ttps://chromecast.cvattv.com.ar/live/c4eds/UNICANAL_C4/SA_Live_dash_enc/UNICANAL_C4.mpd",
+        "url": "https://chromecast.cvattv.com.ar/live/c4eds/UNICANAL_C4/SA_Live_dash_enc/UNICANAL_C4.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a279fa3325f08.32689900.png",
         "drm_license_uri": "https://results.femon.net/?keyid=63a3729cfd60f24f7e1266bee5eca02c&key=cb9ed028af40654e1aa43934ee58db58",
@@ -87,6 +87,18 @@
         }
       },
       {
+        "name": "TYC SPORTS",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/TyCSport/SA_Live_dash_enc/TyCSport.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a2817125cf9a5.48197055.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=2b21c8fa9a329cce311a4c4a4aa996a1&key=cc23ea1fb32629f9e1f48c8deeae3e5b",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
         "name": "TV PUBLICA",
         "url": "https://chromecast.cvattv.com.ar/live/c6eds/Canal7/SA_Live_dash_enc/Canal7.mpd",
         "type": "CLEARKEY",
@@ -96,6 +108,18 @@
           "Origin": "https://portal.app.flow.com.py",
           "Referer": "https://portal.app.flow.com.py/",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "VIX 1",
+        "url": "https://cun-live1-ott.izzigo.tv/11/out/u/dash/VIX-MUNDIAL-90-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a2819429d15b9.27761222.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=c1c156e87124b7f60e59898f10adfd04&key=8fe45cb2a6bfaca1fdbf4f385d55b9d9",
+        "headers": {
+          "Origin": "https://www.izzigo.tv",
+          "Referer": "https://www.izzigo.tv/",
+          "User-Agent": "Firefox"
         }
       }
     ]
