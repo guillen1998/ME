@@ -15,6 +15,42 @@
         }
       },
       {
+        "name": "CAMARA JUGADOR",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/GEN__CAM1/SA_Live_dash_enc/GEN__CAM1.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a28467e5acbd2.84801314.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=789387a3f449419d9b6e2f6c910e0861&key=a78b627380a43ef610485082ee91277a",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "CAMARA DT",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/GEN_CAM2/SA_Live_dash_enc/GEN_CAM2.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a28473207e693.35309536.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=97a46697db7524c76d47de9bed5b7f8a&key=8a0a08da423fca679702b4632a90f333",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
+        "name": "MULTICAMARA",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/GEN_Multicam/SA_Live_dash_enc/GEN_Multicam.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a2847b9ef0f13.37782679.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=f0d61c011c3343c630d66a55681ec0e9&key=f6fb66ae915cd5043864d821eacbae03",
+        "headers": {
+          "Origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
         "name": "EL TRECE PY",
         "url": "https://chromecast.cvattv.com.ar/live/c4eds/RPC_C4/SA_Live_dash_enc/RPC_C4.mpd",
         "type": "CLEARKEY",
@@ -109,18 +145,6 @@
           "Referer": "https://portal.app.flow.com.py/",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
         }
-      },
-      {
-        "name": "VIX 1",
-        "url": "https://cun-live1-ott.izzigo.tv/11/out/u/dash/VIX-MUNDIAL-90-HD/default.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a2819429d15b9.27761222.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=c1c156e87124b7f60e59898f10adfd04&key=8fe45cb2a6bfaca1fdbf4f385d55b9d9",
-        "headers": {
-          "Origin": "https://www.izzigo.tv",
-          "Referer": "https://www.izzigo.tv/",
-          "User-Agent": "Firefox"
-        }
       }
     ]
   },
@@ -128,68 +152,16 @@
     "name": "📺  EVENTOS EXCLUSIVOS",
     "samples": [
       {
-        "name": "🇵🇾 Evento 1",
-        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/04_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "",
-        "headers": {
-          "Origin": "https://www.tigosports.com.py",
-          "Referer": "https://www.tigosports.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
-        }
-      },
-      {
-        "name": "🇵🇾 Evento 4",
-        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/06_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Evento 5",
-        "url": "http://45.170.130.224:8000/play/a04i/index.m3u8",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Evento 6",
-        "url": "https://sam-py-edge03.tigo.com.py/ccur-session/6a23060153/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "",
-        "headers": {
-          "Origin": "https://www.tigosports.com.py",
-          "Referer": "https://www.tigosports.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
-        }
-      },
-      {
         "name": "🇵🇾 Intermedia 1",
-        "url": "https://mileixd.skylivehd.com/tigo2/tracks-v1a1/mono.m3u8?ip=38.165.233.7&token=f5b4ec391b6157f5b86d8947fcd975f4f103b0e0-19-1780741482-1780687482",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
-      },
-      {
-        "name": "🇵🇾 Intermedia 2",
-        "url": "https://sam-py-edge05.tigo.com.py/ccur-session/01_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Intermedia 3",
-        "url": "https://sam-py-edge09.tigo.com.py/ccur-session/01_1610033638/rolling-buffer/TigoSP4_WM/TigoSP4_WM/transmux/index.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Intermedia 4",
         "url": "https://lbgo.bozztv.com/ssh101/ssh101/locotigo/playlist.m3u8",
         "type": "HLS",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
+      },
+      {
+        "name": "Nande Portetepe",
+        "url": "https://video.hostingcaaguazu.com:19360/nandeportetepe/nandeportetepe.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a03426523cad0.54725829.png"
       },
       {
         "name": "⚽ Futbol 1",
@@ -256,12 +228,6 @@
           "Referer": "https://portal.app.flow.com.py/",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
         }
-      },
-      {
-        "name": "Nande Portetepe",
-        "url": "https://video.hostingcaaguazu.com:19360/nandeportetepe/nandeportetepe.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a03426523cad0.54725829.png"
       }
     ],
     "hidden_samples": [
@@ -395,6 +361,44 @@
         "url": "PJGXwSn43gJeGD3vCN+I5NpM+y4n+cJzF9rBo7AedOAtXllvYBrGpFf+62TJ5BD7VnfO8ELgm029r4wMzqErDdr9letQucs6SK6JzNG8BjT+iV/9CRxEsyZ8GR0RN7u+MBvi1LhOT7c1vlD4v3NDTg==",
         "type": "HLS",
         "icono": "https://app.femon.net/tv/banners/6a23453ce55182.60036306.webp"
+      },
+      {
+        "name": "🇵🇾 Evento 1",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB2lZ+OvqvzxVv5UIjwiHTI7jbYoYnkKRb1MxfTz+ZxHRdJXteqvvW0aPi+4JhylBdsCP8RcH2mayhXdXD9qAjtfoi2OHa1RSImgGymRHd+QbmRS5uG9Hj+ZExmEy/vcpc8=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": "",
+        "headers": {
+          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
+          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "🇵🇾 Evento 4",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB2lZ+OvqvzxVv5UIjwiHTI7OkuxZjk4gJtKUxLCwJRuJNJXteqvvW0aPi+4JhylBdsCP8RcH2mayhXdXD9qAjtfoi2OHa1RSImgGymRHd+QbmRS5uG9Hj+ZExmEy/vcpc8=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 5",
+        "url": "LCi3xF5Z7MkI0xJkNeIwppzaJolBI+AHyMzeRq5fNCUvI2Ooz6bPdNis15rrK+gQ",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 6",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB3OJ4DBpdYUnBKwVY0x+xNHzeBHza/4Pupd20LOoh3JVvZ3q4UWiqByZmnDeuYGMmt+q47KOIu8XbiRVBLbMnSHKjMjBhVoLSJs2gxjsTfopdVZazaztWuK7M47Q6XqQBQ=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": "",
+        "headers": {
+          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
+          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
       }
     ]
   },
@@ -1708,23 +1712,10 @@
     "name": "📺  INTERIOR DE PARAGUAY",
     "samples": [
       {
-        "name": "Alberdi Net TV",
+        "name": "Alberdi Net Tv",
         "url": "http://181.78.27.128:80/albnet26/albnet26/147",
         "type": "HLS",
         "icono": "https://app.femon.net/tv/banners/6a00acbf94d200.89552599.png"
-      },
-      {
-        "name": "A24 Paraguay",
-        "url": "http://45.184.109.10/live/69393EAE6ADBC65A68F942022362A202/6.m3u8",
-        "type": "HLS",
-        "icono": "https://banners.femon.net/banners/6978d71bde3588.41432307.png"
-      },
-      {
-        "name": "Almaya TV Pilar",
-        "url": "https://video.hostingcaaguazu.com:19360/almayatv/almayatv.m3u8",
-        "type": "CLEARKEY",
-        "drm_license_uri": "https://dl.dropbox.com/scl/fi/p1o0273sjlfsvcnhxa6dl/tigo2.json?rlkey=9040quxroxwqkrn0gfx9xnmyt&st=gk11qt0h&dl=0",
-        "icono": "https://banners.femon.net/banners/6978d726488732.02637025.png"
       },
       {
         "name": "Mi TV",
@@ -1736,7 +1727,7 @@
         "name": "Motor Sur",
         "url": "https://live.enhdtv.com:8081/8116/index.m3u8",
         "type": "HLS",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b4b836ec7522.22168829.jpg"
+        "icono": "https://app.femon.net/tv/banners/6a2857797ce5e6.17407629.png"
       },
       {
         "name": "Next TV",
@@ -1748,19 +1739,13 @@
         "name": "Ñandeportetepe",
         "url": "https://video.hostingcaaguazu.com:19360/nandeportetepe/nandeportetepe.m3u8",
         "type": "HLS",
-        "icono": "https://banners.femon.net/banners/6978d76e5a2fb4.48795186.png"
+        "icono": "https://app.femon.net/tv/banners/6a03426523cad0.54725829.png"
       },
       {
         "name": "Ñanduti TV",
         "url": "https://rds3gen.desdeparaguay.net/nandutitv/nandutitv_baja/playlist.m3u8",
         "type": "HLS",
         "icono": "https://banners.femon.net/banners/6978d779d821f1.88363183.png"
-      },
-      {
-        "name": "RCC",
-        "url": "http://45.184.109.10/live/69393EAE6ADBC65A68F942022362A202/48.m3u8",
-        "type": "HLS",
-        "icono": "https://banners.femon.net/banners/697924932ccc79.25653034.png"
       },
       {
         "name": "Regional TV Yaguaron",
