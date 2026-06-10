@@ -1713,7 +1713,7 @@
     "samples": [
       {
         "name": "Alberdi Net Tv",
-        "url": "http://181.78.27.128/albnet26/albnet26/147.ts",
+        "url": "http://181.78.27.128/albnet26/albnet26/147.m3u8",
         "type": "HLS",
         "icono": "https://app.femon.net/tv/banners/6a00acbf94d200.89552599.png"
       },
