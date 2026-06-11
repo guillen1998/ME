@@ -207,260 +207,13 @@
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/s9v0mW7j/Picsart-26-06-09-23-00-55-307.png",
         "drm_license_uri": "https://results.femon.net/?keyid=4bbcff3289d457b4dd5dbdd21221de9a&key=c4906b9a9f8dda3c0725bddb8c497733"
-      }
-    ]
-  },
-  {
-    "name": "📺  EVENTOS EXCLUSIVOS",
-    "samples": [
-      {
-        "name": "🇵🇾 Intermedia 1",
-        "url": "https://lbgo.bozztv.com/ssh101/ssh101/locotigo/playlist.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
       },
       {
-        "name": "Nande Portetepe",
-        "url": "https://video.hostingcaaguazu.com:19360/nandeportetepe/nandeportetepe.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a03426523cad0.54725829.png"
-      },
-      {
-        "name": "⚽ Futbol 1",
-        "url": "https://pr745.streamingtv339.com/fanatiz2/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 2",
-        "url": "https://pr745.streamingtv339.com/fanatiz3/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 3",
-        "url": "https://pr745.streamingtv339.com/fanatiz4/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 4",
-        "url": "https://pr745.streamingtv339.com/fanatiz5/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 5",
-        "url": "https://pr745.streamingtv339.com/fanatiz6/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 6",
-        "url": "https://pr745.streamingtv339.com/fanatiz7/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 7",
-        "url": "https://pr745.streamingtv339.com/fanatiz8/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 8",
-        "url": "https://pr745.streamingtv339.com/fanatiz9/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "⚽ Futbol 9",
-        "url": "https://pr745.streamingtv339.com/fanatiz10/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
-      },
-      {
-        "name": "Brasileirao",
-        "url": "https://chromecast.cvattv.com.ar/live/c3eds/Eventos1HD/SA_Live_dash_enc/Eventos1HD.mpd",
+        "name": "VIX TUDN MUNDIAL",
+        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/8u9cregwlt/out/v1/687f6b2a559943549be271504a948ffd/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a03419730e575.60936161.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=5c86e237317c2231ac1bc130e995fad6&key=dcacf7b239ee03df3c69ca11dbcde4eb",
-        "headers": {
-          "Origin": "https://portal.app.flow.com.py",
-          "Referer": "https://portal.app.flow.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-        }
-      }
-    ],
-    "hidden_samples": [
-      {
-        "name": "Copa Rey",
-        "url": "lvN7qexV1HiBvEIyInmxQ2YSsjBQsSriVymgz5/TJpH2lulDLEkJk59C3mrcMgT6MGsqllSgjqsw6PqiunYxgLjSfEEjJXRm3bpDO5FsxW5dEC8R29f4uXTDMoiPSNvS",
-        "type": "CLEARKEY",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69e2549f144f03.06847925.png",
-        "headers": {
-          "Origin": "Ssz8pUSwuOOXrjMOfMcImdy+LX7CsX/P4UH+7ungukk=",
-          "Referer": "Ssz8pUSwuOOXrjMOfMcImWRAe/eRUEh0ITdxUuT/jcw=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0J4x1p2KuVh90MsK3t65t94AKjz2Jyt7kVe2uJi7Nu5Aw=="
-        },
-        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jUeQGYNN/z8p3wnuLDdxnUwKuwUwPg9pVt6sfABlKCB8p4LhConGogaDwdeSy/urwBdcQDCl1dayy9wtTzcsXI9MlFrdVR3UI3Vp/J5kQkZOw=="
-      },
-      {
-        "name": "Flow Eventos",
-        "url": "lvN7qexV1HiBvEIyInmxQ2YSsjBQsSriVymgz5/TJpH9xNkjysCitJIW2xGFNQX8ToP26sJEfnkXwetO5AmXN8AgE5o1pgu8qb0gGu2ku559nOf1G1vAocxUsHLof2j+",
-        "type": "CLEARKEY",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b7f40f802a34.47980743.png",
-        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jX2WnzBPGNPmdDMrj8WUFZlvTalQpEXW1n5bPIXrfLqYGMNhSbVN9QfswS8smHSRxV8+1hlbG7/OftCLbHc8UkinLLK/j1ehsOfHupyUxR1rw==",
-        "headers": {
-          "Origin": "Ssz8pUSwuOOXrjMOfMcImdy+LX7CsX/P4UH+7ungukk=",
-          "Referer": "Ssz8pUSwuOOXrjMOfMcImWRAe/eRUEh0ITdxUuT/jcw=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
-      },
-      {
-        "name": "Danz F1",
-        "url": "nGvn37BBKBz+wDFFBac/WIC7GenFUUw/lL41mlmpeT+EiW2PF8FTwjFxIZHYEqjQ",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b3c0c3ead9.74021794.png"
-      },
-      {
-        "name": "F1 TV",
-        "url": "sCcK9Cztupin/gbM86S2ed5st168xONGzY1divkJzRV1K1TV+RnsletykD2JfteBflgxnFFmNEH2w+7YqBvqHw==",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b3f1a6a245.58245476.png"
-      },
-      {
-        "name": "Sky F1",
-        "url": "4QpEwfJaGjAQ41eaMO0qpusq6xxBR36HLmNdvRlqSd178frft3RaioWMn5FvrDC0+z1b5I1hGcmDC9BQx1vD1lfMdC+uhkX3ZsGfdsXbW9M=",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/69f7b3a0372268.33632262.jpg",
-        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jXOCosVss+OAzrgPSY3A+QgIqLoXq3r/i+xEQxFrilgLHW+Z3uZt3CqljuSDH57mnyV0Y9UZN+cve3vkIO9zue2D27u/Ev5I8Z2qvYXAJvr6g=="
-      },
-      {
-        "name": "🇵🇾 Evento 3",
-        "url": "ZBjPLOQj+qWX7ZXjfZz/8cjHz+x4CY18HQXzwFjDgnvRheXQeEwuL6xK8NAFO5CClBqs+PW5w5cT8phXDymfIZfzWCyIsN3oG6laz96OWZ9jiQ3OwjuvkUdInvcLBAhH",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Evento 3",
-        "url": "soCYdyTsWseV62TwZUDxNVz4y7STdiV11Qnhqx6aWMeQJWjQ0wi1l2da6LD/Knfs9XUgrhNbBFlCDDsFyC1zP0KiD1p5lrsUsU9XYDNKJcYyfLMGTlXRmJt5ha/am7Z4",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jWpsrZmyMj+UynD+y4OXcuk+hTJBC8kOGTuWji+Yb3wcvTW/BcW+M6sni3zqRxIZx+l8/QZj1rWAvb5G3CYxLftenNj37DZKdfbpzUnqbc4lA==",
-        "headers": {
-          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
-          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
-      },
-      {
-        "name": "Evento",
-        "url": "9RpluhUujV6VXfxaX9Ow7DXObh3U2KWVSN9ZlZzDnxp7bwGFrg/yNOy2C7ihA/sgeA68mr5iOZFf1cQ5VXzFmmpphcR9jjBAxbVSkxHT9SAVWDFvDQCwa5nrESherY/A",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp"
-      },
-      {
-        "name": "Evento b",
-        "url": "ZBjPLOQj+qWX7ZXjfZz/8RY7mOj2GzFkhr3xY+uZKvLRIVuBi3Nkggs1nL0l8w0+oC0p+1P4UdqzICnlxo5C0TL7ykFNOL3+zvlAH7gLv+aB0fSmw5OqYuX0CJ++u1RJ//JvESpVCa+zY1G3alzyFVfMdC+uhkX3ZsGfdsXbW9M=",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp",
-        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jV7OQItAAPEENlCUbMSjEVyRfB92BchlseFCR8NtxVYSVmSF0Cy59DHjzU8nsFNo+mUOk3xovBh6XXjPQzBtdm24sFiUb2l12eeehyjiQedlQ=="
-      },
-      {
-        "name": "🇵🇾 Evento 4",
-        "url": "LF+XZvF1z3P8JjpdMRedgr+W/yioLZaWzC3I1A165+m6KemEdhsHRwo9cLNp8fb171Jx7lS4GxJDy+prOXyxEA==",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "headers": {
-          "Origin": "pNHTWFJigdflTTIT7u8Gg1A7X9qb5jWddqyOTjeGUuU=",
-          "Referer": "pNHTWFJigdflTTIT7u8Gg/vY+DsuL5Gh72Q0+eUCYQU=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
-      },
-      {
-        "name": "Evento",
-        "url": "ntyhalo/5etYttSISjm/Nm1FqHody8Rihv08LhSoq45r3qHioCbyYYuBVUl127BIy3yW/G/KTVtyrCKhOWdkWuOrwxTIQio0GhPwKPI7saiXRRua9s9wFQ1ZfSoWc+xJ0bXpJAXUjCsqk8xteAkeHLDdeqYyFusmuFgyGl/hOg4=",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp",
-        "headers": {
-          "Origin": "k9yDPDcG6PyoBheMYtM1cLYYZ7cStC1BIaK6dafn7mA=",
-          "Referer": "k9yDPDcG6PyoBheMYtM1cNXDqbpaIp8Xbf9hjpvMXQg=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzCjcszzqJXp15TlBm+6ptFvZsmyjUagqir1SBIYTjIUF"
-        }
-      },
-      {
-        "name": "Moto GP",
-        "url": "LsX8RyncvVZ+/vBWJXrk1YXm5Fk9VIDVmyHiinbGHABtjuY1KKc157DxxjLLzZpAHoQ4sk4AI+IvPe1N/YhRkA==",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/69f7b43f604116.12378571.jpg"
-      },
-      {
-        "name": "Inter Miami",
-        "url": "t+9CkaLCxrLh/y7PaZyP9oPEh0QmIszRe9VpLooVN4M5ZxH+tBf72AD+Il7+cbMiDSNFZlCv9U7yZR/TdfxcZX5YMZxRZjRB9sPu2Kgb6h8=",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a03435223bef7.57313535.png",
-        "headers": {
-          "Origin": "v7Eafqf/M6nQMM0k98Rr0VXVJ+84pA5XAO8kMN5AECA=",
-          "Referer": "v7Eafqf/M6nQMM0k98Rr0VVJr/jxmWn++A2TboU63kU=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0J4x1p2KuVh90MsK3t65t94AKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
-      },
-      {
-        "name": "Paraguay vs Nicaragua",
-        "url": "jsieXNMDN1Df0+2hjIhVitQJVH0vveDpMccfygfBSY3EvopcaGniWletZi1IDujfW4mi6f7EdyLR3jJLOMW7OGKF2NXAFvvpml+Af7qKLtQ=",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a234a6720e175.97098990.png",
-        "headers": {
-          "Origin": "v7Eafqf/M6nQMM0k98Rr0VXVJ+84pA5XAO8kMN5AECA=",
-          "Referer": "v7Eafqf/M6nQMM0k98Rr0VVJr/jxmWn++A2TboU63kU=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFgXJSsIqWsbxT0LQfhGjSrz8vHQ8WgPCybzWh9wigzyQ="
-        }
-      },
-      {
-        "name": "🇵🇾 Paraguay vs Nicaragua",
-        "url": "PJGXwSn43gJeGD3vCN+I5NpM+y4n+cJzF9rBo7AedOAtXllvYBrGpFf+62TJ5BD7VnfO8ELgm029r4wMzqErDdr9letQucs6SK6JzNG8BjT+iV/9CRxEsyZ8GR0RN7u+MBvi1LhOT7c1vlD4v3NDTg==",
-        "type": "HLS",
-        "icono": "https://app.femon.net/tv/banners/6a23453ce55182.60036306.webp"
-      },
-      {
-        "name": "🇵🇾 Evento 1",
-        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB2lZ+OvqvzxVv5UIjwiHTI7jbYoYnkKRb1MxfTz+ZxHRdJXteqvvW0aPi+4JhylBdsCP8RcH2mayhXdXD9qAjtfoi2OHa1RSImgGymRHd+QbmRS5uG9Hj+ZExmEy/vcpc8=",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "",
-        "headers": {
-          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
-          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFAKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
-      },
-      {
-        "name": "🇵🇾 Evento 4",
-        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB2lZ+OvqvzxVv5UIjwiHTI7OkuxZjk4gJtKUxLCwJRuJNJXteqvvW0aPi+4JhylBdsCP8RcH2mayhXdXD9qAjtfoi2OHa1RSImgGymRHd+QbmRS5uG9Hj+ZExmEy/vcpc8=",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Evento 5",
-        "url": "LCi3xF5Z7MkI0xJkNeIwppzaJolBI+AHyMzeRq5fNCUvI2Ooz6bPdNis15rrK+gQ",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": ""
-      },
-      {
-        "name": "🇵🇾 Evento 6",
-        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB3OJ4DBpdYUnBKwVY0x+xNHzeBHza/4Pupd20LOoh3JVvZ3q4UWiqByZmnDeuYGMmt+q47KOIu8XbiRVBLbMnSHKjMjBhVoLSJs2gxjsTfopdVZazaztWuK7M47Q6XqQBQ=",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
-        "drm_license_uri": "",
-        "headers": {
-          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
-          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
-          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFAKjz2Jyt7kVe2uJi7Nu5Aw=="
-        }
+        "icono": "https://i.ibb.co/zVYvXY2H/Picsart-26-06-11-15-18-55-176.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=1710ac2bbfcd3032d0f6533850968f47&key=d2548dacc8efcd1cd0af0373060c82dc"
       }
     ]
   },
@@ -4980,14 +4733,267 @@
     ]
   },
   {
+    "name": "📺  EVENTOS EXCLUSIVOS",
+    "samples": [
+      {
+        "name": "🇵🇾 Intermedia 1",
+        "url": "https://lbgo.bozztv.com/ssh101/ssh101/locotigo/playlist.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
+      }
+    ],
+    "hidden_samples": [
+      {
+        "name": "Copa Rey",
+        "url": "lvN7qexV1HiBvEIyInmxQ2YSsjBQsSriVymgz5/TJpH2lulDLEkJk59C3mrcMgT6MGsqllSgjqsw6PqiunYxgLjSfEEjJXRm3bpDO5FsxW5dEC8R29f4uXTDMoiPSNvS",
+        "type": "CLEARKEY",
+        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69e2549f144f03.06847925.png",
+        "headers": {
+          "Origin": "Ssz8pUSwuOOXrjMOfMcImdy+LX7CsX/P4UH+7ungukk=",
+          "Referer": "Ssz8pUSwuOOXrjMOfMcImWRAe/eRUEh0ITdxUuT/jcw=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0J4x1p2KuVh90MsK3t65t94AKjz2Jyt7kVe2uJi7Nu5Aw=="
+        },
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jUeQGYNN/z8p3wnuLDdxnUwKuwUwPg9pVt6sfABlKCB8p4LhConGogaDwdeSy/urwBdcQDCl1dayy9wtTzcsXI9MlFrdVR3UI3Vp/J5kQkZOw=="
+      },
+      {
+        "name": "Flow Eventos",
+        "url": "lvN7qexV1HiBvEIyInmxQ2YSsjBQsSriVymgz5/TJpH9xNkjysCitJIW2xGFNQX8ToP26sJEfnkXwetO5AmXN8AgE5o1pgu8qb0gGu2ku559nOf1G1vAocxUsHLof2j+",
+        "type": "CLEARKEY",
+        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b7f40f802a34.47980743.png",
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jX2WnzBPGNPmdDMrj8WUFZlvTalQpEXW1n5bPIXrfLqYGMNhSbVN9QfswS8smHSRxV8+1hlbG7/OftCLbHc8UkinLLK/j1ehsOfHupyUxR1rw==",
+        "headers": {
+          "Origin": "Ssz8pUSwuOOXrjMOfMcImdy+LX7CsX/P4UH+7ungukk=",
+          "Referer": "Ssz8pUSwuOOXrjMOfMcImWRAe/eRUEh0ITdxUuT/jcw=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "Danz F1",
+        "url": "nGvn37BBKBz+wDFFBac/WIC7GenFUUw/lL41mlmpeT+EiW2PF8FTwjFxIZHYEqjQ",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/69f7b3c0c3ead9.74021794.png"
+      },
+      {
+        "name": "F1 TV",
+        "url": "sCcK9Cztupin/gbM86S2ed5st168xONGzY1divkJzRV1K1TV+RnsletykD2JfteBflgxnFFmNEH2w+7YqBvqHw==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/69f7b3f1a6a245.58245476.png"
+      },
+      {
+        "name": "Sky F1",
+        "url": "4QpEwfJaGjAQ41eaMO0qpusq6xxBR36HLmNdvRlqSd178frft3RaioWMn5FvrDC0+z1b5I1hGcmDC9BQx1vD1lfMdC+uhkX3ZsGfdsXbW9M=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/69f7b3a0372268.33632262.jpg",
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jXOCosVss+OAzrgPSY3A+QgIqLoXq3r/i+xEQxFrilgLHW+Z3uZt3CqljuSDH57mnyV0Y9UZN+cve3vkIO9zue2D27u/Ev5I8Z2qvYXAJvr6g=="
+      },
+      {
+        "name": "🇵🇾 Evento 3",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8cjHz+x4CY18HQXzwFjDgnvRheXQeEwuL6xK8NAFO5CClBqs+PW5w5cT8phXDymfIZfzWCyIsN3oG6laz96OWZ9jiQ3OwjuvkUdInvcLBAhH",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 3",
+        "url": "soCYdyTsWseV62TwZUDxNVz4y7STdiV11Qnhqx6aWMeQJWjQ0wi1l2da6LD/Knfs9XUgrhNbBFlCDDsFyC1zP0KiD1p5lrsUsU9XYDNKJcYyfLMGTlXRmJt5ha/am7Z4",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jWpsrZmyMj+UynD+y4OXcuk+hTJBC8kOGTuWji+Yb3wcvTW/BcW+M6sni3zqRxIZx+l8/QZj1rWAvb5G3CYxLftenNj37DZKdfbpzUnqbc4lA==",
+        "headers": {
+          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
+          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "Evento",
+        "url": "9RpluhUujV6VXfxaX9Ow7DXObh3U2KWVSN9ZlZzDnxp7bwGFrg/yNOy2C7ihA/sgeA68mr5iOZFf1cQ5VXzFmmpphcR9jjBAxbVSkxHT9SAVWDFvDQCwa5nrESherY/A",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp"
+      },
+      {
+        "name": "Evento b",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8RY7mOj2GzFkhr3xY+uZKvLRIVuBi3Nkggs1nL0l8w0+oC0p+1P4UdqzICnlxo5C0TL7ykFNOL3+zvlAH7gLv+aB0fSmw5OqYuX0CJ++u1RJ//JvESpVCa+zY1G3alzyFVfMdC+uhkX3ZsGfdsXbW9M=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp",
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jV7OQItAAPEENlCUbMSjEVyRfB92BchlseFCR8NtxVYSVmSF0Cy59DHjzU8nsFNo+mUOk3xovBh6XXjPQzBtdm24sFiUb2l12eeehyjiQedlQ=="
+      },
+      {
+        "name": "🇵🇾 Evento 4",
+        "url": "LF+XZvF1z3P8JjpdMRedgr+W/yioLZaWzC3I1A165+m6KemEdhsHRwo9cLNp8fb171Jx7lS4GxJDy+prOXyxEA==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "headers": {
+          "Origin": "pNHTWFJigdflTTIT7u8Gg1A7X9qb5jWddqyOTjeGUuU=",
+          "Referer": "pNHTWFJigdflTTIT7u8Gg/vY+DsuL5Gh72Q0+eUCYQU=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "Evento",
+        "url": "ntyhalo/5etYttSISjm/Nm1FqHody8Rihv08LhSoq45r3qHioCbyYYuBVUl127BIy3yW/G/KTVtyrCKhOWdkWuOrwxTIQio0GhPwKPI7saiXRRua9s9wFQ1ZfSoWc+xJ0bXpJAXUjCsqk8xteAkeHLDdeqYyFusmuFgyGl/hOg4=",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/69f7b4a43925e3.89026140.webp",
+        "headers": {
+          "Origin": "k9yDPDcG6PyoBheMYtM1cLYYZ7cStC1BIaK6dafn7mA=",
+          "Referer": "k9yDPDcG6PyoBheMYtM1cNXDqbpaIp8Xbf9hjpvMXQg=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzCjcszzqJXp15TlBm+6ptFvZsmyjUagqir1SBIYTjIUF"
+        }
+      },
+      {
+        "name": "Moto GP",
+        "url": "LsX8RyncvVZ+/vBWJXrk1YXm5Fk9VIDVmyHiinbGHABtjuY1KKc157DxxjLLzZpAHoQ4sk4AI+IvPe1N/YhRkA==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/69f7b43f604116.12378571.jpg"
+      },
+      {
+        "name": "Inter Miami",
+        "url": "t+9CkaLCxrLh/y7PaZyP9oPEh0QmIszRe9VpLooVN4M5ZxH+tBf72AD+Il7+cbMiDSNFZlCv9U7yZR/TdfxcZX5YMZxRZjRB9sPu2Kgb6h8=",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a03435223bef7.57313535.png",
+        "headers": {
+          "Origin": "v7Eafqf/M6nQMM0k98Rr0VXVJ+84pA5XAO8kMN5AECA=",
+          "Referer": "v7Eafqf/M6nQMM0k98Rr0VVJr/jxmWn++A2TboU63kU=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0J4x1p2KuVh90MsK3t65t94AKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "Paraguay vs Nicaragua",
+        "url": "jsieXNMDN1Df0+2hjIhVitQJVH0vveDpMccfygfBSY3EvopcaGniWletZi1IDujfW4mi6f7EdyLR3jJLOMW7OGKF2NXAFvvpml+Af7qKLtQ=",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a234a6720e175.97098990.png",
+        "headers": {
+          "Origin": "v7Eafqf/M6nQMM0k98Rr0VXVJ+84pA5XAO8kMN5AECA=",
+          "Referer": "v7Eafqf/M6nQMM0k98Rr0VVJr/jxmWn++A2TboU63kU=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFgXJSsIqWsbxT0LQfhGjSrz8vHQ8WgPCybzWh9wigzyQ="
+        }
+      },
+      {
+        "name": "🇵🇾 Paraguay vs Nicaragua",
+        "url": "PJGXwSn43gJeGD3vCN+I5NpM+y4n+cJzF9rBo7AedOAtXllvYBrGpFf+62TJ5BD7VnfO8ELgm029r4wMzqErDdr9letQucs6SK6JzNG8BjT+iV/9CRxEsyZ8GR0RN7u+MBvi1LhOT7c1vlD4v3NDTg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a23453ce55182.60036306.webp"
+      },
+      {
+        "name": "🇵🇾 Evento 1",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB2lZ+OvqvzxVv5UIjwiHTI7jbYoYnkKRb1MxfTz+ZxHRdJXteqvvW0aPi+4JhylBdsCP8RcH2mayhXdXD9qAjtfoi2OHa1RSImgGymRHd+QbmRS5uG9Hj+ZExmEy/vcpc8=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": "",
+        "headers": {
+          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
+          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "🇵🇾 Evento 4",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB2lZ+OvqvzxVv5UIjwiHTI7OkuxZjk4gJtKUxLCwJRuJNJXteqvvW0aPi+4JhylBdsCP8RcH2mayhXdXD9qAjtfoi2OHa1RSImgGymRHd+QbmRS5uG9Hj+ZExmEy/vcpc8=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 5",
+        "url": "LCi3xF5Z7MkI0xJkNeIwppzaJolBI+AHyMzeRq5fNCUvI2Ooz6bPdNis15rrK+gQ",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": ""
+      },
+      {
+        "name": "🇵🇾 Evento 6",
+        "url": "ZBjPLOQj+qWX7ZXjfZz/8Vnxp7pSJkwukRr7oUgyUB3OJ4DBpdYUnBKwVY0x+xNHzeBHza/4Pupd20LOoh3JVvZ3q4UWiqByZmnDeuYGMmt+q47KOIu8XbiRVBLbMnSHKjMjBhVoLSJs2gxjsTfopdVZazaztWuK7M47Q6XqQBQ=",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png",
+        "drm_license_uri": "",
+        "headers": {
+          "Origin": "0jBiMWIgKi5dX93cmmHQxuGTPWoqDGkZdOlUzUdbQY8=",
+          "Referer": "0jBiMWIgKi5dX93cmmHQxu9cOQNqT8hi9sKld9jZ2xI=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0JfyB3vvr1kHR9JtuSpUjkFAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      },
+      {
+        "name": "Nande Portetepe",
+        "url": "xLw1TEGsgnEUCpDQq2JSHBigvez8RyPZcQtmBvwXdgD/kLmPtUbmKfPHkWc2nWeN1JY/y90M8xGUcnI4ukiuQwhSYF+Bj0z+5xQuKMu5hT0=",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a03426523cad0.54725829.png"
+      },
+      {
+        "name": "⚽ Futbol 1",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaDwtLCmygq7cgbF6I+Ebz3u766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 2",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaDd5glugQL8AC0g6CgKI099766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 3",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaB6lHp4vbnIwtFBcopa5ymj766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 4",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaCvuspsgz8K+EgqTDub+mje766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 5",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaCRkI9GQMYM6g7GWzo7h+5L766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 6",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaCpcXP2m6ZysTqyHlDXaAyM766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 7",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaDFNL3KD/mekaJtCR1Li8TD766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 8",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaDjgaCQlzv1ldNcXpAeE4hK766H+4RfloAaSVzQUYDvJg==",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "⚽ Futbol 9",
+        "url": "cia6sqoiyCbxXIZZ1uRSUiZsFfieNz6RY67RePKSJaAU5ARRPEyTKA6Ltj+EtznOzhCEv3D/JPmzIMvCulPR+2KF2NXAFvvpml+Af7qKLtQ=",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "Brasileirao",
+        "url": "lvN7qexV1HiBvEIyInmxQ2YSsjBQsSriVymgz5/TJpH2lulDLEkJk59C3mrcMgT6MGsqllSgjqsw6PqiunYxgJg5596aXAaHFiHRx82qqNAOeWLpjc0pykdsZ0xNWzgG",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a03419730e575.60936161.png",
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jUeQGYNN/z8p3wnuLDdxnUwKuwUwPg9pVt6sfABlKCB8p4LhConGogaDwdeSy/urwBdcQDCl1dayy9wtTzcsXI9MlFrdVR3UI3Vp/J5kQkZOw==",
+        "headers": {
+          "Origin": "Ssz8pUSwuOOXrjMOfMcImdy+LX7CsX/P4UH+7ungukk=",
+          "Referer": "Ssz8pUSwuOOXrjMOfMcImWRAe/eRUEh0ITdxUuT/jcw=",
+          "User-Agent": "DWH2FHwBHn18qe4LzjVOzLxQ8skt4192tgRJAt6/EiTPowL9JVuRA1iw6OZXYRb6Gn7bR5vqbEOLbtv5/kFEDZoe3MZnY+hKP9kBATpwc0KaGaXyWuBqpwZroqSLdMPWAKjz2Jyt7kVe2uJi7Nu5Aw=="
+        }
+      }
+    ]
+  },
+  {
     "name": "CARPETA DE PRUEBAS",
     "samples": [
       {
         "name": "1",
-        "url": "https://ottb.live.cf.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/fdx74zqzhu/out/v1/7d7a8c6981a842b98a683e9fbfe51d17/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a0243b0d66033.65138043.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=9f327d24c66fbd84e15ab5c9ead7c7a4&key=83837185529c0c4048f81386c2d36426"
+        "url": "https://stream-xhd.com/live1.php?stream=tycsports",
+        "type": "WEBVIEW",
+        "icono": "https://app.femon.net/tv/banners/6a0243b0d66033.65138043.png"
       },
       {
         "name": "2",
