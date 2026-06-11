@@ -145,6 +145,68 @@
           "Referer": "https://portal.app.flow.com.py/",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
         }
+      },
+      {
+        "name": "VIX MUNDIAL 590",
+        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-90-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/1JQfXv7H/Picsart-26-06-10-22-34-47-607.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=75074a0cbd83f5b72fb3e5c1495252a9&key=a4a0df04b2d28f2160cead2ecdeb7203"
+      },
+      {
+        "name": "VIX MUNDIAL 591",
+        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-91-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/VpqqynNP/Picsart-26-06-10-22-34-20-290.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=11f486ca7df20d63ff3aaecf4d87d132&key=9271506950313bab2ced7522891aa022"
+      },
+      {
+        "name": "VIX MUNDIAL 592",
+        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-92-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/DDCpC84T/Picsart-26-06-10-22-54-30-928.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=784d6b54efe3a13dc1fbcda17e5804db&key=b4f4814e01943f910b62e6bfd0c23728"
+      },
+      {
+        "name": "VIX MUNDIAL 593",
+        "url": "https://live1-ott.izzigo.tv/7/out/u/dash/VIX-MUNDIAL-93-HD-H265/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/xtwmd1xT/Picsart-26-06-10-22-58-19-559.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=696435bb1f9b9387866e4d01ab969779&key=af4bbc01b4e6c0a14279e11451a3e474"
+      },
+      {
+        "name": "VIX MUNDIAL 594",
+        "url": "https://live1-ott.izzigo.tv/8/out/u/dash/VIX-MUNDIAL-94-HD-H265/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/xNg3DgC/Picsart-26-06-10-23-02-36-613.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=78535ece7acc58ad362346c7c2fa4cf5&key=9042221339d28d54428a3e7d0c34bd65"
+      },
+      {
+        "name": "VIX MUNDIAL 595",
+        "url": "https://live1-ott.izzigo.tv/8/out/u/dash/VIX-MUNDIAL-95-HD-H265/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/v4vD3P3w/Picsart-26-06-10-23-09-10-236.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=bfbf27d8a79f7734f720c3af6a63f5fe&key=d5fcf98fcee1bbdd44104f188d088335"
+      },
+      {
+        "name": "CAZÉ TV",
+        "url": "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/Caze_TV.m3u8",
+        "type": "HLS",
+        "icono": "https://i.postimg.cc/XJjjwygm/cazetv-logo-0-2048x2048-Easy-Resize-com-(1).jpg"
+      },
+      {
+        "name": "CAZÉ TV 4K",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/3ynrpdanq2/out/v1/81fd4c26584044d2b1a1cc5b32fa9af0/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/MkQLZw3G/Picsart-26-06-10-23-19-14-029.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=34475edab991ad5e92548aebd710410a&key=501b209cccd323ac00bf5ac15b406cb4"
+      },
+      {
+        "name": "Sportv Mundial FHD",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/m7duvnk2bu/out/v1/d1ad69118b5647309b1eb7213affdb3d/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/s9v0mW7j/Picsart-26-06-09-23-00-55-307.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=4bbcff3289d457b4dd5dbdd21221de9a&key=c4906b9a9f8dda3c0725bddb8c497733"
       }
     ]
   },
@@ -2338,6 +2400,17 @@
         "url": "https://9a81dd4ee3884d0dbcacafaf0d81327a.mediatailor.us-east-1.amazonaws.com/v1/master/04fd913bb278d8775298c26fdca9d9841f37601f/RakutenTV-eu_BilliardsTV/playlist.m3u8",
         "type": "HLS",
         "icono": "https://images-3.rakuten.tv/storage/global-live-channel/translation/artwork/80af06f2-a12e-4406-bd13-b932fd69fffe.png"
+      }
+    ]
+  },
+  {
+    "name": "🎾🏓DEPORTES, TENNIS, PADEL, NBA, GOLF🏌‍♀️",
+    "samples": [
+      {
+        "name": "PÁDEL",
+        "url": "https://d1zpoa0s0okzmu.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-h7omeoyf2i8uy/live/fast-channel-mypadeltv-c792478d/fast-channel-mypadeltv-c792478d.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/tTNgm6VM/Picsart-26-04-16-19-19-31-547.png"
       }
     ]
   },
