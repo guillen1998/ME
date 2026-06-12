@@ -2311,35 +2311,70 @@
     ]
   },
   {
-    "name": "📺  TNT SPORTS REINO UNIDO",
+    "name": "📺  TNT UK 🇬🇧 Y TSN🇨🇦",
     "samples": [
       {
         "name": "TNT 1",
-        "url": "https://netskrt.live.pv-cdn.net/OTTB/lhr-nitro/live/clients/dash/enc/cllekigzzn/out/v1/bd3b0c314fff4bb1ab4693358f3cd2d3/cenc.mpd",
+        "url": "https://otte-qw.live.pv-cdn.net/bom-nitro/live/clients/dash/enc/vaplpo3app/out/v1/49b4d538ec854efa90d45084866cf7f9/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b33112d83cd1.59004431.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=294b5761cefc22d0c6312939e13d8278&key=52148f1042d238849f0a7813f1da8a7b"
+        "icono": "https://i.ibb.co/SwXXJGVM/Imagen.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=d14658a0ede94debcb4013b2056ba6d1&key=60838a3176127fed0eaf038a5575de11"
       },
       {
         "name": "TNT 2",
-        "url": "https://netskrt.live.pv-cdn.net/OTTB/lhr-nitro/live/clients/dash/enc/fb6jy4pxts/out/v1/f8fa17f087564f51aa4d5c700be43ec4/cenc.mpd",
+        "url": "https://otte-qw.live.pv-cdn.net/fra-nitro/live/clients/dash/enc/3j04z3pbit/out/v1/042ee0757ed348bf8c26f75895cae871/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b331367a5487.94890467.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=f288380ca4cef9ad3f27a92a08e9bb8b&key=9f18d26291d9230833501f7f822f6875"
+        "icono": "https://i.ibb.co/SwXXJGVM/Imagen.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=0b59ce06de74ed84f2eda5e81dadba13&key=48e4ba4ad6c2a60d2bda5d71a0050844"
       },
       {
         "name": "TNT 3",
-        "url": "https://netskrt.live.pv-cdn.net/OTTB/lhr-nitro/live/clients/dash/enc/5sxuux529k/out/v1/bb548a3626cd4708afbb94a58d71dce9/cenc.mpd",
+        "url": "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/2szrn2y3ep/out/v1/eacd8a4207dc4f0d9661a4b085b8fdd9/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b3314d976b64.69462235.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=1d96ab366bbe6451edf7407b58e2fa16&key=0116201f4a63ac5bf5787d2c610c41a7"
+        "icono": "https://i.ibb.co/SwXXJGVM/Imagen.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=12413e2c2855cfc59ce0fe6b20cc71ca&key=08d55a8f5fc93a9375f9b0cb2e1739ca"
       },
       {
         "name": "TNT 4",
-        "url": "https://netskrt.live.pv-cdn.net/OTTB/lhr-nitro/live/clients/dash/enc/pnu10tp36z/out/v1/912e9db56d75403b8a9ac0a719110f36/cenc.mpd",
+        "url": "https://otte-qw.live.pv-cdn.net/fra-nitro/live/clients/dash/enc/65ldy4ejuu/out/v1/69bc6b64f1c14e36bb21e0075a71d8ca/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69b33169c46408.04473639.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=192b1115da041585c77200128549efa1&key=634e10efe4abbb14be400a3ccbac0258"
+        "icono": "https://i.ibb.co/SwXXJGVM/Imagen.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=570c19f1be3410e4e409be4dc7923f2b&key=9a4dea8af2a2a703dffa8a477e9edc50"
+      },
+      {
+        "name": "TSN 1",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/7janu55dwc/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://m.media-amazon.com/images/G/01/LCXO_Station_Logos/TSN1White16x9._SL480_FMpng_.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=e51aa21f2a0fef9aabc120dfb655b52f&key=a12a987fe725a40b6be95cd84b15f689"
+      },
+      {
+        "name": "TSN 2",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/3n6slkgh54/out/v1/8977baf175da4b94873194613dd3fe55/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://m.media-amazon.com/images/G/01/LCXO_Station_Logos/TSN2White16x9._SL480_FMpng_.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=daa8ea92553fd16cd6bfae2b8c582715&key=4042e041b5639b79b69ae07a872eef9b"
+      },
+      {
+        "name": "TSN 3",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/lzhmuzmjsl/out/v1/c171eeb214c749f2b351c79df317b21e/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://m.media-amazon.com/images/G/01/LCXO_Station_Logos/TSN3White16x9._SL480_FMpng_.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=f5c2b30eac11be1e8cdfc9585f5fe6af&key=a8198d17bf9b0da77450fbb919a38b2d"
+      },
+      {
+        "name": "TSN 4",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/h9urpo3cwb/out/v1/fde190f369484bc6b6117cc16cd82a9f/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://m.media-amazon.com/images/G/01/LCXO_Station_Logos/TSN4White16x9._SL480_FMpng_.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=c4088f5f265f9de50cffd80bf89308b7&key=2c4d2239d96d532b4ec2050653611003"
+      },
+      {
+        "name": "TSN 5",
+        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/jkcljgqbx8/out/v1/63bfa701559340f3a2a2cb1fccd24807/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://m.media-amazon.com/images/G/01/LCXO_Station_Logos/TSN5White16x9._SL480_FMpng_.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=e853333da2c9196ea11374634231bc45&key=de2e2dbe818d78dfad07d6cd9a4c63d4"
       }
     ]
   },
@@ -2529,7 +2564,7 @@
     ]
   },
   {
-    "name": "HBO IZZIGO FHD",
+    "name": "📺HBO IZZIGO FHD",
     "samples": [
       {
         "name": "HBO MULTICAMARA",
@@ -2546,11 +2581,53 @@
         "drm_license_uri": "https://results.femon.net/?keyid=e5e43e324b6cd33b92c9ac8c398bb3c8&key=c8c7f804f0ecfc8fc0d53dff48d7ece1"
       },
       {
+        "name": "HBO 2",
+        "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-2-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/3W8bTfN/f94c94499c9807fa63343feb1623a250.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=09e84fc7ecb71def143cd7e2771f3b35&key=1a91f2d315fb0593321ba60aa783ec2c"
+      },
+      {
+        "name": "HBO MUNDI",
+        "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-MUNDI-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/9sFvgPb/HBO-MUNDI.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=ba4052ca5eb6f8ff6b98d47d098b2dec&key=bb3e4bfa1821d2bdc25c9a0970e4e3b8"
+      },
+      {
+        "name": "HBO PLUS",
+        "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-PLUS-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://upload.wikimedia.org/wikipedia/commons/3/3d/HBO_Plus.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=861ab989089891d84ad0da296954437c&key=3bdf94f9fc1888529f8d27d070d38566"
+      },
+      {
         "name": "HBO FAMILY",
         "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-FAMILY-HD/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/ynkwLW3/hbofam.webp",
         "drm_license_uri": "https://results.femon.net/?keyid=3b1b15c86e64344e8802b06b806957c5&key=114983add26911b589595d931b505ca5"
+      },
+      {
+        "name": "HBO POP",
+        "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-POP-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://www.celda.com.ar/wp-content/themes/celda/common/image.php?image=https://www.celda.com.ar/wp-content/uploads/2020/11/0000_all_l_hboall-HBO-POP-Black.png&width=400&height=400&cropratio=false",
+        "drm_license_uri": "https://results.femon.net/?keyid=861ab989089891d84ad0da296954437c&key=3bdf94f9fc1888529f8d27d070d38566"
+      },
+      {
+        "name": "HBO SIGNATURE",
+        "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-SIGNATURE-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/kJVwNbQ/hbosig.webp",
+        "drm_license_uri": "https://results.femon.net/?keyid=5782156290f035ef28ae66cca252eedd&key=10d8bb6d9f9852747298487ab3c4afa3"
+      },
+      {
+        "name": "HBO XTREME",
+        "url": "https://nog-live1-ott.izzigo.tv/15/out/u/dash/HBO-XTREME-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/xG6HY4G/30.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=bc8d4369fcff86db765db82356b4797c&key=8a7e801dbc275e3f4e1f43cba648906a"
       }
     ]
   },
