@@ -169,24 +169,24 @@
       },
       {
         "name": "VIX MUNDIAL 593",
-        "url": "https://live1-ott.izzigo.tv/7/out/u/dash/VIX-MUNDIAL-93-HD-H265/default.mpd",
+        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-93-HD/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/xtwmd1xT/Picsart-26-06-10-22-58-19-559.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=696435bb1f9b9387866e4d01ab969779&key=af4bbc01b4e6c0a14279e11451a3e474"
+        "drm_license_uri": "https://results.femon.net/?keyid=7ee1a23e40b456ebfdaa40c51a24b857&key=45ffaff5f3221a356c82c3d39bb327ac"
       },
       {
         "name": "VIX MUNDIAL 594",
-        "url": "https://live1-ott.izzigo.tv/8/out/u/dash/VIX-MUNDIAL-94-HD-H265/default.mpd",
+        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-94-HD/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/xNg3DgC/Picsart-26-06-10-23-02-36-613.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=78535ece7acc58ad362346c7c2fa4cf5&key=9042221339d28d54428a3e7d0c34bd65"
+        "drm_license_uri": "https://results.femon.net/?keyid=8b0dd1c5b5812460479ac94af4ff061d&key=fc5a0c78cf2ad8bb3636e01150553427"
       },
       {
         "name": "VIX MUNDIAL 595",
-        "url": "https://live1-ott.izzigo.tv/8/out/u/dash/VIX-MUNDIAL-95-HD-H265/default.mpd",
+        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-95-HD/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/v4vD3P3w/Picsart-26-06-10-23-09-10-236.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=bfbf27d8a79f7734f720c3af6a63f5fe&key=d5fcf98fcee1bbdd44104f188d088335"
+        "drm_license_uri": "https://results.femon.net/?keyid=9696c2f12e487aafe1dc96d16d0db658&key=159fd5dc3b0d9e0d75f856e95e225801"
       },
       {
         "name": "CAZÉ TV",
@@ -5127,6 +5127,23 @@
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0243b0d66033.65138043.png",
         "drm_license_uri": "https://results.femon.net/?keyid=f62e93559765dfa6a89d2842b2b6d64a&key=9f6a8cf0bcb1d17ce79ea93d0d9c3d83"
+      }
+    ]
+  },
+  {
+    "name": "Disney+ Eventos",
+    "samples": [
+      {
+        "name": "Disney 1",
+        "url": "https://stream-xhd.com/live1.php?stream=disney1",
+        "type": "WEBVIEW",
+        "icono": "https://app.femon.net/tv/banners/69fe7761564133.99423369.jpg"
+      },
+      {
+        "name": "Disney 2",
+        "url": "https://stream-xhd.com/live1.php?stream=disney2",
+        "type": "WEBVIEW",
+        "icono": "https://app.femon.net/tv/banners/69fe7761564133.99423369.jpg"
       }
     ]
   }
