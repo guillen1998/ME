@@ -2199,7 +2199,7 @@
       },
       {
         "name": "Sky sport F1 Eventos",
-        "url": "https://aca-live4-ott.izzigo.tv/8/out/u/dash/F1-HD-H265/default.mpd",
+        "url": "https://nog-live1-ott.izzigo.tv/8/out/u/dash/F1-HD-H265/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/8LvjWhTL/Sky-Sports-F1-2020-DOG-1.webp",
         "drm_license_uri": "https://results.femon.net/?keyid=ae7f16191e2adfaacd9b536ed58a298a&key=3319b3ca5cd6f0af2f3d4bd9a7630a8b"
@@ -4201,16 +4201,17 @@
       },
       {
         "name": "La Liga",
-        "url": "https://zap-live4-ott.izzigo.tv/12/out/u/dash/SKY-SPORTS-16-HD/default.mpd",
+        "url": "https://vod-cua-orbit2-s2.izzigo.tv/out/u/startover/dash/SKYSPORTS16HD/default.mpd",
         "type": "CLEARKEY",
-        "drm_license_uri": "https://results.femon.net/?keyid=cb80e1e7d7598eaf98b1dbbe6dc14ee9&key=103ae55c7948ca1d159d6743619d26c4",
+        "drm_license_uri": "https://results.femon.net/?keyid=55b3fc9e698876b1c299358de6e0a332&key=e541c87b83ce28e68d785b8129b74217",
         "icono": "https://banners.femon.net/banners/6978fe95575156.13141884.png"
       },
       {
-        "name": "La Liga",
-        "url": "http://190.83.9.222:8000/play/ca090/index.m3u8",
-        "type": "HLS",
-        "icono": "https://banners.femon.net/banners/6978fe95575156.13141884.png"
+        "name": "La Liga H265",
+        "url": "https://hfc-tlx-live-atv-cdn.izzigo.tv/8/out/u/dash/SKY-SPORTS-24-HD-H265/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://banners.femon.net/banners/6978fe95575156.13141884.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=5494e422f215a993ba5da713a010682d&key=5259e63611ef21b26d5078b3469bdd10"
       },
       {
         "name": "Padel",
@@ -4218,6 +4219,12 @@
         "type": "CLEARKEY",
         "drm_license_uri": "https://results.femon.net/?keyid=8d7cb8fbc81cf3eddf8ebb5db5e11282&key=b7a98812ab8d8974649a6ec420c013e1",
         "icono": "https://banners.femon.net/banners/6978fe95575156.13141884.png"
+      },
+      {
+        "name": "FOX ONE",
+        "url": "https://amg00733-tubi-amg00733c2-tubi-us-8155.playouts.now.amagi.tv/playlist.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/zqmBgKr/Picsart-26-04-15-12-47-40-810.png"
       }
     ]
   },
@@ -4275,10 +4282,10 @@
       },
       {
         "name": "Sky Bundesliga",
-        "url": "https://zap-live4-ott.izzigo.tv/15/out/u/dash/SKY-SPORTS-24-HD/default.mpd",
+        "url": "https://hfc-tlx-live-atv-cdn.izzigo.tv/8/out/u/dash/SKY-SPORTS-24-HD-H265/default.mpd",
         "type": "CLEARKEY",
         "icono": "http://217.216.92.124/superadmin/paneltv/banners/69ab33b058eb99.62828447.jpg",
-        "drm_license_uri": "https://results.femon.net/?keyid=d8d5823d92a9ef9306a4cc4bd634b4b4&key=df9fbdaa0ef9e905b75f4692f213af19"
+        "drm_license_uri": "https://results.femon.net/?keyid=5494e422f215a993ba5da713a010682d&key=5259e63611ef21b26d5078b3469bdd10"
       },
       {
         "name": "Sky La Liga",
