@@ -214,6 +214,20 @@
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/zVYvXY2H/Picsart-26-06-11-15-18-55-176.png",
         "drm_license_uri": "https://results.femon.net/?keyid=1710ac2bbfcd3032d0f6533850968f47&key=d2548dacc8efcd1cd0af0373060c82dc"
+      },
+      {
+        "name": "TELEMUNDO MUNDIAL",
+        "url": "http://cun-live1-ott.izzigo.tv/out/u/dash/NOG1/TELEMUNDO-ARIZONA-USA-TCS-HD/default.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/Z1xqKrcH/052926-wc-logo.webp",
+        "drm_license_uri": "https://results.femon.net/?keyid=1efe4add8fdf327c5f8d2a1c195e5c71&key=4f50e6f011e60ca01ee561f27187e78f"
+      },
+      {
+        "name": "FOX SPORT FIFA",
+        "url": "https://abgfgo7aaaaaaaammo4qlji7ci5df.ta.bia-cf.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/ap5wz1ofsp/out/v1/7fa6feef143747beaa186ebb6dfb2532/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/xcJ5b5P/fox-world-cup-2026.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=c620c93c60c04999eb9ddc28ecfb70a8&key=e76a709c251313190e76cb3c3d3a5824"
       }
     ]
   },
@@ -5127,23 +5141,6 @@
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0243b0d66033.65138043.png",
         "drm_license_uri": "https://results.femon.net/?keyid=f62e93559765dfa6a89d2842b2b6d64a&key=9f6a8cf0bcb1d17ce79ea93d0d9c3d83"
-      }
-    ]
-  },
-  {
-    "name": "Disney+ Eventos",
-    "samples": [
-      {
-        "name": "Disney 1",
-        "url": "https://stream-xhd.com/live1.php?stream=disney1",
-        "type": "WEBVIEW",
-        "icono": "https://app.femon.net/tv/banners/69fe7761564133.99423369.jpg"
-      },
-      {
-        "name": "Disney 2",
-        "url": "https://stream-xhd.com/live1.php?stream=disney2",
-        "type": "WEBVIEW",
-        "icono": "https://app.femon.net/tv/banners/69fe7761564133.99423369.jpg"
       }
     ]
   }
