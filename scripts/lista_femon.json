@@ -88,15 +88,10 @@
       },
       {
         "name": "DSPORTS 1",
-        "url": "https://chromecast.cvattv.com.ar/live/c3eds/DSports_1/SA_Live_dash_enc/DSports_1.mpd",
+        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash-sd/enc/hubonmgf5k/out/v1/10560d92577e4917973aa4624124ecd6/cenc-sd.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=4db80473af2ed318c41d879f2822203e&key=d30f94e60344adf0f4b242a5952575ad",
-        "headers": {
-          "Origin": "https://portal.app.flow.com.py",
-          "Referer": "https://portal.app.flow.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-        }
+        "drm_license_uri": "https://results.femon.net/?keyid=45bbd582f220f438f896450d8306a3f2&key=582c6ba7f64bbc0f2d91c6b0c265760c"
       },
       {
         "name": "DSPORTS 2",
@@ -224,10 +219,17 @@
       },
       {
         "name": "FOX SPORT FIFA",
-        "url": "https://abgfgo7aaaaaaaammo4qlji7ci5df.ta.bia-cf.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/ap5wz1ofsp/out/v1/7fa6feef143747beaa186ebb6dfb2532/cenc.mpd",
+        "url": "https://otte-tim.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/xcJ5b5P/fox-world-cup-2026.jpg",
-        "drm_license_uri": "https://results.femon.net/?keyid=c620c93c60c04999eb9ddc28ecfb70a8&key=e76a709c251313190e76cb3c3d3a5824"
+        "drm_license_uri": "https://results.femon.net/?keyid=f6564ec2aee819046328a0e153be574d&key=ff46a8a1031eb27ef22576a077c98ab7"
+      },
+      {
+        "name": "LA 1 MUNDIAL",
+        "url": "https://otte.live.fly.ww.aiv-cdn.net/lhr-nitro/live/clients/dash/enc/62qdkefv9f/out/v1/f7d5b356e048494a8325563e8916d50b/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/DHSH2L0y/Logo-La-1-UHD-2024.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=fd86dde0ae3e14ff51c8fc8f248a50db&key=d106ae78b0893da2e4393ece99420baa"
       }
     ]
   },
@@ -2199,6 +2201,12 @@
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/yng2Hm6r/golf.png",
         "drm_license_uri": "https://results.femon.net/?keyid=bd45f6a37a3887044bac88a63e55b70e&key=2dff34fba01dd53d0a37dc913bb9ba51"
+      },
+      {
+        "name": "NBA FINAL",
+        "url": "https://tvorb.net/ZTV/9071-live.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/spNmkz0t/DATE-Tune-in-Who-Will-Win-Finals-26-NYK-SAS-16x9-YTThumbnail-1.jpg"
       }
     ]
   },
@@ -2357,10 +2365,10 @@
       },
       {
         "name": "TSN 1",
-        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/7janu55dwc/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd",
+        "url": "https://otte-tim.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/aezp9y6l15/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://m.media-amazon.com/images/G/01/LCXO_Station_Logos/TSN1White16x9._SL480_FMpng_.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=e51aa21f2a0fef9aabc120dfb655b52f&key=a12a987fe725a40b6be95cd84b15f689"
+        "drm_license_uri": "https://results.femon.net/?keyid=7b37e4614fcee2ec2ff6e5900c2f798f&key=f349a9c28c55c20b9a2c50af99d1fc76"
       },
       {
         "name": "TSN 2",
