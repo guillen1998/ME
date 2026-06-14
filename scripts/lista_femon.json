@@ -230,6 +230,12 @@
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/DHSH2L0y/Logo-La-1-UHD-2024.jpg",
         "drm_license_uri": "https://results.femon.net/?keyid=fd86dde0ae3e14ff51c8fc8f248a50db&key=d106ae78b0893da2e4393ece99420baa"
+      },
+      {
+        "name": "MUNDIAL 4K",
+        "url": "https://ncdn.telewebion.ir/faratar/live/playlist.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/CsngGzDW/Picsart-26-06-13-18-39-17-851.png"
       }
     ]
   },
@@ -2294,6 +2300,13 @@
   {
     "name": "🥋DEPORTES DE COMBATES🥊",
     "samples": [
+      {
+        "name": "UFC 250 Ilia 21:00hs Topuria vs Justin Gaethje",
+        "url": "https://otte-qw.live.pv-cdn.net/bom-nitro/live/clients/dash/enc/vaplpo3app/out/v1/49b4d538ec854efa90d45084866cf7f9/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/ZpNCVm5Z/2j86cwe2sllf1.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=d14658a0ede94debcb4013b2056ba6d1&key=60838a3176127fed0eaf038a5575de11"
+      },
       {
         "name": "UFC",
         "url": "https://dbrb49pjoymg4.cloudfront.net/10001/99951134/hls/playlist.m3u8?ads.xumo_channelId=99951134",
