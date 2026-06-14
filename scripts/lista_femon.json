@@ -88,10 +88,10 @@
       },
       {
         "name": "DSPORTS 1",
-        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash-sd/enc/hubonmgf5k/out/v1/10560d92577e4917973aa4624124ecd6/cenc-sd.mpd",
+        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=45bbd582f220f438f896450d8306a3f2&key=582c6ba7f64bbc0f2d91c6b0c265760c"
+        "drm_license_uri": "https://results.femon.net/?keyid=4f4c3a9912ea752e88f4497864a1bc8b&key=278128004fe8c6ffb2cd2a0c154a241a"
       },
       {
         "name": "DSPORTS 2",
@@ -218,7 +218,7 @@
         "drm_license_uri": "https://results.femon.net/?keyid=1efe4add8fdf327c5f8d2a1c195e5c71&key=4f50e6f011e60ca01ee561f27187e78f"
       },
       {
-        "name": "FOX SPORT FIFA",
+        "name": "FOX ONE MUNDIAL 4K",
         "url": "https://otte-tim.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/xcJ5b5P/fox-world-cup-2026.jpg",
