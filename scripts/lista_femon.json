@@ -88,17 +88,22 @@
       },
       {
         "name": "DSPORTS 1",
-        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd",
+        "url": "https://chromecast.cvattv.com.ar/live/c3eds/DSports_1/SA_Live_dash_enc/DSports_1.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=4f4c3a9912ea752e88f4497864a1bc8b&key=278128004fe8c6ffb2cd2a0c154a241a"
+        "drm_license_uri": "https://results.femon.net/?keyid=4db80473af2ed318c41d879f2822203e&key=d30f94e60344adf0f4b242a5952575ad",
+        "headers": {
+          "origin": "https://portal.app.flow.com.py",
+          "Referer": "https://portal.app.flow.com.py/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
       },
       {
-        "name": "DSPORTS 2",
-        "url": "https://chromecast.cvattv.com.ar/live/c3eds/DSports_2/SA_Live_dash_enc/DSports_2.mpd",
+        "name": "DSPORTS +",
+        "url": "https://chromecast.cvattv.com.ar/live/c7eds/Dsports_Plus_UY/SA_Live_dash_cenc/Dsports_Plus_UY.mpd",
         "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a27a1611e4155.61879396.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=0dd493fa74640442abd75139b67307d6&key=31cf4295392d939a97f3b60ebf1ceb44",
+        "icono": "https://i.ibb.co/bMjfdskt/Picsart-26-06-15-14-38-43-141.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=517d3690fb9e64f95a9272958a84df32&key=b563bc52ea05c1e7002a996f688b08b9",
         "headers": {
           "Origin": "https://portal.app.flow.com.py",
           "Referer": "https://portal.app.flow.com.py/",
