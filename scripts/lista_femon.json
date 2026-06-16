@@ -4384,6 +4384,17 @@
     "name": "📺  BRASIL",
     "samples": [
       {
+        "name": "SBT",
+        "url": "https://video05.logicahost.com.br/tvguajara/tvguajara/playlist.m3u8",
+        "type": "HLS",
+        "icono": "https://api.reidoscanais.ooo/img/sbt.png",
+        "headers": {
+          "Origin": "https://tvacabo.top/player.html?url=https://aovivo.maissbt.com/indexMobile.m3u8",
+          "Referer": "https://tvacabo.top/player.html?url=https://aovivo.maissbt.com/indexMobile.m3u8/",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+        }
+      },
+      {
         "name": "New Brasil",
         "url": "https://chromecast.cvattv.com.ar/live/c7eds/Bandeirantes/SA_Live_dash_enc/Bandeirantes.mpd",
         "type": "CLEARKEY",
@@ -4576,17 +4587,6 @@
         "url": "https://tv02.zas.media:1936/rbatv/rbatv/playlist.m3u8",
         "type": "HLS",
         "icono": "https://banners.femon.net/banners/69791ad6715883.06846578.png"
-      },
-      {
-        "name": "SBT",
-        "url": "https://video05.logicahost.com.br/tvguajara/tvguajara/playlist.m3u8",
-        "type": "HLS",
-        "icono": "https://api.reidoscanais.ooo/img/sbt.png",
-        "headers": {
-          "Origin": "https://tvacabo.top/player.html?url=https://aovivo.maissbt.com/indexMobile.m3u8",
-          "Referer": "https://tvacabo.top/player.html?url=https://aovivo.maissbt.com/indexMobile.m3u8/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-        }
       }
     ]
   },
