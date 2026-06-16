@@ -249,9 +249,15 @@
       },
       {
         "name": "MUNDIAL 4K",
-        "url": "https://ncdn.telewebion.ir/faratar/live/playlist.m3u8",
+        "url": "https://lbgo.bozztv.com/ssh101/ssh101/manuel2703/chunks.m3u8",
         "type": "HLS",
         "icono": "https://i.ibb.co/CsngGzDW/Picsart-26-06-13-18-39-17-851.png"
+      },
+      {
+        "name": "FS1 4K MUNDIAL",
+        "url": "https://live-aburayhan1110.telewebion.ir/ek/faratar/live/2160p/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/YFQsgMyn/1781635407452.png"
       }
     ]
   },
@@ -2317,18 +2323,23 @@
     "name": "🥋DEPORTES DE COMBATES🥊",
     "samples": [
       {
-        "name": "UFC 250 Ilia 21:00hs Topuria vs Justin Gaethje",
-        "url": "https://otte-qw.live.pv-cdn.net/bom-nitro/live/clients/dash/enc/vaplpo3app/out/v1/49b4d538ec854efa90d45084866cf7f9/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://i.ibb.co/ZpNCVm5Z/2j86cwe2sllf1.jpg",
-        "drm_license_uri": "https://results.femon.net/?keyid=d14658a0ede94debcb4013b2056ba6d1&key=60838a3176127fed0eaf038a5575de11"
+        "name": "UFC EVENTOS 1",
+        "url": "https://prope04b7009.airspace-cdn.cbsivideo.com/stream_1/manifest.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/gZWR26v7/Picsart-26-06-16-16-14-24-688.png"
       },
       {
-        "name": "UFC",
-        "url": "https://a122aivottlinear-a.akamaihd.net/OTTB/syd-nitro/live/clients/dash/enc/8mxwjnh2te/out/v1/356704796c0c4bed81f67cd3518d0c8a/cenc.mpd",
+        "name": "UFC EVENTOS MULTICAMARA",
+        "url": "https://prope1726e4e.airspace-cdn.cbsivideo.com/stream_1/manifest.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/gZWR26v7/Picsart-26-06-16-16-14-24-688.png"
+      },
+      {
+        "name": "UFC EVENTOS 3",
+        "url": "https://otte-qw.live.pv-cdn.net/bom-nitro/live/clients/dash/enc/vaplpo3app/out/v1/49b4d538ec854efa90d45084866cf7f9/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "https://i.ibb.co/67T1kgch/uffc.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=a49085f8da5e65af1efff0edac830b1f&key=4659bc58a85c062e3fe0c039a446fe47"
+        "icono": "https://i.ibb.co/gZWR26v7/Picsart-26-06-16-16-14-24-688.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=d14658a0ede94debcb4013b2056ba6d1&key=60838a3176127fed0eaf038a5575de11"
       },
       {
         "name": "HBO BOXEO",
