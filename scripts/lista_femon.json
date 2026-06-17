@@ -221,10 +221,10 @@
       },
       {
         "name": "Sportv Mundial FHD",
-        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/m7duvnk2bu/out/v1/d1ad69118b5647309b1eb7213affdb3d/cenc.mpd",
+        "url": "https://live-pv-ta.amazon.fastly-edge.com/gru-nitro/live/clients/dash/enc/tvezxbddeg/out/v1/3aa321e477504937a439b602e078eb18/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/s9v0mW7j/Picsart-26-06-09-23-00-55-307.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=4bbcff3289d457b4dd5dbdd21221de9a&key=c4906b9a9f8dda3c0725bddb8c497733"
+        "drm_license_uri": "https://results.femon.net/?keyid=cb5eaea6d91fc8a702f154cefd69c976&key=fd4b69623da596aac100e5722d8a1ca0"
       },
       {
         "name": "VIX TUDN MUNDIAL",
@@ -2236,6 +2236,13 @@
         "url": "https://tvorb.net/ZTV/9071-live.m3u8",
         "type": "HLS",
         "icono": "https://i.ibb.co/spNmkz0t/DATE-Tune-in-Who-Will-Win-Finals-26-NYK-SAS-16x9-YTThumbnail-1.jpg"
+      },
+      {
+        "name": "SKY GOLF",
+        "url": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_golf_hd/dash/sky_sport_golf_hd.mpd",
+        "type": "CLEARKEY",
+        "icono": "",
+        "drm_license_uri": "https://results.femon.net/?keyid=e571f67594c530f8a4b861ca41004a4f&key=9156d299e8ced2f112ab58706a8bf5b2"
       }
     ]
   },
@@ -4289,6 +4296,13 @@
         "url": "https://amg00733-tubi-amg00733c2-tubi-us-8155.playouts.now.amagi.tv/playlist.m3u8",
         "type": "HLS",
         "icono": "https://i.ibb.co/zqmBgKr/Picsart-26-04-15-12-47-40-810.png"
+      },
+      {
+        "name": "CANAL 5",
+        "url": "https://live-pv-ta.amazon.fastly-edge.com/iad-nitro/live/clients/dash/enc/ntkdl68eob/out/v1/bd5dfb7676994383881bc6e71877d29d/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "",
+        "drm_license_uri": "https://results.femon.net/?keyid=d695093ea3e66d75a4d213a3e2cbf360&key=01be3f645e89a067d2786c295f68dde4"
       }
     ]
   },
@@ -4509,10 +4523,10 @@
       },
       {
         "name": "Sportv 1",
-        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/m7duvnk2bu/out/v1/d1ad69118b5647309b1eb7213affdb3d/cenc.mpd",
+        "url": "https://live-pv-ta.amazon.fastly-edge.com/gru-nitro/live/clients/dash/enc/tvezxbddeg/out/v1/3aa321e477504937a439b602e078eb18/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "http://217.216.92.124/superadmin/paneltv/banners/69d155e5bdf0c2.55508908.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=4bbcff3289d457b4dd5dbdd21221de9a&key=c4906b9a9f8dda3c0725bddb8c497733"
+        "drm_license_uri": "https://results.femon.net/?keyid=cb5eaea6d91fc8a702f154cefd69c976&key=fd4b69623da596aac100e5722d8a1ca0"
       },
       {
         "name": "Sportv 2",
