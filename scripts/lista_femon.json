@@ -15,6 +15,12 @@
         }
       },
       {
+        "name": "GEN OPC 2",
+        "url": "http://24.152.42.29:8000/play/a02f/index.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a26f4478855a0.67866492.png"
+      },
+      {
         "name": "CAMARA JUGADOR",
         "url": "https://edge-live13-sl.cvattv.com.ar/tok_eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIxNzgxOTE4NzIyIiwic2lwIjoiMTg2LjE3LjEyLjIyMCIsInBhdGgiOiIvbGl2ZS9jM2Vkcy9BbWVyaWNhVFYvU0FfTGl2ZV9kYXNoX2VuYy8iLCJzZXNzaW9uX2Nkbl9pZCI6ImE3N2NjNDg1MTY4NzNkOTciLCJzZXNzaW9uX2lkIjoiMzIyMGQ2N2JmMzBlOWJiYzEyZGZjMjQ5Y2U3NDA5NzUtMTc4MTc0NTkyMi02NzYiLCJjbGllbnRfaWQiOiJmbG93Ojk5OTkwMDAwMjM1NzU1MS0tZmxvdzo5OTk5MDAwMDIzNTc1NTE6UCIsImRldmljZV9pZCI6IjMyMjBkNjdiZjMwZTliYmMxMmRmYzI0OWNlNzQwOTc1IiwibWF4X3Nlc3Npb25zIjowLCJzZXNzaW9uX2R1cmF0aW9uIjowLCJ1cmwiOiJodHRwczovLzIwMS4yMzUuNjYuMTIzIiwiYXVkIjoiOTMiLCJzb3VyY2VzIjpbODUsMTQ0LDIxMCw4Niw4OF19.bhp8aUb29Z_24LwgcGtwckOCrs5zZ4Uh7_YtwY_XcfkaXERtBRPI_LuRusCGknYb1WEjWsitBSysvW7gJNRLGg==//live/c7eds/GEN__CAM1/SA_Live_dash_enc/GEN__CAM1.mpd",
         "type": "CLEARKEY",
@@ -100,15 +106,10 @@
       },
       {
         "name": "DSPORTS +",
-        "url": "https://edge-live13-sl.cvattv.com.ar/tok_eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIxNzgxOTE4NzIyIiwic2lwIjoiMTg2LjE3LjEyLjIyMCIsInBhdGgiOiIvbGl2ZS9jM2Vkcy9BbWVyaWNhVFYvU0FfTGl2ZV9kYXNoX2VuYy8iLCJzZXNzaW9uX2Nkbl9pZCI6ImE3N2NjNDg1MTY4NzNkOTciLCJzZXNzaW9uX2lkIjoiMzIyMGQ2N2JmMzBlOWJiYzEyZGZjMjQ5Y2U3NDA5NzUtMTc4MTc0NTkyMi02NzYiLCJjbGllbnRfaWQiOiJmbG93Ojk5OTkwMDAwMjM1NzU1MS0tZmxvdzo5OTk5MDAwMDIzNTc1NTE6UCIsImRldmljZV9pZCI6IjMyMjBkNjdiZjMwZTliYmMxMmRmYzI0OWNlNzQwOTc1IiwibWF4X3Nlc3Npb25zIjowLCJzZXNzaW9uX2R1cmF0aW9uIjowLCJ1cmwiOiJodHRwczovLzIwMS4yMzUuNjYuMTIzIiwiYXVkIjoiOTMiLCJzb3VyY2VzIjpbODUsMTQ0LDIxMCw4Niw4OF19.bhp8aUb29Z_24LwgcGtwckOCrs5zZ4Uh7_YtwY_XcfkaXERtBRPI_LuRusCGknYb1WEjWsitBSysvW7gJNRLGg==//live/c7eds/Dsports_Plus_UY/SA_Live_dash_cenc/Dsports_Plus_UY.mpd",
+        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/hoo4ddqavw/out/v1/dadfb43b8a714e4f9288026b5c3351a0/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/bMjfdskt/Picsart-26-06-15-14-38-43-141.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=517d3690fb9e64f95a9272958a84df32&key=b563bc52ea05c1e7002a996f688b08b9",
-        "headers": {
-          "Origin": "https://portal.app.flow.com.py",
-          "Referer": "https://portal.app.flow.com.py/",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-        }
+        "drm_license_uri": "https://results.femon.net/?keyid=da81f7165f73c884fc1dcf0bf3bd4bb5&key=3f8d519997196db76631dd4b427f53f6"
       },
       {
         "name": "TELEFE",
@@ -5216,6 +5217,18 @@
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a0243b0d66033.65138043.png",
         "drm_license_uri": "https://results.femon.net/?keyid=f62e93559765dfa6a89d2842b2b6d64a&key=9f6a8cf0bcb1d17ce79ea93d0d9c3d83"
+      }
+    ]
+  },
+  {
+    "name": "Argentina Alternativo",
+    "samples": [
+      {
+        "name": "America",
+        "url": "https://cdn03.gigared.com.ar/live/eds/AmericaTV/sa_live_dash/AmericaTV.mpd",
+        "type": "CLEARKEY",
+        "icono": "",
+        "drm_license_uri": "https://results.femon.net/?keyid=32392e5868873c91ca77a0406b3d32d8&key=0f74f66dbeda0bb43b32445ea74d2087"
       }
     ]
   }
