@@ -58,16 +58,11 @@
         "drm_license_uri": "https://results.femon.net/?keyid=f8b207c10f3f76aeba32a360ec52b9e4&key=afad49d20eb39670e93e371c1d669921"
       },
       {
-        "name": "DSPORTS 1 opc 2",
-        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd",
+        "name": "Dsport 2 mundial",
+        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/nzl2d4ffbw/out/v1/d094dc6ba8354f3e88b7efa32f80cc33/cenc.mpd",
         "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=4f4c3a9912ea752e88f4497864a1bc8b&key=278128004fe8c6ffb2cd2a0c154a241a",
-        "headers": {
-          "origin": "https://portal.app.flow.com.py",
-          "Referer": "https://portal.app.flow.com.py/",
-          "User-Agent": "MMozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
-        }
+        "icono": "https://app.femon.net/tv/banners/6a27a1611e4155.61879396.png",
+        "drm_license_uri": "https://results.femon.net/?keyid=0db71325e4256f5f16b348b3b1b7832a&key=c664b811a97edc555da47c1d22482542"
       },
       {
         "name": "DSPORTS +",
@@ -89,10 +84,9 @@
       },
       {
         "name": "MUNDIAL 4K",
-        "url": "https://otte-qw.live.pv-cdn.net/iad-nitro/live/clients/enc/ykzl8x62g5/out/v1/e8f0a2204c5c4490b338a9c2165dd92a/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://i.ibb.co/CsngGzDW/Picsart-26-06-13-18-39-17-851.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=996d39be9ee1c8e65d94d7bb973bdf0f&key=5306cdc1e410bc6ddb2530608c42b11b"
+        "url": "https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/CsngGzDW/Picsart-26-06-13-18-39-17-851.png"
       },
       {
         "name": "CAZE TV FHD",
@@ -280,15 +274,14 @@
         "drm_license_uri": "https://results.femon.net/?keyid=fd86dde0ae3e14ff51c8fc8f248a50db&key=d106ae78b0893da2e4393ece99420baa"
       },
       {
-        "name": "M6 MUNDIAL",
-        "url": "https://origin-m6web.live.6cloud.fr/out/v1/6play/6play-m6/cmaf_cenc00/dash-short-hd.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://i.ibb.co/JRdjd62q/img-7510-1200x675.jpg",
-        "drm_license_uri": "https://results.femon.net/?keyid=433ffba670963e70857859a9dff4be04&key=51ede3a821229fe81e71282c8eff80e3"
+        "name": "DAZN MUNDIAL",
+        "url": "https://1nyaler.streamhostingcdn.top/stream/94/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/JRdjd62q/img-7510-1200x675.jpg"
       },
       {
         "name": "FS1 4K MUNDIAL(Solo para tv compatible con 4k HDR)",
-        "url": "https://gffgfhhf.fgg-4le.pages.dev/1781989461/ba77fa5af44e4039896791a7c492b5de/_c4C6Jffh6e-4h-gtuwerynfwlGWDrBg3vKlmPUJoQ0/fox4k-usa.m3u8",
+        "url": "https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8",
         "type": "HLS",
         "icono": "https://i.ibb.co/YFQsgMyn/1781635407452.png"
       },
@@ -326,6 +319,20 @@
           "Origin": "https://portal.app.flow.com.py",
           "Referer": "https://portal.app.flow.com.py/",
           "User-Agent": "MMozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+        }
+      }
+    ],
+    "hidden_samples": [
+      {
+        "name": "DSPORTS 1 opc 2",
+        "url": "RwKyEsEi3ptEu9Xc85Eay/eXm2PQE2lbYjzI2WJEYBGXcuGvRZr6uJ7sX2Dgs31PfROg5qs48KQcT+45qy5zEU0tYxaqxBMO5A8XEFzj0NIskb4VgxkxKxSuh3CU1OPIpX0sITLBCXox8WONYn0JgUllFVS7jCcVL+BtpMkrLRlihdjVwBb76ZpfgH+6ii7U",
+        "type": "CLEARKEY",
+        "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
+        "drm_license_uri": "uoxw86wzAkg+WI6tFn2gLJB8QVCFTTI/X3qCGci10jXXBeJkPMZgtjZBjQ5xLizxYSXvpsd4nrVQ8CcGAzgDFqe2lTpgAC6BkF4WXkCSADE9VLzinpPy9dZ72LbEd5JIqspUREX30H4JKgmzIwn6qw==",
+        "headers": {
+          "origin": "Ssz8pUSwuOOXrjMOfMcImdy+LX7CsX/P4UH+7ungukk=",
+          "Referer": "Ssz8pUSwuOOXrjMOfMcImWRAe/eRUEh0ITdxUuT/jcw=",
+          "User-Agent": "LlsEfUVJI4Qlcgr+2xhpIEdzMgaxGExysael+arWFsESlMwIx3wldKZf0qzvwUYMgfMhPSpZh5hoY1E9KYMyqb6y/FczzSw2OdCjqrj4D4cBLHtem9TUtyz02JocxFFSQfw7YwrM1dLwwgzC5wH4wWKF2NXAFvvpml+Af7qKLtQ="
         }
       }
     ]
