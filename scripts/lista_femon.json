@@ -103,6 +103,12 @@
         "drm_license_uri": "https://results.femon.net/?keyid=1efe4add8fdf327c5f8d2a1c195e5c71&key=4f50e6f011e60ca01ee561f27187e78f"
       },
       {
+        "name": "FS1 4K MUNDIAL(Solo para tv compatible con 4k HDR)",
+        "url": "https://customer-rqx2ncfj15h2he6q.cloudflarestream.com/92f6cbdfdbed488c94405d1c605bc403/manifest/video.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/YFQsgMyn/1781635407452.png"
+      },
+      {
         "name": "GEN OPC 2",
         "url": "http://181.78.217.65:25000/play/a07g/index.m3u8",
         "type": "HLS",
@@ -280,12 +286,6 @@
         "icono": "https://i.ibb.co/JRdjd62q/img-7510-1200x675.jpg"
       },
       {
-        "name": "FS1 4K MUNDIAL(Solo para tv compatible con 4k HDR)",
-        "url": "https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/YFQsgMyn/1781635407452.png"
-      },
-      {
         "name": "GEN PRUEBA",
         "url": "https://jsuhyhgg.evolucionhidraulica.com.ar/stream.php?path=c7eds/GEN_TV/SA_Live_dash_enc/GEN_TV.mpd",
         "type": "CLEARKEY",
@@ -320,6 +320,12 @@
           "Referer": "https://portal.app.flow.com.py/",
           "User-Agent": "MMozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
         }
+      },
+      {
+        "name": "Telemundo 4k",
+        "url": "https://vizio.kuvuslov.cymru/telemundo-4k/tracks-v1a1/mono.m3u8",
+        "type": "HLS",
+        "icono": ""
       }
     ],
     "hidden_samples": [
