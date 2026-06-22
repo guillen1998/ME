@@ -1703,6 +1703,12 @@
         "icono": "https://banners.femon.net/banners/6978d535e21402.98104374.png"
       },
       {
+        "name": "TRECE",
+        "url": "https://live2.eu-north-1b.cf.dmcdn.net/sec2(U3JaKfw1lO4HWfS8EO3RMZuTiHL68sE__ouH0DvgVlB7c8qYjVXDqNMx9vK27PofNbEDqpaizvuBvhqK8qOVMZyHXuNuOFVFrCI2CBzuatXbmv6INbhdKq_LrFLcI2TM)/cloud/3/xage54a/s/live-720.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/Fk9N5Vn6/Trece-Paraguay.webp"
+      },
+      {
         "name": "GEN TV",
         "url": "https://jsuhyhgg.evolucionhidraulica.com.ar/stream.php?path=c7eds/GEN_TV/SA_Live_dash_enc/GEN_TV.mpd",
         "type": "CLEARKEY",
@@ -1974,70 +1980,61 @@
     ]
   },
   {
-    "name": "📺DEPORTE ARGENTINA CLARO🇦🇷",
+    "name": "EVENTOS DISNEY+",
     "samples": [
       {
-        "name": "ESPN 1",
-        "url": "https://tvfuego.cdn.rcs.net.ar/HGxWMSZtXcn2A3b9zrDfUL/asmvm6rkjqeyv00000263v47eydhvgcf/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://banners.femon.net/banners/6978c5ccd8ae61.11140511.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=31bd1c2d7ec744919f9438b166f575d3&key=08a8df7583e02f9eba7b0cf77207340b"
+        "name": "Eventos Disney 1",
+        "url": "https://000963.videx.lol/latamplay/disney1/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "ESPN 2",
-        "url": "https://ushuaia-vision.cdn.rcs.net.ar/g48EaXkDY2tZP6qmpzKjFQ/sJDmPFpTWBNS2gZhzj8ydHU7tR9Y6uf4k/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://banners.femon.net/banners/69791d4755eaf0.16253834.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=de55d232455b445aaddb4ef73d82145f&key=e570e15beb1a447a5e3f91fedfd01c73"
+        "name": "Eventos Disney 2",
+        "url": "https://000963.videx.lol/latamplay/disney2/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "ESPN 3",
-        "url": "https://tvfuego.cdn.rcs.net.ar/HGxWMSZtXcn2A3b9zrDfUL/QVsZxnupYwKdAtb5Dk3zvFXBMGqcWgmfR/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://banners.femon.net/banners/69791d53c9bad9.32425427.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=c3646c79dcff4a0e93c519541bac9830&key=0fdbf788cb1a393a5f1f3bc43254eae9"
+        "name": "Eventos Disney 3",
+        "url": "https://000963.videx.lol/latamplay/disney3/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "ESPN 4",
-        "url": "https://tvfuego.cdn.rcs.net.ar/HGxWMSZtXcn2A3b9zrDfUL/bPHSdXgELpUR4JkCe3Qu5mV6zn8qMwjTY/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://banners.femon.net/banners/6978c5ee0ae933.63692609.png",
-        "drm_license_uri": "https://drm.mc.rocstar.tv/widevine/license?drmToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIyMjY1MyIsInJvbGVzIjpbXSwibmFtZSI6Im51bGwgbnVsbCIsImN1c3RvbWVySWQiOjIxNzAyLCJleHAiOjE3NzkwNjExMzAsInR5cGUiOiJBVVRIT1JJWkFUSU9OIiwidXNlcklkIjoyMjY1MywicHJvZHVjdHMiOiJbIDc0LCAzMjcsIDI1NCwgMjEwIF0ifQ.UDWOGyBug_KgQLhBPqyZZAxEmcbdA3iQ7IhC4EDpa35pIoUPlasBeNdiQT0cJdOhzSacEEf9OZ_nx0wF5zhOcb7wKHoWZfcvSINn8br8NVGnQHQJz6UqE5nQUKOpjFJrLhb-gRQMDf5VhkuZYnOXFl5i7wfEkaU4VzrIRU0bI-WOffgNXq9KT0jU6Pm9pXhkB3JfX04jvSRYFrVQKUwVUjCXr56pwChdbKqPJg70gr7-kGTkQqFnRyywTaZTzeeGNj5lZPqeY3UH3NDy69QgjES7k4-LQjXkRqsIZOokhPlExIdj8n5sDrrwhHi1ndQLNLFIeeEAL2xgrW0Y8tYeUw"
+        "name": "Eventos Disney 4",
+        "url": "https://000963.videx.lol/latamplay/disney4/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "Tyc sport",
-        "url": "https://tvfuego.cdn.rcs.net.ar/HGxWMSZtXcn2A3b9zrDfUL/sl118rpys3h00000052efw0jx26lalla/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://banners.femon.net/banners/6978c5b29632d3.07094599.png",
-        "drm_license_uri": "https://drm.mc.rocstar.tv/widevine/license?drmToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIyMjY1MyIsInJvbGVzIjpbXSwibmFtZSI6Im51bGwgbnVsbCIsImN1c3RvbWVySWQiOjIxNzAyLCJleHAiOjE3NzkwNjExMzAsInR5cGUiOiJBVVRIT1JJWkFUSU9OIiwidXNlcklkIjoyMjY1MywicHJvZHVjdHMiOiJbIDc0LCAzMjcsIDI1NCwgMjEwIF0ifQ.UDWOGyBug_KgQLhBPqyZZAxEmcbdA3iQ7IhC4EDpa35pIoUPlasBeNdiQT0cJdOhzSacEEf9OZ_nx0wF5zhOcb7wKHoWZfcvSINn8br8NVGnQHQJz6UqE5nQUKOpjFJrLhb-gRQMDf5VhkuZYnOXFl5i7wfEkaU4VzrIRU0bI-WOffgNXq9KT0jU6Pm9pXhkB3JfX04jvSRYFrVQKUwVUjCXr56pwChdbKqPJg70gr7-kGTkQqFnRyywTaZTzeeGNj5lZPqeY3UH3NDy69QgjES7k4-LQjXkRqsIZOokhPlExIdj8n5sDrrwhHi1ndQLNLFIeeEAL2xgrW0Y8tYeUw"
+        "name": "Eventos Disney 5",
+        "url": "https://000963.videx.lol/latamplay/disney5/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "TELEFE",
-        "url": "https://tvfuego.cdn.rcs.net.ar/HGxWMSZtXcn2A3b9zrDfUL/trd0wgrxamtjaw0z00000004omejlxdx/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://solparaguay.qvixprimary.com/assets/resources/img/channels/telefe_ea48843cc9b8464bbdce2a27ce68980b.png",
-        "drm_license_uri": "https://drm.mc.rocstar.tv/widevine/license?drmToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIyMjY1MyIsInJvbGVzIjpbXSwibmFtZSI6Im51bGwgbnVsbCIsImN1c3RvbWVySWQiOjIxNzAyLCJleHAiOjE3NzkwNjExMzAsInR5cGUiOiJBVVRIT1JJWkFUSU9OIiwidXNlcklkIjoyMjY1MywicHJvZHVjdHMiOiJbIDc0LCAzMjcsIDI1NCwgMjEwIF0ifQ.UDWOGyBug_KgQLhBPqyZZAxEmcbdA3iQ7IhC4EDpa35pIoUPlasBeNdiQT0cJdOhzSacEEf9OZ_nx0wF5zhOcb7wKHoWZfcvSINn8br8NVGnQHQJz6UqE5nQUKOpjFJrLhb-gRQMDf5VhkuZYnOXFl5i7wfEkaU4VzrIRU0bI-WOffgNXq9KT0jU6Pm9pXhkB3JfX04jvSRYFrVQKUwVUjCXr56pwChdbKqPJg70gr7-kGTkQqFnRyywTaZTzeeGNj5lZPqeY3UH3NDy69QgjES7k4-LQjXkRqsIZOokhPlExIdj8n5sDrrwhHi1ndQLNLFIeeEAL2xgrW0Y8tYeUw"
+        "name": "Eventos Disney 6",
+        "url": "https://000963.videx.lol/latamplay/disney6/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "Dsport 1 Ar",
-        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=4f4c3a9912ea752e88f4497864a1bc8b&key=278128004fe8c6ffb2cd2a0c154a241a"
+        "name": "Eventos Disney 7",
+        "url": "https://000963.videx.lol/latamplay/disney7/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "Dsport 2 Ar",
-        "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/nzl2d4ffbw/out/v1/d094dc6ba8354f3e88b7efa32f80cc33/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/69fdc67d88e581.36033201.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=0db71325e4256f5f16b348b3b1b7832a&key=c664b811a97edc555da47c1d22482542"
+        "name": "Eventos Disney 8",
+        "url": "https://000963.videx.lol/latamplay/disney8/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       },
       {
-        "name": "Dsport +",
-        "url": "http://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/dash/enc/ud6bnhthpj/out/v1/2639a2f4480f4269953de466d5f46463/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://app.femon.net/tv/banners/69fdc67d88e581.36033201.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=83f81c4cc1443991543de4e22eea7586&key=ddfd7ca653d6f35543d8edb3c688e20f"
+        "name": "Eventos Disney 9",
+        "url": "https://000963.videx.lol/latamplay/disney9/index.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
       }
     ]
   },
@@ -5234,10 +5231,28 @@
     "name": "📺  EVENTOS EXCLUSIVOS",
     "samples": [
       {
-        "name": "🇵🇾 Intermedia 1",
-        "url": "https://lbgo.bozztv.com/ssh101/ssh101/locotigo/playlist.m3u8",
+        "name": "🇵🇾 Tigo 1",
+        "url": "https://000963.videx.lol/latamplay/tigo1/index.m3u8",
         "type": "HLS",
         "icono": "https://app.femon.net/tv/banners/6a0340f6f41dc9.20003867.png"
+      },
+      {
+        "name": "TIGO 2",
+        "url": "https://000963.videx.lol/latamplay/tigo2/index.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "TIGO 3",
+        "url": "https://000963.videx.lol/latamplay/tigo3/index.m3u8",
+        "type": "HLS",
+        "icono": "https://app.femon.net/tv/banners/6a162b1351c369.12513396.png"
+      },
+      {
+        "name": "ESPN 2 PROBAR",
+        "url": "https://000963.videx.lol/latamplay/espn2/index.m3u8",
+        "type": "HLS",
+        "icono": ""
       }
     ],
     "hidden_samples": [
