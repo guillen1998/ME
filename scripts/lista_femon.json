@@ -51,7 +51,7 @@
         }
       },
       {
-        "name": "Dsport 1",
+        "name": "Dsport 1 Mundial",
         "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/3gg2jnixjn/out/v1/e1840e01f3f14563b66bbb944d5cc54c/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
@@ -326,9 +326,8 @@
       {
         "name": "TUDN MUNDIAL",
         "url": "https://live-pv-ta.amazon.fastly-edge.com/iad-nitro/live/clients/dash/enc/ntkdl68eob/out/v1/bd5dfb7676994383881bc6e71877d29d/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://i.ibb.co/qMqDPvs9/Picsart-26-06-23-11-21-57-322.jpg",
-        "drm_license_uri": "https://results.femon.net/?keyid=d695093ea3e66d75a4d213a3e2cbf360&key=01be3f645e89a067d2786c295f68dde4"
+        "type": "WEBVIEW",
+        "icono": "https://i.ibb.co/qMqDPvs9/Picsart-26-06-23-11-21-57-322.jpg"
       }
     ],
     "hidden_samples": [
