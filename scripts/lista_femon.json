@@ -323,9 +323,13 @@
       },
       {
         "name": "Telemundo 4k",
-        "url": "https://vizio.kuvuslov.cymru/telemundo-4k/tracks-v1a1/mono.m3u8",
-        "type": "HLS",
-        "icono": ""
+        "url": "https://otte-azion.live.pv-cdn.net/syd-nitro/live/clients/dash/enc/7ruw77zpm1/out/v1/31d30c91fc65458789b84209d3fa22e4/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "",
+        "drm_license_uri": "https://results.femon.net/?keyid=1f68713028d439ec03be07f56c1d6213&key=20093db6455160fffed4c394def3193d",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+        }
       }
     ],
     "hidden_samples": [
