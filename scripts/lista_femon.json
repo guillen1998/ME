@@ -51,7 +51,7 @@
         }
       },
       {
-        "name": "Dsport 1 tv",
+        "name": "Dsport 1",
         "url": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/3gg2jnixjn/out/v1/e1840e01f3f14563b66bbb944d5cc54c/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a27a0cd298a45.66546362.png",
@@ -94,6 +94,12 @@
         "type": "CLEARKEY",
         "icono": "https://i.postimg.cc/XJjjwygm/cazetv-logo-0-2048x2048-Easy-Resize-com-(1).jpg",
         "drm_license_uri": "https://results.femon.net/?keyid=34475edab991ad5e92548aebd710410a&key=501b209cccd323ac00bf5ac15b406cb4"
+      },
+      {
+        "name": "MUNDIAL 2 4K",
+        "url": "https://live-aburayhan1103.telewebion.ir/ek/faratar/live/playlist.m3u8",
+        "type": "HLS",
+        "icono": "https://i.ibb.co/CsngGzDW/Picsart-26-06-13-18-39-17-851.png"
       },
       {
         "name": "TELEMUNDO MUNDIAL",
@@ -158,13 +164,6 @@
       },
       {
         "name": "TELEFE MUNDIAL",
-        "url": "https://tvfuego.cdn.rcs.net.ar/HGxWMSZtXcn2A3b9zrDfUL/trd0wgrxamtjaw0z00000004omejlxdx/output.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://solparaguay.qvixprimary.com/assets/resources/img/channels/telefe_ea48843cc9b8464bbdce2a27ce68980b.png",
-        "drm_license_uri": "https://drm.mc.rocstar.tv/widevine/license?drmToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIyMjY1MyIsInJvbGVzIjpbXSwibmFtZSI6Im51bGwgbnVsbCIsImN1c3RvbWVySWQiOjIxNzAyLCJleHAiOjE3NzkwNjExMzAsInR5cGUiOiJBVVRIT1JJWkFUSU9OIiwidXNlcklkIjoyMjY1MywicHJvZHVjdHMiOiJbIDc0LCAzMjcsIDI1NCwgMjEwIF0ifQ.UDWOGyBug_KgQLhBPqyZZAxEmcbdA3iQ7IhC4EDpa35pIoUPlasBeNdiQT0cJdOhzSacEEf9OZ_nx0wF5zhOcb7wKHoWZfcvSINn8br8NVGnQHQJz6UqE5nQUKOpjFJrLhb-gRQMDf5VhkuZYnOXFl5i7wfEkaU4VzrIRU0bI-WOffgNXq9KT0jU6Pm9pXhkB3JfX04jvSRYFrVQKUwVUjCXr56pwChdbKqPJg70gr7-kGTkQqFnRyywTaZTzeeGNj5lZPqeY3UH3NDy69QgjES7k4-LQjXkRqsIZOokhPlExIdj8n5sDrrwhHi1ndQLNLFIeeEAL2xgrW0Y8tYeUw"
-      },
-      {
-        "name": "TELEFE",
         "url": "https://jsuhyhgg.evolucionhidraulica.com.ar/stream.php?path=c6eds/TelefeHD/SA_Live_dash_enc/TelefeHD.mpd",
         "type": "CLEARKEY",
         "icono": "https://app.femon.net/tv/banners/6a27a1cdb548f7.46434435.png",
@@ -215,31 +214,31 @@
       },
       {
         "name": "VIX MUNDIAL 592",
-        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-92-HD/default.mpd",
+        "url": "https://live1-ott.izzigo.tv/7/out/u/dash/VIX-MUNDIAL-92-HD-H265/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/DDCpC84T/Picsart-26-06-10-22-54-30-928.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=784d6b54efe3a13dc1fbcda17e5804db&key=b4f4814e01943f910b62e6bfd0c23728"
+        "drm_license_uri": "https://results.femon.net/?keyid=7ecf2de72f3d8c80a4355abe8e0f2d1b&key=4ab47cbccf1ea08fa3fd82970795aad5"
       },
       {
         "name": "VIX MUNDIAL 593",
-        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-93-HD/default.mpd",
+        "url": "https://live1-ott.izzigo.tv/7/out/u/dash/VIX-MUNDIAL-93-HD-H265/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/xtwmd1xT/Picsart-26-06-10-22-58-19-559.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=7ee1a23e40b456ebfdaa40c51a24b857&key=45ffaff5f3221a356c82c3d39bb327ac"
+        "drm_license_uri": "https://results.femon.net/?keyid=696435bb1f9b9387866e4d01ab969779&key=af4bbc01b4e6c0a14279e11451a3e474"
       },
       {
         "name": "VIX MUNDIAL 594",
-        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-94-HD/default.mpd",
+        "url": "https://live1-ott.izzigo.tv/8/out/u/dash/VIX-MUNDIAL-94-HD-H265/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/xNg3DgC/Picsart-26-06-10-23-02-36-613.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=8b0dd1c5b5812460479ac94af4ff061d&key=fc5a0c78cf2ad8bb3636e01150553427"
+        "drm_license_uri": "https://results.femon.net/?keyid=78535ece7acc58ad362346c7c2fa4cf5&key=9042221339d28d54428a3e7d0c34bd65"
       },
       {
         "name": "VIX MUNDIAL 595",
-        "url": "https://vod-sev-orbit2-s2.izzigo.tv/out/u/startover/dash/VIX-MUNDIAL-95-HD/default.mpd",
+        "url": "https://live1-ott.izzigo.tv/8/out/u/dash/VIX-MUNDIAL-95-HD-H265/default.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/v4vD3P3w/Picsart-26-06-10-23-09-10-236.png",
-        "drm_license_uri": "https://results.femon.net/?keyid=9696c2f12e487aafe1dc96d16d0db658&key=159fd5dc3b0d9e0d75f856e95e225801"
+        "drm_license_uri": "https://results.femon.net/?keyid=bfbf27d8a79f7734f720c3af6a63f5fe&key=d5fcf98fcee1bbdd44104f188d088335"
       },
       {
         "name": "CAZÉ TV",
@@ -256,7 +255,7 @@
       },
       {
         "name": "Sportv Mundial FHD",
-        "url": "https://a12aivottepl-a.akamaihd.net/gru-nitro/live/dash/enc/tvezxbddeg/out/v1/3aa321e477504937a439b602e078eb18/cenc.mpd",
+        "url": "https://live-pv-ta.amazon.fastly-edge.com/gru-nitro/live/clients/dash/enc/tvezxbddeg/out/v1/3aa321e477504937a439b602e078eb18/cenc.mpd",
         "type": "CLEARKEY",
         "icono": "https://i.ibb.co/s9v0mW7j/Picsart-26-06-09-23-00-55-307.png",
         "drm_license_uri": "https://results.femon.net/?keyid=cb5eaea6d91fc8a702f154cefd69c976&key=fd4b69623da596aac100e5722d8a1ca0",
@@ -264,13 +263,6 @@
           "referer": "https://www.primevideo.com/",
           "user_agent": "AivAndroidPlayer/1.0 (AndroidDevice)"
         }
-      },
-      {
-        "name": "FOX ONE MUNDIAL 4K",
-        "url": "https://otte-tim.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd",
-        "type": "CLEARKEY",
-        "icono": "https://i.ibb.co/xcJ5b5P/fox-world-cup-2026.jpg",
-        "drm_license_uri": "https://results.femon.net/?keyid=f6564ec2aee819046328a0e153be574d&key=ff46a8a1031eb27ef22576a077c98ab7"
       },
       {
         "name": "LA 1 MUNDIAL",
@@ -330,6 +322,13 @@
         "headers": {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
         }
+      },
+      {
+        "name": "TUDN MUNDIAL",
+        "url": "https://live-pv-ta.amazon.fastly-edge.com/iad-nitro/live/clients/dash/enc/ntkdl68eob/out/v1/bd5dfb7676994383881bc6e71877d29d/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "https://i.ibb.co/qMqDPvs9/Picsart-26-06-23-11-21-57-322.jpg",
+        "drm_license_uri": "https://results.femon.net/?keyid=d695093ea3e66d75a4d213a3e2cbf360&key=01be3f645e89a067d2786c295f68dde4"
       }
     ],
     "hidden_samples": [
@@ -1984,65 +1983,6 @@
     ]
   },
   {
-    "name": "EVENTOS DISNEY+",
-    "samples": [
-      {
-        "name": "Eventos Disney 1",
-        "url": "https://000963.videx.lol/latamplay/disney1/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 2",
-        "url": "https://000963.videx.lol/latamplay/disney2/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 3",
-        "url": "https://000963.videx.lol/latamplay/disney3/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 4",
-        "url": "https://000963.videx.lol/latamplay/disney4/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 5",
-        "url": "https://000963.videx.lol/latamplay/disney5/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 6",
-        "url": "https://000963.videx.lol/latamplay/disney6/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 7",
-        "url": "https://000963.videx.lol/latamplay/disney7/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 8",
-        "url": "https://000963.videx.lol/latamplay/disney8/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      },
-      {
-        "name": "Eventos Disney 9",
-        "url": "https://000963.videx.lol/latamplay/disney9/index.m3u8",
-        "type": "HLS",
-        "icono": "https://i.ibb.co/S4rwQtq1/r1463716-1296x729-16-9-1.jpg"
-      }
-    ]
-  },
-  {
     "name": "📺  DEPORTE DE ARGENTINA",
     "samples": [
       {
@@ -2515,9 +2455,10 @@
       },
       {
         "name": "Tudn",
-        "url": "http://185.56.109.251/Tudn/playlist.m3u8",
-        "type": "HLS",
-        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69c88318a51a63.57640053.webp"
+        "url": "https://live-pv-ta.amazon.fastly-edge.com/iad-nitro/live/clients/dash/enc/ntkdl68eob/out/v1/bd5dfb7676994383881bc6e71877d29d/cenc.mpd",
+        "type": "CLEARKEY",
+        "icono": "http://217.216.92.124/superadmin/paneltv/banners/69c88318a51a63.57640053.webp",
+        "drm_license_uri": "https://results.femon.net/?keyid=d695093ea3e66d75a4d213a3e2cbf360&key=01be3f645e89a067d2786c295f68dde4"
       },
       {
         "name": "Tudn**",
