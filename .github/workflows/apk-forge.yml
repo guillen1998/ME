@@ -1,0 +1,40 @@
+name: ApkForge - compilar APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "apk-forge/**"
+      - ".github/workflows/apk-forge.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apk-forge
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Probar el motor con un APK real (F-Droid)
+        run: |
+          curl -sSL -o /tmp/sample.apk https://f-droid.org/F-Droid.apk
+          ./gradlew :engine:test -Dapkforge.sampleApk=/tmp/sample.apk --no-daemon
+
+      - name: Compilar APK
+        run: ./gradlew :app:assembleRelease --no-daemon
+
+      - name: Subir APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ApkForge-${{ github.sha }}
+          path: apk-forge/app/build/outputs/apk/release/app-release.apk

@@ -1,0 +1,8 @@
+{
+  "languages": [
+    { "grammar": "textmate/smali.tmLanguage.json", "name": "smali", "scopeName": "source.smali", "languageConfiguration": "textmate/hash-comments.json" },
+    { "grammar": "textmate/java.tmLanguage.json", "name": "java", "scopeName": "source.java", "languageConfiguration": "textmate/c-comments.json" },
+    { "grammar": "textmate/xml.tmLanguage.json", "name": "xml", "scopeName": "text.xml", "languageConfiguration": "textmate/xml-comments.json" },
+    { "grammar": "textmate/json.tmLanguage.json", "name": "json", "scopeName": "source.json", "languageConfiguration": "textmate/c-comments.json" }
+  ]
+}

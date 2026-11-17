@@ -1,0 +1,38 @@
+{
+  "name": "forge-dark",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#14161B",
+    "editor.foreground": "#D7DAE0",
+    "editorLineNumber.foreground": "#5C6370",
+    "editorLineNumber.activeForeground": "#C8CCD4",
+    "editor.lineHighlightBackground": "#1E222A",
+    "editor.selectionBackground": "#3E4451",
+    "editorCursor.foreground": "#4FC1FF",
+    "editorIndentGuide.background": "#2A2F38",
+    "editorGutter.background": "#14161B",
+    "editorWhitespace.foreground": "#2A2F38"
+  },
+  "tokenColors": [
+    { "scope": ["comment"], "settings": { "foreground": "#6A7385", "fontStyle": "italic" } },
+    { "scope": ["string"], "settings": { "foreground": "#98C379" } },
+    { "scope": ["constant.character.escape", "constant.character.entity"], "settings": { "foreground": "#56B6C2" } },
+    { "scope": ["constant.numeric"], "settings": { "foreground": "#D19A66" } },
+    { "scope": ["constant.language"], "settings": { "foreground": "#D19A66" } },
+    { "scope": ["constant.other.reference"], "settings": { "foreground": "#E5C07B" } },
+    { "scope": ["keyword.control", "keyword.other"], "settings": { "foreground": "#C678DD" } },
+    { "scope": ["keyword.instruction"], "settings": { "foreground": "#61AFEF" } },
+    { "scope": ["keyword.operator", "punctuation"], "settings": { "foreground": "#7F8796" } },
+    { "scope": ["storage.modifier", "storage.type"], "settings": { "foreground": "#E06C75" } },
+    { "scope": ["storage.type.annotation"], "settings": { "foreground": "#E5C07B" } },
+    { "scope": ["entity.name.type", "support.type"], "settings": { "foreground": "#E5C07B" } },
+    { "scope": ["entity.name.function"], "settings": { "foreground": "#61AFEF" } },
+    { "scope": ["entity.name.label"], "settings": { "foreground": "#56B6C2" } },
+    { "scope": ["entity.name.tag"], "settings": { "foreground": "#E06C75" } },
+    { "scope": ["entity.other.attribute-name"], "settings": { "foreground": "#D19A66" } },
+    { "scope": ["entity.other.attribute-name.namespace"], "settings": { "foreground": "#C678DD" } },
+    { "scope": ["variable.parameter"], "settings": { "foreground": "#EF9F76" } },
+    { "scope": ["variable.other.member"], "settings": { "foreground": "#E06C75" } },
+    { "scope": ["support.type.property-name"], "settings": { "foreground": "#E06C75" } }
+  ]
+}

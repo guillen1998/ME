@@ -1,0 +1,11 @@
+{
+  "name": "JSON",
+  "scopeName": "source.json",
+  "fileTypes": ["json"],
+  "patterns": [
+    { "match": "(\"(?:\\\\.|[^\"\\\\])*\")\\s*(:)", "captures": { "1": { "name": "support.type.property-name.json" }, "2": { "name": "punctuation.separator.json" } } },
+    { "name": "string.quoted.double.json", "match": "\"(?:\\\\.|[^\"\\\\])*\"" },
+    { "name": "constant.numeric.json", "match": "-?\\b[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?\\b" },
+    { "name": "constant.language.json", "match": "\\b(true|false|null)\\b" }
+  ]
+}

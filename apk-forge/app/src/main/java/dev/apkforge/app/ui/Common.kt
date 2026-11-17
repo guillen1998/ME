@@ -1,0 +1,184 @@
+package dev.apkforge.app.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import dev.apkforge.app.core.Installer
+import dev.apkforge.app.core.ResultKind
+import dev.apkforge.app.core.TaskRunner
+import java.io.File
+
+/** Consola de la tarea en curso (decompilar, compilar, firmar…) con log en vivo. */
+@Composable
+fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit) {
+    val state by TaskRunner.state.collectAsState()
+    val s = state ?: return
+    val ctx = LocalContext.current
+    val listState = rememberLazyListState()
+    LaunchedEffect(s.logs.size) { if (s.logs.isNotEmpty()) listState.scrollToItem(s.logs.size - 1) }
+
+    AlertDialog(
+        onDismissRequest = { if (!s.running) TaskRunner.dismiss() },
+        icon = {
+            when {
+                s.running -> CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
+                s.error != null -> Icon(Icons.Default.Error, null, tint = Danger)
+                else -> Icon(Icons.Default.CheckCircle, null, tint = Ok)
+            }
+        },
+        title = { Text(s.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+        text = {
+            Column {
+                Surface(
+                    color = Color(0xFF0A0C10),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 320.dp),
+                ) {
+                    SelectionContainer {
+                        LazyColumn(state = listState, modifier = Modifier.padding(10.dp)) {
+                            itemsIndexed(s.logs) { _, line ->
+                                Text(
+                                    line, fontFamily = Mono, fontSize = 11.sp, lineHeight = 15.sp,
+                                    color = when {
+                                        line.startsWith("✔") -> Ok
+                                        line.startsWith("⚠") -> AccentWarm
+                                        else -> Color(0xFFB8BECB)
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+                s.error?.let {
+                    Spacer(Modifier.size(10.dp))
+                    SelectionContainer {
+                        Text(
+                            it, color = Danger, fontFamily = Mono, fontSize = 12.sp,
+                            modifier = Modifier.heightIn(max = 220.dp),
+                        )
+                    }
+                }
+                s.finishedAt?.let {
+                    Spacer(Modifier.size(6.dp))
+                    Text(
+                        "Tiempo: %.1f s".format((it - s.startedAt) / 1000.0),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (s.running) {
+                    TextButton(onClick = { TaskRunner.cancel() }) { Text("Cancelar") }
+                } else {
+                    val r = s.result
+                    if (r != null && s.error == null) when (s.resultKind) {
+                        ResultKind.APK -> {
+                            TextButton(onClick = { Installer.share(ctx, r) }) { Text("Compartir") }
+                            TextButton(onClick = { Installer.install(ctx, r) }) { Text("Instalar") }
+                        }
+                        ResultKind.DIRECTORY -> TextButton(onClick = { TaskRunner.dismiss(); onOpenDir(r) }) { Text("Abrir") }
+                        ResultKind.FILE -> TextButton(onClick = { TaskRunner.dismiss(); onOpenFile(r) }) { Text("Abrir") }
+                        ResultKind.NONE -> {}
+                    }
+                    TextButton(onClick = { TaskRunner.dismiss() }) { Text("Cerrar") }
+                }
+            }
+        },
+    )
+}
+
+@Composable
+fun SectionCard(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
+            Spacer(Modifier.size(8.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+fun KeyValue(key: String, value: String?, mono: Boolean = false) {
+    if (value.isNullOrBlank()) return
+    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+        Text(
+            key, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp,
+            modifier = Modifier.width(120.dp),
+        )
+        SelectionContainer {
+            Text(value, fontSize = 13.sp, fontFamily = if (mono) Mono else null)
+        }
+    }
+}
+
+@Composable
+fun Pill(text: String, color: Color = MaterialTheme.colorScheme.primary) {
+    Box(
+        Modifier
+            .background(color.copy(alpha = 0.15f), RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    ) { Text(text, color = color, fontSize = 11.sp, fontWeight = FontWeight.Medium) }
+}
+
+@Composable
+fun ActionTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.primary, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier,
+    ) {
+        Column(
+            Modifier.padding(vertical = 14.dp, horizontal = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(icon, null, tint = tint)
+            Spacer(Modifier.size(6.dp))
+            Text(label, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}

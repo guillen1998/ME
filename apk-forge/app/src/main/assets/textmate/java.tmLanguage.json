@@ -1,0 +1,24 @@
+{
+  "name": "Java",
+  "scopeName": "source.java",
+  "fileTypes": ["java", "kt"],
+  "patterns": [
+    { "name": "comment.block.java", "begin": "/\\*", "end": "\\*/" },
+    { "name": "comment.line.double-slash.java", "match": "//.*$" },
+    { "name": "string.quoted.double.java", "begin": "\"", "end": "\"",
+      "patterns": [ { "name": "constant.character.escape.java", "match": "\\\\." } ] },
+    { "name": "string.quoted.single.java", "match": "'(\\\\.|[^'\\\\])'" },
+    { "name": "storage.type.annotation.java", "match": "@[A-Za-z_][\\w.]*" },
+    { "name": "keyword.control.java",
+      "match": "\\b(if|else|for|while|do|switch|case|default|break|continue|return|throw|try|catch|finally|new|instanceof|synchronized|assert|yield)\\b" },
+    { "name": "storage.modifier.java",
+      "match": "\\b(public|private|protected|static|final|abstract|native|transient|volatile|strictfp|sealed|non-sealed|default)\\b" },
+    { "name": "keyword.other.java",
+      "match": "\\b(package|import|class|interface|enum|record|extends|implements|throws|var|this|super)\\b" },
+    { "name": "storage.type.primitive.java", "match": "\\b(void|boolean|byte|char|short|int|long|float|double)\\b" },
+    { "name": "constant.language.java", "match": "\\b(true|false|null)\\b" },
+    { "name": "constant.numeric.java", "match": "\\b(0[xX][0-9a-fA-F_]+[lL]?|[0-9][0-9_]*(\\.[0-9_]+)?([eE][+-]?[0-9]+)?[lLfFdD]?)\\b" },
+    { "name": "entity.name.function.java", "match": "\\b[a-z_$][\\w$]*(?=\\s*\\()" },
+    { "name": "entity.name.type.java", "match": "\\b[A-Z][\\w$]*\\b" }
+  ]
+}

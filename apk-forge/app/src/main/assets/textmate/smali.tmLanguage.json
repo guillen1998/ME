@@ -1,0 +1,30 @@
+{
+  "name": "Smali",
+  "scopeName": "source.smali",
+  "fileTypes": ["smali"],
+  "patterns": [
+    { "name": "comment.line.number-sign.smali", "match": "#.*$" },
+    { "include": "#string" },
+    { "name": "keyword.control.directive.smali",
+      "match": "^\\s*\\.(class|super|implements|source|field|end field|method|end method|annotation|end annotation|subannotation|end subannotation|registers|locals|param|end param|local|end local|restart local|prologue|epilogue|line|catchall|catch|array-data|end array-data|packed-switch|end packed-switch|sparse-switch|end sparse-switch|enum|debug)\\b" },
+    { "name": "storage.modifier.smali",
+      "match": "\\b(public|private|protected|static|final|synchronized|declared-synchronized|bridge|varargs|native|abstract|strictfp|synthetic|constructor|interface|enum|annotation|volatile|transient|system|build|runtime)\\b" },
+    { "name": "entity.name.label.smali", "match": ":[A-Za-z_][A-Za-z0-9_]*" },
+    { "match": "(->)([\\w$<>\\-]+)(?=\\()", "captures": { "1": { "name": "keyword.operator.smali" }, "2": { "name": "entity.name.function.smali" } } },
+    { "match": "(->)([\\w$\\-]+)(:)", "captures": { "1": { "name": "keyword.operator.smali" }, "2": { "name": "variable.other.member.smali" }, "3": { "name": "keyword.operator.smali" } } },
+    { "match": "^\\s*\\.method\\b.*?([\\w$<>\\-]+)(?=\\()", "captures": { "1": { "name": "entity.name.function.smali" } } },
+    { "name": "entity.name.type.class.smali", "match": "\\[*L[^;\\s(),]+;" },
+    { "name": "variable.parameter.register.smali", "match": "\\b[vp][0-9]+\\b" },
+    { "name": "constant.numeric.smali", "match": "-?\\b0x[0-9a-fA-F]+[LlSsTt]?\\b|-?\\b[0-9]+(\\.[0-9]+)?[LlSsTtFfDd]?\\b" },
+    { "name": "constant.language.smali", "match": "\\b(true|false|null)\\b" },
+    { "name": "keyword.instruction.smali", "match": "^\\s*[a-z][a-z0-9\\-]*(/[a-z0-9\\-]+)?(?=\\s|$)" },
+    { "name": "support.type.primitive.smali", "match": "(?<=[\\s(\\[)])[ZBSCIJFDV](?=[\\s)\\[L;ZBSCIJFDV]|$)" }
+  ],
+  "repository": {
+    "string": {
+      "name": "string.quoted.double.smali",
+      "begin": "\"", "end": "\"",
+      "patterns": [ { "name": "constant.character.escape.smali", "match": "\\\\." } ]
+    }
+  }
+}
