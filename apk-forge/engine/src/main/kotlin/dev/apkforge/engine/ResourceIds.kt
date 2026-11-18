@@ -73,7 +73,11 @@ object ResourceIds {
             val ids = File(res, "values/ids.xml")
             val base = if (ids.isFile) ids.readText() else "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n"
             val missing = newIdNames.filter { !base.contains("name=\"$it\"") }
-            if (missing.isNotEmpty()) ids.writeText(base.replace("</resources>", missing.joinToString("") { "  <item type=\"id\" name=\"$it\" />\n" } + "</resources>"))
+            if (missing.isNotEmpty()) {
+                val existed = ids.isFile
+                val newIds = base.replace("</resources>", missing.joinToString("") { "  <item type=\"id\" name=\"$it\" />\n" } + "</resources>")
+                ids.writeText(newIds); ChangeLog.record(ids, if (existed) base else null, newIds, "App", "IDs nuevos registrados")
+            }
         }
 
         val added = mutableListOf<Added>()
@@ -86,7 +90,9 @@ object ResourceIds {
             sb.append("  <public id=\"$id\" type=\"$type\" name=\"$name\" />\n")
             added += Added(type, name, id)
         }
-        publicXml.writeText(text.replace("</resources>", sb.toString() + "</resources>"))
+        val newText = text.replace("</resources>", sb.toString() + "</resources>")
+        publicXml.writeText(newText)
+        ChangeLog.record(publicXml, text, newText, "App", "Recursos nuevos registrados: " + added.take(5).joinToString { "${it.type}/${it.name}" })
         return added
     }
 

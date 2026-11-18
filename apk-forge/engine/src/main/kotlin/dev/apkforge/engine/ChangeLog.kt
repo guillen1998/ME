@@ -47,7 +47,15 @@ object ChangeLog {
         runCatching {
             val (diff, add, rem) = CodeAssistant.diff(before ?: "", after ?: "", file.name)
             if (add == 0 && rem == 0) return
-            val e = ChangeEntry(System.currentTimeMillis(), file.absoluteFile.relativeTo(project).path, who, add, rem, note.take(300),
+            val now = System.currentTimeMillis()
+            // Copia de seguridad del estado ANTERIOR: permite restaurar el proyecto a cualquier fecha
+            runCatching {
+                val rel = file.absoluteFile.relativeTo(project).path
+                val dst = File(project, "$META_DIR/backup/$now/$rel")
+                dst.parentFile?.mkdirs()
+                if (before != null) dst.writeText(before) else File(dst.path + NEW_MARK).writeText("")
+            }
+            val e = ChangeEntry(now, file.absoluteFile.relativeTo(project).path, who, add, rem, note.take(300),
                 diff.lines().take(40).joinToString("\n").take(3000))
             logFile(project).apply { parentFile?.mkdirs() }.appendText(gson.toJson(e) + "\n")
         }
@@ -60,6 +68,12 @@ object ChangeLog {
             val e = ChangeEntry(System.currentTimeMillis(), file.absoluteFile.relativeTo(project).path, who, changed, 0, note.take(300))
             logFile(project).apply { parentFile?.mkdirs() }.appendText(gson.toJson(e) + "\n")
         }
+    }
+
+    /** Reescribe el historial dejando solo las entradas que cumplan [keep]. */
+    fun retain(project: File, keep: (ChangeEntry) -> Boolean) = runCatching {
+        val kept = all(project).filter(keep)
+        logFile(project).writeText(kept.joinToString("") { gson.toJson(it) + "\n" })
     }
 
     fun all(project: File): List<ChangeEntry> = runCatching {

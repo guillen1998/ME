@@ -116,6 +116,7 @@ object Routes {
             "Analiza el archivo '${target.name}': qué es, qué contiene, si está cifrado (y si lo está, busca la clave y descífralo) y para qué lo usa la app." else null
         return "agent?path=${enc(target)}" + (auto?.let { "&prompt=${Uri.encode(it)}" } ?: "")
     }
+    fun backups(project: File) = "backups?path=${enc(project)}"
     const val PROJECTS = "projects"
     const val APPS = "apps"
     const val SETTINGS = "settings"
@@ -138,6 +139,7 @@ private fun AppNav(nav: NavHostController) {
                 onSearch = { nav.navigate(Routes.search(it)) },
                 onScan = { nav.navigate(Routes.scan(it)) },
                 onAgent = { nav.navigate(Routes.agent(it)) },
+                onBackups = { nav.navigate(Routes.backups(it)) },
                 onApps = { nav.navigate(Routes.APPS) },
                 onProjects = { nav.navigate(Routes.PROJECTS) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
@@ -198,6 +200,7 @@ private fun AppNav(nav: NavHostController) {
                 initialPrompt = e.arguments?.getString("prompt"),
                 onOpenDir = { nav.navigate(Routes.files(it)) },
                 onSwitch = { dir -> nav.navigate(Routes.agent(dir)) { popUpTo(nav.currentBackStackEntry?.destination?.id ?: 0) { inclusive = true } } },
+                onBackups = { nav.navigate(Routes.backups(it)) },
             )
         }
         composable(
@@ -241,7 +244,11 @@ private fun AppNav(nav: NavHostController) {
                 agent = { nav.navigate(Routes.agent(it)) },
                 search = { nav.navigate(Routes.search(it)) },
                 java = { nav.navigate(Routes.java(it)) },
+                backups = { nav.navigate(Routes.backups(it)) },
             ))
+        }
+        composable("backups?path={path}", arguments = listOf(pathArg)) { e ->
+            dev.apkforge.app.ui.backups.BackupsScreen(File(e.arguments?.getString("path") ?: "/"), onBack = { nav.back() })
         }
         composable(Routes.VIEWER) { TextViewerScreen(onBack = { nav.back() }) }
     }

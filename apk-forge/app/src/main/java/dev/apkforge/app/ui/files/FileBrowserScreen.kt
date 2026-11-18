@@ -37,6 +37,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Android
@@ -163,6 +164,8 @@ fun FileBrowserScreen(
     onApps: () -> Unit,
     onProjects: () -> Unit = {},
     onSettings: () -> Unit,
+
+    onBackups: (File) -> Unit = {},
 ) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
@@ -292,7 +295,7 @@ fun FileBrowserScreen(
                         .verticalScroll(rememberScrollState()).padding(vertical = 6.dp),
                 ) {
                     fun at(f: File) = path == f.absolutePath
-                    SidePanelItem(Icons.Default.PhoneAndroid, "Almacenamiento", Color(0xFF8AB4F8), path == storageRoot) { path = storageRoot }
+                    SidePanelItem(Icons.Default.PhoneAndroid, "Memoria", Color(0xFF8AB4F8), path == storageRoot) { path = storageRoot }
                     SidePanelItem(Icons.Default.Download, "Descargas", Color(0xFF8AB4F8), at(Workspace.downloads)) { path = Workspace.downloads.absolutePath }
                     SidePanelItem(Icons.Default.Construction, "ApkTools", Accent, at(Workspace.root)) { Workspace.init(); path = Workspace.root.absolutePath }
                     SidePanelItem(Icons.Default.FolderSpecial, "Proyectos", Accent) { onProjects() }
@@ -337,6 +340,7 @@ fun FileBrowserScreen(
                         Text("Proyecto", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp))
                         SidePanelItem(Icons.Default.Build, "Exportar nuevo APK y firmar", Ok) { buildProject(root) }
                         SidePanelItem(Icons.Default.Coffee, "Ver Java", AccentWarm) { onOpenJava(root) }
+                        SidePanelItem(Icons.Default.History, "Copias de seguridad", Accent) { onBackups(root) }
                     }
                     HorizontalDivider(Modifier.padding(vertical = 6.dp))
                     SidePanelItem(Icons.Default.Settings, "Ajustes", MaterialTheme.colorScheme.onSurfaceVariant) { onSettings() }
@@ -394,17 +398,25 @@ fun FileBrowserScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).fillMaxWidth(),
                 ) {
-                    Row(Modifier.padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.FolderSpecial, null, tint = Accent)
-                        Spacer(Modifier.size(10.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("Proyecto: ${root.name}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(info?.packageName ?: "", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // Nombre arriba (ancho completo) y botones debajo: así el nombre no se aplasta letra por letra en pantallas estrechas
+                    Column(Modifier.padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.FolderSpecial, null, tint = Accent, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.size(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(root.name, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                info?.packageName?.takeIf { it != root.name }?.let {
+                                    Text(it, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                            }
                         }
-                        IconButton(onClick = { onAgent(root) }) { Icon(Icons.Default.AutoAwesome, "Agente IA") }
-                        IconButton(onClick = { onOpenJava(root) }) { Icon(Icons.Default.Coffee, "Ver Java") }
-                        Button(onClick = { buildProject(root) }) {
-                            Icon(Icons.Default.Build, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Exportar APK")
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                            IconButton(onClick = { onAgent(root) }) { Icon(Icons.Default.AutoAwesome, "Agente IA") }
+                            IconButton(onClick = { onOpenJava(root) }) { Icon(Icons.Default.Coffee, "Ver Java") }
+                            Spacer(Modifier.weight(1f))
+                            Button(onClick = { buildProject(root) }) {
+                                Icon(Icons.Default.Build, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Exportar APK", maxLines = 1)
+                            }
                         }
                     }
                 }

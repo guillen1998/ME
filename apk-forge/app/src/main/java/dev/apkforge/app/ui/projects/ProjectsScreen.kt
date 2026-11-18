@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Delete
@@ -77,6 +78,7 @@ class ProjectsNav(
     val agent: (File) -> Unit,
     val search: (File) -> Unit,
     val java: (File) -> Unit,
+    val backups: (File) -> Unit = {},
 )
 
 /**
@@ -137,6 +139,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
                         onJava = { nav.java(p.dir) },
                         onReport = { reportFor = p },
                         onDesign = { designFor = p },
+                        onBackups = { nav.backups(p.dir) },
                         onDelete = { deleteFor = p })
                 }
                 if (studio.isNotEmpty()) {
@@ -206,6 +209,7 @@ private val dateFmt = SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault())
 private fun ProjectCard(
     p: ProjectInfo, onAgent: () -> Unit, onExport: () -> Unit, onOpen: () -> Unit,
     onSearch: () -> Unit, onJava: () -> Unit, onReport: () -> Unit, onDesign: () -> Unit, onDelete: () -> Unit,
+    onBackups: () -> Unit = {},
 ) {
     val changes = remember(p.dir) { dev.apkforge.engine.ChangeLog.all(p.dir) }
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(14.dp)) {
@@ -234,6 +238,9 @@ private fun ProjectCard(
                 OutlinedButton(onClick = onOpen, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Folder, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Archivos", fontSize = 12.sp) }
                 OutlinedButton(onClick = onSearch, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Search, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Buscar", fontSize = 12.sp) }
                 OutlinedButton(onClick = onJava, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Coffee, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Java", fontSize = 12.sp) }
+            }
+            OutlinedButton(onClick = onBackups, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                Icon(Icons.Default.History, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Copias de seguridad · restaurar / explicar con IA", fontSize = 12.sp)
             }
             OutlinedButton(onClick = onDesign, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
                 Icon(Icons.Default.GridView, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Diseño: listas → cuadrícula (filas y columnas)", fontSize = 12.sp)

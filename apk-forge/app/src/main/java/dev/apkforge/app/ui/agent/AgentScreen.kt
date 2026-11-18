@@ -89,7 +89,7 @@ import java.io.File
 @Composable
 fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
                 initialPreset: AgentPreset? = null, initialPrompt: String? = null, onOpenDir: (File) -> Unit = {},
-                onSwitch: (File) -> Unit = {}) {
+                onSwitch: (File) -> Unit = {}, onBackups: (File) -> Unit = {}) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     // Carpeta dentro de un proyecto -> la raíz del proyecto. Carpeta antigua de Android Studio -> su APK original.
     val resolved = remember(target) {
@@ -101,9 +101,9 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
             else -> target
         }
     }
-    if (resolved != target) { AgentScreen(resolved, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch); return }
+    if (resolved != target) { AgentScreen(resolved, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch, onBackups); return }
     val isApk = target.isFile && target.extension.equals("apk", true)
-    if (!isApk) { AgentChat(target, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch); return }
+    if (!isApk) { AgentChat(target, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch, onBackups); return }
 
     var project by remember(target) {
         mutableStateOf(dev.apkforge.engine.ApkProject.findProjectFor(target, dev.apkforge.app.core.Workspace.projects)?.dir)
@@ -126,7 +126,7 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
         }
     }
     val p = project
-    if (p != null) AgentChat(p, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch)
+    if (p != null) AgentChat(p, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch, onBackups)
     else Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.size(80.dp))
         CircularProgressIndicator()
@@ -141,7 +141,7 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
 @Composable
 private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
                       initialPreset: AgentPreset?, initialPrompt: String?, onOpenDir: (File) -> Unit,
-                      onSwitch: (File) -> Unit = {}) {
+                      onSwitch: (File) -> Unit = {}, onBackups: (File) -> Unit = {}) {
     val prefs = ApkForgeApp.prefs
     var preset by rememberSaveable {
         mutableStateOf(initialPreset ?: if (target.isFile && !target.extension.equals("apk", true)) AgentPreset.FILE_ANALYST else AgentPreset.EXPLAIN)
@@ -236,6 +236,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                             Text(target.name, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         androidx.compose.material3.TextButton(onClick = { onOpenDir(target) }) { Text("Abrir") }
+                        androidx.compose.material3.TextButton(onClick = { onBackups(target) }) { Text("Copias") }
                         androidx.compose.material3.Button(onClick = { showExport = true }) { Text("Exportar APK") }
                     }
                 }
