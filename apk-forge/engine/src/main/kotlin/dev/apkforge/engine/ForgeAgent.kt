@@ -44,10 +44,11 @@ enum class AgentPreset(val title: String, val description: String, val goal: Str
             "(Retrofit/OkHttp/Volley…) y qué clase llama a cada endpoint. Usa scan_findings y busca en el código.",
     ),
     DEOBFUSCATE(
-        "Desofuscador", "Propone nombres reales para clases y métodos ofuscados",
-        "La app está ofuscada. Lee las clases ofuscadas (a, b, c…) y deduce por su comportamiento, cadenas y " +
-            "llamadas a APIs de Android qué hace cada una. Devuelve una tabla 'nombre ofuscado → nombre propuesto " +
-            "→ por qué', empezando por las clases más usadas (mira class_xref).",
+        "Desofuscador", "La app y la IA recuperan los nombres reales del código ofuscado",
+        "La app está ofuscada. Trabaja JUNTO con la app: 1) llama a deobfuscate (la app deduce en segundos nombres reales por " +
+            "toString, logs, layouts, findViewById, getters/setters…); 2) para las clases pendientes usa deobf_info y razona por " +
+            "su comportamiento, cadenas y APIs qué son; 3) guarda cada nombre con rename_symbol (clases, métodos y campos importantes); " +
+            "4) al final resume la arquitectura con los nombres reales (pantallas, adaptadores, red, datos). No inventes sin pistas."
     ),
     SECURITY(
         "Auditor de seguridad", "Secretos, cripto débil, almacenamiento y red inseguros",

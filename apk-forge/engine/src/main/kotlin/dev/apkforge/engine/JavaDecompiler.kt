@@ -24,6 +24,8 @@ data class JavaDecompilerOptions(
     /** Oculta el bloque @Metadata(d1 = {...}) de Kotlin, que es ruido ilegible. */
     val hideKotlinMetadata: Boolean = true,
     val threads: Int = Runtime.getRuntime().availableProcessors().coerceIn(1, 4),
+    /** Nombres reales deducidos por el desofuscador (app + IA) que se aplican al Java. */
+    val renames: List<jadx.api.data.ICodeRename> = emptyList(),
 )
 
 /** Resultado de la búsqueda de clases. */
@@ -172,6 +174,7 @@ class JavaDecompiler private constructor(
                 setEscapeUnicode(false)
                 setRespectBytecodeAccModifiers(false)
                 setCommentsLevel(CommentsLevel.INFO)
+                if (options.renames.isNotEmpty()) setCodeData(jadx.api.data.impl.JadxCodeData().apply { renames = options.renames })
                 setUseKotlinMethodsForVarNames(
                     if (options.kotlinNames) JadxArgs.UseKotlinMethodsForVarNames.APPLY
                     else JadxArgs.UseKotlinMethodsForVarNames.DISABLE

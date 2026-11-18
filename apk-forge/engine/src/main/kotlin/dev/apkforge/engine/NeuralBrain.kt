@@ -259,6 +259,7 @@ internal object ProjectReader {
 
     fun chunks(project: File, limit: Int = 6000): List<SemanticIndex.Chunk> {
         val out = ArrayList<SemanticIndex.Chunk>()
+        val real = runCatching { Deobfuscator.classNames(project) }.getOrDefault(emptyMap())
         val rel = { f: File -> f.relativeTo(project).path }
         ownSmali(project).take(limit).forEach { f ->
             val t = runCatching { f.readText() }.getOrNull() ?: return@forEach
@@ -268,9 +269,11 @@ internal object ProjectReader {
             val strings = Regex("""const-string(?:/jumbo)? [vp]\d+, "([^"]{2,60})"""").findAll(t).map { it.groupValues[1] }.distinct().take(12)
             val uses = Regex("""L([\w/$]+);""").findAll(t).map { it.groupValues[1].substringAfterLast('/') }
                 .filter { it.length > 3 && !it.startsWith("String") && !it.startsWith("Object") }.distinct().take(15)
-            val text = "${words(cls.substringAfterLast('/'))} (${words(sup)}) in ${words(cls.substringBeforeLast('/', ""))}. " +
+            val realName = real["L$cls;"]?.name
+            val text = (realName?.let { "${words(it)} (real name). " } ?: "") +
+                "${words(cls.substringAfterLast('/'))} (${words(sup)}) in ${words(cls.substringBeforeLast('/', ""))}. " +
                 "methods: ${methods.joinToString { words(it) }}. uses: ${uses.joinToString { words(it) }}. texts: ${strings.joinToString(" | ")}"
-            out += SemanticIndex.Chunk(rel(f), cls.substringAfterLast('/'), text.take(600), f.lastModified())
+            out += SemanticIndex.Chunk(rel(f), realName ?: cls.substringAfterLast('/'), text.take(600), f.lastModified() + (realName?.hashCode() ?: 0))
         }
         File(project, "resources").listFiles().orEmpty().mapNotNull { File(it, "res").takeIf { r -> r.isDirectory } }.forEach { res ->
             res.listFiles { d -> d.isDirectory && (d.name == "layout" || d.name.startsWith("layout-") || d.name == "menu" || d.name == "navigation") }.orEmpty()
@@ -301,6 +304,7 @@ internal object ProjectReader {
 class ProjectGraph private constructor(
     private val edges: Map<String, List<Pair<String, String>>>,   // nodo -> (destino, relación)
     private val roles: Map<String, List<String>>,                  // nodo -> roles deducidos
+    private val realNames: Map<String, String> = emptyMap(),      // archivo -> nombre real deducido (desofuscación)
 ) {
     fun neighbors(n: String) = edges[n].orEmpty()
     fun rolesOf(n: String) = roles[n].orEmpty()
@@ -335,13 +339,14 @@ class ProjectGraph private constructor(
         return chains.distinct().take(maxChains + 5) to score
     }
 
-    private fun label(path: String) = path.substringAfterLast('/')
+    private fun label(path: String) = path.substringAfterLast('/').let { f -> realNames[path]?.let { "$f ($it)" } ?: f }
 
     companion object {
         private val cache = HashMap<String, Pair<Long, ProjectGraph>>()
 
         fun of(project: File): ProjectGraph {
-            val stamp = File(project, "$META_DIR/changes.jsonl").lastModified() + File(project, "smali").lastModified()
+            val stamp = File(project, "$META_DIR/changes.jsonl").lastModified() + File(project, "smali").lastModified() +
+                Deobfuscator.mappingFile(project).lastModified()
             cache[project.absolutePath]?.takeIf { it.first == stamp }?.let { return it.second }
             return build(project).also { cache[project.absolutePath] = stamp to it }
         }
@@ -412,7 +417,9 @@ class ProjectGraph private constructor(
                     }
                 }
             }
-            return ProjectGraph(edges, roles.filterValues { it.isNotEmpty() })
+            val real = runCatching { Deobfuscator.classNames(project) }.getOrDefault(emptyMap())
+            val pathNames = classFile.mapNotNull { (desc, path) -> real[desc]?.let { path to it.name } }.toMap()
+            return ProjectGraph(edges, roles.filterValues { it.isNotEmpty() }, pathNames)
         }
     }
 }

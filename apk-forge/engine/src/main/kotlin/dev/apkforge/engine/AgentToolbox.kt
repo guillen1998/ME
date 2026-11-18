@@ -51,6 +51,7 @@ class AgentToolbox(
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
         - Trabaja solo en apps propias, de código abierto o con permiso; no ayudes a saltarse pagos, licencias o DRM de apps comerciales de terceros.
+        - Si el código está OFUSCADO (clases a, b, c…), no te rindas: usa deobfuscate (la app deduce nombres reales), deobf_info para estudiar las clases que falten y rename_symbol para guardar lo que deduzcas. Así tú y la app desofuscan juntos.
         - Para cambios de diseño grandes (p. ej. pasar una lista de filas a cuadrícula de filas y columnas) usa find_lists y list_to_grid, y después adapta el layout del elemento si hace falta.
         - Responde en español, claro y organizado.
     """.trimIndent()
@@ -104,6 +105,14 @@ class AgentToolbox(
             ), listOf("key")))
         add(tool("semantic_search", "Búsqueda por SIGNIFICADO con el motor neuronal de la app (red en la CPU/GPU del móvil) + razonamiento sobre el grafo del proyecto: devuelve los archivos más probables y cadenas como 'pantalla → adaptador → layout de la fila'. Úsalo cuando no sepas el nombre exacto de lo que buscas.",
             mapOf("query" to str("Qué buscas, en lenguaje natural (p. ej. 'pantalla de canales', 'donde se descarga la lista')")), listOf("query")))
+        add(tool("deobfuscate", "La APP desofusca el proyecto en segundos (toString de Kotlin, etiquetas de log, layouts que infla cada clase, findViewById, getters/setters, tipos) y devuelve los nombres reales deducidos. Úsalo cuando el código esté ofuscado (clases a, b, c…).",
+            mapOf("filter" to str("Opcional: solo nombres que contengan esto")), listOf()))
+        add(tool("deobf_info", "Resumen de una clase ofuscada preparado por la app (superclase, campos, métodos, cadenas, APIs que llama y los nombres ya deducidos) para que decidas su nombre real.",
+            mapOf("class_name" to str("Clase, p. ej. a.b.c o La/b/c;")), listOf("class_name")))
+        add(tool("rename_symbol", "Guarda el nombre REAL que deduces para una clase, método o campo ofuscado. Se aplica al Java legible, a la búsqueda y al contexto (no toca el smali, exportar sigue siendo seguro).",
+            mapOf("kind" to str("class | method | field"), "class_name" to str("Clase propietaria (a.b.c)"),
+                "symbol" to str("Para método: nombre(params)retorno del smali, p. ej. a(I)V; para campo: nombre:tipo, p. ej. a:Ljava/lang/String;; vacío para clase"),
+                "new_name" to str("Nombre real propuesto"), "reason" to str("Por qué")), listOf("kind", "class_name", "new_name", "reason")))
         add(tool("find_lists", "Encuentra las LISTAS de la app (RecyclerView con LinearLayoutManager) en smali y layouts XML: clase, método y línea. Úsalo para cambios de diseño como pasar filas a cuadrícula.",
             mapOf(), listOf()))
         if (allowEdits) {
@@ -292,6 +301,32 @@ class AgentToolbox(
             val hits = runCatching { ContextFinder.find(p, q, 40) }.getOrDefault(emptyList())
             NeuralBrain.think(p, q, hits).format().ifBlank { "El motor neuronal no encontró nada relacionado" }
         }
+        "deobfuscate" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val rep = Deobfuscator.analyze(p)
+            val filter = (a["filter"] as? String).orEmpty()
+            val list = Deobfuscator.load(p).filter { filter.isEmpty() || it.name.contains(filter, true) || it.cls.contains(filter, true) }
+                .sortedByDescending { it.conf }
+            "Clases: ${rep.classes} · ofuscadas: ${rep.obfuscated} · nombres deducidos: ${rep.renamed} clases, ${rep.methods} métodos, ${rep.fields} campos\n" +
+                list.filter { it.kind == "class" }.take(60).joinToString("\n") { "${it.cls} → ${it.name} (${(it.conf * 100).toInt()}% ${it.source}: ${it.evidence.take(70)})" } +
+                "\nPendientes para ti (sin nombre fiable): " + Deobfuscator.pendingForAi(p, 15).joinToString { it.desc } +
+                "\nUsa deobf_info para estudiarlas y rename_symbol para guardar los nombres."
+        }
+        "deobf_info" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val raw = (a["class_name"] as String).trim()
+            val desc = if (raw.startsWith("L")) raw.removeSuffix(";") + ";" else "L" + raw.replace('.', '/') + ";"
+            val f = File(p, "smali").walkTopDown().firstOrNull { it.isFile && it.path.endsWith(desc.removePrefix("L").removeSuffix(";") + ".smali") }
+                ?: throw EngineException("No encuentro la clase $raw")
+            val c = Deobfuscator.parse(f.readText()) ?: throw EngineException("No se pudo leer")
+            Deobfuscator.summary(p, c, Deobfuscator.load(p).associateBy { it.key }) + "\nArchivo: ${f.relativeTo(p).path}"
+        }
+        "rename_symbol" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val r = Deobfuscator.rename(p, a["kind"] as String, a["class_name"] as String, (a["symbol"] as? String).orEmpty(),
+                a["new_name"] as String, "IA", (a["reason"] as? String).orEmpty())
+            "Guardado: ${r.cls} ${r.kind} ${r.obf} → ${r.name}"
+        }
         "find_lists" -> {
             val p = projectDir() ?: throw EngineException("No es un proyecto")
             val sites = LayoutPatcher.find(p)
@@ -432,6 +467,8 @@ class AgentToolbox(
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"
         "semantic_search" -> "“${a["query"]}”"
+        "rename_symbol" -> "${a["class_name"]} ${a["symbol"] ?: ""} → ${a["new_name"]}"
+        "deobf_info" -> "${a["class_name"]}"
         "list_to_grid" -> "${a["site"]} → ${a["columns"] ?: 2} columnas"
         "replace_all" -> "“${a["find"]}” → “${a["replace"]}”"
         "search_text" -> "“${a["query"]}”" + ((a["extension"] as? String)?.takeIf { it.isNotEmpty() }?.let { " en .$it" } ?: "")

@@ -79,6 +79,7 @@ class ProjectsNav(
     val search: (File) -> Unit,
     val java: (File) -> Unit,
     val backups: (File) -> Unit = {},
+    val deobf: (File) -> Unit = {},
 )
 
 /**
@@ -140,6 +141,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
                         onReport = { reportFor = p },
                         onDesign = { designFor = p },
                         onBackups = { nav.backups(p.dir) },
+                        onDeobf = { nav.deobf(p.dir) },
                         onDelete = { deleteFor = p })
                 }
                 if (studio.isNotEmpty()) {
@@ -210,6 +212,7 @@ private fun ProjectCard(
     p: ProjectInfo, onAgent: () -> Unit, onExport: () -> Unit, onOpen: () -> Unit,
     onSearch: () -> Unit, onJava: () -> Unit, onReport: () -> Unit, onDesign: () -> Unit, onDelete: () -> Unit,
     onBackups: () -> Unit = {},
+    onDeobf: () -> Unit = {},
 ) {
     val changes = remember(p.dir) { dev.apkforge.engine.ChangeLog.all(p.dir) }
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(14.dp)) {
@@ -238,6 +241,9 @@ private fun ProjectCard(
                 OutlinedButton(onClick = onOpen, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Folder, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Archivos", fontSize = 12.sp) }
                 OutlinedButton(onClick = onSearch, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Search, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Buscar", fontSize = 12.sp) }
                 OutlinedButton(onClick = onJava, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Coffee, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Java", fontSize = 12.sp) }
+            }
+            OutlinedButton(onClick = onDeobf, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Desofuscar (app + IA): nombres reales", fontSize = 12.sp)
             }
             OutlinedButton(onClick = onBackups, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
                 Icon(Icons.Default.History, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Copias de seguridad · restaurar / explicar con IA", fontSize = 12.sp)

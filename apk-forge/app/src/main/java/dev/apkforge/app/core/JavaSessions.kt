@@ -27,8 +27,11 @@ object JavaSessions {
     }
 
     @Synchronized
-    fun get(path: File, options: JavaDecompilerOptions, listener: ProgressListener = ProgressListener.NONE): JavaDecompiler {
-        val k = path.absolutePath + "|" + options.hashCode()
+    fun get(path: File, baseOptions: JavaDecompilerOptions, listener: ProgressListener = ProgressListener.NONE): JavaDecompiler {
+        // En proyectos, el Java usa los nombres reales deducidos por el desofuscador (app + IA)
+        val options = if (path.isDirectory && dev.apkforge.engine.ApkProject.isProject(path))
+            baseOptions.copy(renames = runCatching { dev.apkforge.engine.Deobfuscator.jadxRenames(path) }.getOrDefault(emptyList())) else baseOptions
+        val k = path.absolutePath + "|" + options.hashCode() + "|" + dev.apkforge.engine.Deobfuscator.mappingFile(path).lastModified()
         session?.let { if (key == k) return it }
         close()
         val s = JavaDecompiler.open(inputsFor(path), options, listener)

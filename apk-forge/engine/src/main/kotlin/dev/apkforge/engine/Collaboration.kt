@@ -301,6 +301,10 @@ object MessagePreparer {
             val raw = runCatching { ContextFinder.find(project, q, 60) }.getOrDefault(emptyList())
             runCatching { neuralRerank(project, q, raw) }.getOrDefault(raw.take(25))
         } else emptyList()
+        // Desofuscación: la primera vez, la app deduce los nombres reales (segundos, sin internet)
+        if (project != null && !Deobfuscator.mappingFile(project).isFile) runCatching {
+            listener.onProgress("🔍 La app desofusca el proyecto (nombres reales)…"); Deobfuscator.analyze(project, ProgressListener.NONE)
+        }
         // El motor neuronal piensa: significado (CPU/GPU) + grafo del proyecto + lo aprendido
         val thought = if (project != null) runCatching {
             listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
@@ -311,6 +315,9 @@ object MessagePreparer {
             notes?.let { appendLine(); appendLine(); appendLine("IMÁGENES ADJUNTAS (analizadas por la app):"); appendLine(it) }
             if (related.isNotEmpty()) { appendLine(); appendLine(); append(ContextFinder.format(related)) }
             thought?.format()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
+            if (project != null) runCatching {
+                Deobfuscator.contextFor(project, related.map { it.path } + (thought?.ranked?.map { it.first } ?: emptyList()))
+            }.getOrNull()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
         }
         return Prepared(text, notes, related, thought)
     }

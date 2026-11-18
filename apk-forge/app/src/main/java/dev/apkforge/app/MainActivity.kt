@@ -117,6 +117,7 @@ object Routes {
         return "agent?path=${enc(target)}" + (auto?.let { "&prompt=${Uri.encode(it)}" } ?: "")
     }
     fun backups(project: File) = "backups?path=${enc(project)}"
+    fun deobf(project: File) = "deobf?path=${enc(project)}"
     const val PROJECTS = "projects"
     const val APPS = "apps"
     const val SETTINGS = "settings"
@@ -245,7 +246,12 @@ private fun AppNav(nav: NavHostController) {
                 search = { nav.navigate(Routes.search(it)) },
                 java = { nav.navigate(Routes.java(it)) },
                 backups = { nav.navigate(Routes.backups(it)) },
+                deobf = { nav.navigate(Routes.deobf(it)) },
             ))
+        }
+        composable("deobf?path={path}", arguments = listOf(pathArg)) { e ->
+            dev.apkforge.app.ui.deobf.DeobfScreen(File(e.arguments?.getString("path") ?: "/"), onBack = { nav.back() },
+                onOpenJava = { nav.navigate(Routes.java(it)) })
         }
         composable("backups?path={path}", arguments = listOf(pathArg)) { e ->
             dev.apkforge.app.ui.backups.BackupsScreen(File(e.arguments?.getString("path") ?: "/"), onBack = { nav.back() })
