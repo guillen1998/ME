@@ -159,9 +159,9 @@ fun ApkInfoScreen(apk: File, onBack: () -> Unit, onOpenDir: (File) -> Unit, onOp
                     }
                 }
                 ActionTile(Icons.Default.InstallMobile, "Instalar", m) { Installer.install(ctx, apk) }
-                ActionTile(Icons.Default.Science, "Proyecto Android", m, tint = Ok) {
-                    val out = Workspace.unique(Workspace.projects, Workspace.safeName((info?.packageName ?: apk.nameWithoutExtension) + "_studio"))
-                    TaskRunner.run("Reconstruyendo proyecto Android Studio", ResultKind.DIRECTORY) { log ->
+                ActionTile(Icons.Default.Science, "Exportar a Android Studio (PC)", m, tint = Ok) {
+                    val out = Workspace.unique(Workspace.studio, Workspace.safeName((info?.packageName ?: apk.nameWithoutExtension)))
+                    TaskRunner.run("Exportando a Android Studio (para PC)", ResultKind.DIRECTORY) { log ->
                         dev.apkforge.engine.ApkProject.exportStudioProject(apk, out, prefs.javaOptions(), log)
                     }
                 }

@@ -231,8 +231,8 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
                     SideItem(Icons.Default.Save, "Exportar nuevo APK y firmar", Ok) { showExport = true }
                     SideItem(Icons.Default.Info, "Información", Accent) { nav.info(apk) }
                     SideItem(Icons.Default.Unarchive, "Decompilar", Accent) {
-                        val out = Workspace.unique(Workspace.projects, Workspace.safeName(apk.nameWithoutExtension))
                         TaskRunner.run("Decompilando ${apk.name}", ResultKind.DIRECTORY) { log ->
+                            val out = Workspace.newProjectDir(apk)
                             ApkProject.decompile(apk, out, DecompileOptions(), log); out
                         }
                     }
@@ -241,12 +241,6 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
                     SideItem(Icons.Default.EditNote, "Manifest", Color(0xFFE06C75)) { nav.editEntry(apk, "AndroidManifest.xml") }
                     SideItem(Icons.Default.TravelExplore, "Analizar", Accent) { nav.scan(apk) }
                     SideItem(Icons.Default.AutoAwesome, "Agente IA", AccentWarm) { nav.agent(apk) }
-                    SideItem(Icons.Default.Science, "Proyecto Android", Ok) {
-                        val out = Workspace.unique(Workspace.projects, Workspace.safeName(apk.nameWithoutExtension + "_studio"))
-                        TaskRunner.run("Reconstruyendo proyecto Android Studio", ResultKind.DIRECTORY) { log ->
-                            ApkProject.exportStudioProject(apk, out, prefs.javaOptions(), log)
-                        }
-                    }
                     HorizontalDivider(Modifier.padding(vertical = 6.dp))
                     SideItem(Icons.Default.Draw, "Firmar", Ok) {
                         val out = File(Workspace.builds, apk.nameWithoutExtension + "-firmado.apk")

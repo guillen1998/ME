@@ -161,6 +161,7 @@ fun FileBrowserScreen(
     onScan: (File) -> Unit,
     onAgent: (File) -> Unit,
     onApps: () -> Unit,
+    onProjects: () -> Unit = {},
     onSettings: () -> Unit,
 ) {
     val ctx = LocalContext.current
@@ -293,7 +294,7 @@ fun FileBrowserScreen(
                     SidePanelItem(Icons.Default.PhoneAndroid, "Almacenamiento", Color(0xFF8AB4F8), path == storageRoot) { path = storageRoot }
                     SidePanelItem(Icons.Default.Download, "Descargas", Color(0xFF8AB4F8), at(Workspace.downloads)) { path = Workspace.downloads.absolutePath }
                     SidePanelItem(Icons.Default.Construction, "ApkTools", Accent, at(Workspace.root)) { Workspace.init(); path = Workspace.root.absolutePath }
-                    SidePanelItem(Icons.Default.FolderSpecial, "Proyectos", Accent, at(Workspace.projects)) { path = Workspace.projects.absolutePath }
+                    SidePanelItem(Icons.Default.FolderSpecial, "Proyectos", Accent) { onProjects() }
                     SidePanelItem(Icons.Default.Inventory2, "Compilados", Ok, at(Workspace.builds)) { path = Workspace.builds.absolutePath }
                     SidePanelItem(Icons.Default.Unarchive, "Extraídos", AccentWarm, at(Workspace.extracted)) { path = Workspace.extracted.absolutePath }
                     HorizontalDivider(Modifier.padding(vertical = 6.dp))
@@ -301,7 +302,33 @@ fun FileBrowserScreen(
                     SidePanelItem(Icons.Default.Search, "Buscar en archivos", Accent) { onSearch(projectRoot ?: dir) }
                     SidePanelItem(Icons.Default.TravelExplore, "Analizar", Accent) { onScan(projectRoot ?: dir) }
                     SidePanelItem(Icons.Default.AutoAwesome, "Agente IA", AccentWarm) { onAgent(projectRoot ?: dir) }
-                    projectRoot?.let { root ->
+                    val studioSrc = remember(path) {
+                generateSequence(dir) { it.parentFile }.take(4).firstNotNullOfOrNull { d -> ApkProject.studioSource(d)?.let { d to it } }
+            }
+            if (projectRoot == null && studioSrc != null) {
+                val srcApk = studioSrc.second.takeIf { it.isNotBlank() }?.let(::File)?.takeIf { it.isFile }
+                Surface(color = AccentWarm.copy(alpha = 0.14f), shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text("Proyecto para Android Studio (PC)", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text("Es código Java para abrir en el ordenador: el móvil no puede compilarlo a APK. " +
+                            "Para editar y exportar aquí, crea un proyecto editable desde el APK original.",
+                            fontSize = 12.sp, modifier = Modifier.padding(vertical = 6.dp))
+                        Row {
+                            if (srcApk != null) Button(onClick = {
+                                TaskRunner.run("Creando proyecto editable", ResultKind.DIRECTORY) { log ->
+                                    val existing = ApkProject.findProjectFor(srcApk, Workspace.projects)?.dir
+                                    existing ?: Workspace.newProjectDir(srcApk).also { ApkProject.decompile(srcApk, it, dev.apkforge.engine.DecompileOptions(), log) }
+                                }
+                            }) { Text("Crear proyecto editable") }
+                            Spacer(Modifier.size(8.dp))
+                            TextButton(onClick = onProjects) { Text("Ir a Proyectos") }
+                        }
+                    }
+                }
+            }
+
+            projectRoot?.let { root ->
                         HorizontalDivider(Modifier.padding(vertical = 6.dp))
                         Text("Proyecto", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp))
                         SidePanelItem(Icons.Default.Build, "Exportar nuevo APK y firmar", Ok) { buildProject(root) }

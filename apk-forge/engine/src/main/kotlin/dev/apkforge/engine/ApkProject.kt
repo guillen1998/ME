@@ -96,6 +96,23 @@ object ApkProject {
 
     fun isProject(dir: File) = File(dir, PROPS).isFile
 
+    /** ¿Es una exportación para Android Studio (PC)? Devuelve el APK de origen si se conoce. */
+    fun studioSource(dir: File): String? {
+        if (isProject(dir) || !File(dir, "settings.gradle.kts").isFile || !File(dir, "app/src/main").isDirectory) return null
+        return File(dir, "$META_DIR/studio.properties").takeIf { it.isFile }?.readLines()
+            ?.firstOrNull { it.startsWith("sourceApk=") }?.substringAfter('=') ?: ""
+    }
+
+    /** Proyectos de ApkForge dentro de [projectsDir], el más reciente primero. */
+    fun listProjects(projectsDir: File): List<ProjectInfo> =
+        projectsDir.listFiles { f -> f.isDirectory && isProject(f) }.orEmpty()
+            .mapNotNull { runCatching { readInfo(it) }.getOrNull() }
+            .sortedByDescending { File(it.dir, PROPS).lastModified().coerceAtLeast(it.dir.lastModified()) }
+
+    /** Proyecto ya decompilado de este APK (mismo archivo de origen), si existe. */
+    fun findProjectFor(apk: File, projectsDir: File): ProjectInfo? =
+        listProjects(projectsDir).firstOrNull { it.sourceApk == apk.absolutePath }
+
     fun readInfo(dir: File): ProjectInfo {
         val f = File(dir, PROPS)
         if (!f.isFile) throw EngineException("No es un proyecto de ApkForge (falta $PROPS)")
@@ -223,6 +240,8 @@ object ApkProject {
         val target = info?.targetSdk ?: 34
         writeGradleFiles(outDir, pkg, min, target, info?.versionCode ?: 1, info?.versionName ?: "1.0")
 
+        File(outDir, "$META_DIR").mkdirs()
+        File(outDir, "$META_DIR/studio.properties").writeText("sourceApk=" + apk.absolutePath.replace("\\", "/") + "\n")
         listener.onProgress("✔ Proyecto Android en ${outDir.absolutePath} — ábrelo en Android Studio")
         return outDir
     }

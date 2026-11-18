@@ -115,6 +115,7 @@ object Routes {
             "Analiza el archivo '${target.name}': qué es, qué contiene, si está cifrado (y si lo está, busca la clave y descífralo) y para qué lo usa la app." else null
         return "agent?path=${enc(target)}" + (auto?.let { "&prompt=${Uri.encode(it)}" } ?: "")
     }
+    const val PROJECTS = "projects"
     const val APPS = "apps"
     const val SETTINGS = "settings"
     const val VIEWER = "viewer"
@@ -137,6 +138,7 @@ private fun AppNav(nav: NavHostController) {
                 onScan = { nav.navigate(Routes.scan(it)) },
                 onAgent = { nav.navigate(Routes.agent(it)) },
                 onApps = { nav.navigate(Routes.APPS) },
+                onProjects = { nav.navigate(Routes.PROJECTS) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
             )
         }
@@ -193,6 +195,7 @@ private fun AppNav(nav: NavHostController) {
             AgentScreen(
                 File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onOpenSettings = { nav.navigate(Routes.SETTINGS) },
                 initialPrompt = e.arguments?.getString("prompt"),
+                onOpenDir = { nav.navigate(Routes.files(it)) },
             )
         }
         composable(
@@ -230,6 +233,14 @@ private fun AppNav(nav: NavHostController) {
         }
         composable(Routes.APPS) { InstalledAppsScreen(onBack = { nav.back() }, onOpenApk = { nav.navigate(Routes.workspace(it)) }) }
         composable(Routes.SETTINGS) { SettingsScreen(onBack = { nav.back() }) }
+        composable(Routes.PROJECTS) {
+            dev.apkforge.app.ui.projects.ProjectsScreen(onBack = { nav.back() }, nav = dev.apkforge.app.ui.projects.ProjectsNav(
+                openDir = { nav.navigate(Routes.files(it)) },
+                agent = { nav.navigate(Routes.agent(it)) },
+                search = { nav.navigate(Routes.search(it)) },
+                java = { nav.navigate(Routes.java(it)) },
+            ))
+        }
         composable(Routes.VIEWER) { TextViewerScreen(onBack = { nav.back() }) }
     }
 }

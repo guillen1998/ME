@@ -35,6 +35,15 @@ object Workspace {
     val builds get() = File(root, "Compilados").also { it.mkdirs() }
     val extracted get() = File(root, "Extraidos").also { it.mkdirs() }
     val java get() = File(root, "Java").also { it.mkdirs() }
+    /** Proyectos para Android Studio en PC (código Java): no se compilan en el móvil. */
+    val studio get() = File(projects, "AndroidStudio").also { it.mkdirs() }
+
+    /** Carpeta para decompilar este APK: nombre del paquete + versión (sin repetir). */
+    fun newProjectDir(apk: File): File {
+        val info = runCatching { dev.apkforge.engine.ApkInspector.inspect(apk, verifySignature = false) }.getOrNull()
+        val base = safeName((info?.packageName ?: apk.nameWithoutExtension) + (info?.versionName?.let { "_v$it" } ?: ""))
+        return unique(projects, base)
+    }
 
     /** Crea la estructura al iniciar la app (si hay permiso). */
     fun init() = runCatching { projects; builds; extracted; java }

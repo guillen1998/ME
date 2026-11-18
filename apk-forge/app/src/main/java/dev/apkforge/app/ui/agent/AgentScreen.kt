@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,15 +72,70 @@ import java.io.File
  * Chat con el agente de IA. La conversación vive en AgentStore: si sales de la pantalla (o de la
  * app) el agente sigue trabajando y la notificación muestra qué está haciendo.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Entrada al agente. Si le pasas un APK, la IA no trabaja sobre el APK suelto: usa (o crea
+ * decompilándolo) su proyecto en ApkTools/Proyectos, para que lo que edite se pueda exportar.
+ */
 @Composable
 fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
-                initialPreset: AgentPreset? = null, initialPrompt: String? = null) {
+                initialPreset: AgentPreset? = null, initialPrompt: String? = null, onOpenDir: (File) -> Unit = {}) {
+    val isApk = target.isFile && target.extension.equals("apk", true)
+    if (!isApk) { AgentChat(target, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir); return }
+
+    var project by remember(target) {
+        mutableStateOf(dev.apkforge.engine.ApkProject.findProjectFor(target, dev.apkforge.app.core.Workspace.projects)?.dir)
+    }
+    val task by dev.apkforge.app.core.TaskRunner.state.collectAsState()
+    LaunchedEffect(target) {
+        if (project == null && !dev.apkforge.app.core.TaskRunner.isBusy) {
+            dev.apkforge.app.core.TaskRunner.run("Preparando el proyecto para la IA", dev.apkforge.app.core.ResultKind.NONE) { log ->
+                val out = dev.apkforge.app.core.Workspace.newProjectDir(target)
+                dev.apkforge.engine.ApkProject.decompile(target, out, dev.apkforge.engine.DecompileOptions(), log)
+                out
+            }
+        }
+    }
+    LaunchedEffect(task?.running, task?.error) {
+        val t = task
+        if (project == null && t != null && !t.running && t.error == null) {
+            project = dev.apkforge.engine.ApkProject.findProjectFor(target, dev.apkforge.app.core.Workspace.projects)?.dir
+            if (project != null) dev.apkforge.app.core.TaskRunner.dismiss()
+        }
+    }
+    val p = project
+    if (p != null) AgentChat(p, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir)
+    else Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.size(80.dp))
+        CircularProgressIndicator()
+        Spacer(Modifier.size(16.dp))
+        Text("Decompilando ${target.name} en ApkTools/Proyectos para que la IA pueda editarlo y luego exportarlo…",
+            fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        task?.error?.let { Text(it, color = Danger, fontSize = 13.sp, modifier = Modifier.padding(top = 12.dp)) }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
+                      initialPreset: AgentPreset?, initialPrompt: String?, onOpenDir: (File) -> Unit) {
     val prefs = ApkForgeApp.prefs
     var preset by rememberSaveable {
         mutableStateOf(initialPreset ?: if (target.isFile && !target.extension.equals("apk", true)) AgentPreset.FILE_ANALYST else AgentPreset.EXPLAIN)
     }
     var input by remember { mutableStateOf("") }
+    var showExport by remember { mutableStateOf(false) }
+    if (showExport) {
+        val info = remember(target) { runCatching { dev.apkforge.engine.ApkProject.readInfo(target) }.getOrNull() }
+        dev.apkforge.app.ui.ExportApkDialog(
+            defaultName = dev.apkforge.app.core.Workspace.exportName(info?.packageName ?: target.name),
+            detail = "Compila el proyecto con los cambios de la IA y lo firma, listo para instalar y probar.",
+            onDismiss = { showExport = false },
+        ) { out ->
+            dev.apkforge.app.core.TaskRunner.run("Exportando ${out.name}", dev.apkforge.app.core.ResultKind.APK) { log ->
+                dev.apkforge.engine.ApkProject.build(target, out, dev.apkforge.engine.BuildOptions(signing = prefs.signingConfig()), log)
+            }
+        }
+    }
     var resetCounter by remember { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
     val ready = prefs.aiReady()
@@ -127,6 +183,19 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().imePadding()) {
+            if (dev.apkforge.engine.ApkProject.isProject(target)) {
+                Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
+                    Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Proyecto", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(target.name, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        androidx.compose.material3.TextButton(onClick = { onOpenDir(target) }) { Text("Abrir") }
+                        androidx.compose.material3.Button(onClick = { showExport = true }) { Text("Exportar APK") }
+                    }
+                }
+            }
             Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 AgentPreset.entries.forEach { p ->
