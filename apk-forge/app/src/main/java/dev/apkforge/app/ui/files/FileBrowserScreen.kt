@@ -176,6 +176,9 @@ fun FileBrowserScreen(
     var showHidden by remember { mutableStateOf(prefs.showHidden) }
     var menuOpen by remember { mutableStateOf(false) }
     var showLeft by rememberSaveable { mutableStateOf(true) }
+    var sortMode by remember { mutableStateOf(prefs.sortMode) }
+    var foldersFirst by remember { mutableStateOf(prefs.foldersFirst) }
+    var showSort by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<File?>(null) }
     var dialog by remember { mutableStateOf<String?>(null) } // "newFolder", "newFile", "rename", "delete"
     var clipboardCount by remember { mutableIntStateOf(FileClipboard.files.size) }
@@ -194,10 +197,10 @@ fun FileBrowserScreen(
     }
     LaunchedEffect(path) { prefs.lastDir = path }
 
-    val entries by produceState<List<File>?>(null, path, refresh, showHidden) {
+    val entries by produceState<List<File>?>(null, path, refresh, showHidden, sortMode, foldersFirst) {
         value = withContext(Workers.dispatcher) {
             dir.listFiles()?.filter { showHidden || !it.name.startsWith(".") }
-                ?.sortedWith(compareBy<File>({ !it.isDirectory }, { it.name.lowercase() }))
+                ?.let { dev.apkforge.app.core.FileSort.sort(it, sortMode, foldersFirst) }
                 ?: emptyList()
         }
     }
@@ -264,6 +267,7 @@ fun FileBrowserScreen(
                                 text = { Text(if (showHidden) "Ocultar archivos ocultos" else "Mostrar archivos ocultos") },
                                 onClick = { menuOpen = false; showHidden = !showHidden; prefs.showHidden = showHidden },
                             )
+                            DropdownMenuItem(text = { Text("Ordenar por…") }, onClick = { menuOpen = false; showSort = true })
                             DropdownMenuItem(text = { Text("Actualizar") }, onClick = { menuOpen = false; refresh++ })
                             HorizontalDivider()
                             DropdownMenuItem(
@@ -401,6 +405,29 @@ fun FileBrowserScreen(
             }
         }
     }
+
+    if (showSort) AlertDialog(
+        onDismissRequest = { showSort = false },
+        title = { Text("Ordenar por") },
+        text = {
+            Column {
+                dev.apkforge.app.core.FileSort.modes.forEach { (id, label) ->
+                    Row(Modifier.fillMaxWidth().clickable { sortMode = id; prefs.sortMode = id }.padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.RadioButton(sortMode == id, { sortMode = id; prefs.sortMode = id })
+                        Text(label, fontSize = 14.sp)
+                    }
+                }
+                HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                Row(Modifier.fillMaxWidth().clickable { foldersFirst = !foldersFirst; prefs.foldersFirst = foldersFirst },
+                    verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(foldersFirst, { foldersFirst = it; prefs.foldersFirst = it })
+                    Text("Carpetas primero", fontSize = 14.sp)
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { showSort = false }) { Text("Listo") } },
+    )
 
     // Menú contextual
     selected?.let { f ->

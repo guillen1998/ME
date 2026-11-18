@@ -26,6 +26,7 @@ class ApkArchive private constructor(val apk: File, private val zip: ZipFile) : 
         val compressed: Long,
         val stored: Boolean,     // sin comprimir
         val count: Int,          // nº de archivos dentro (carpetas)
+        val time: Long = 0,      // fecha de modificación (la más reciente si es carpeta)
     )
 
     private val entries: List<ZipEntry> = zip.entries().toList().filter { !it.isDirectory }
@@ -52,12 +53,13 @@ class ApkArchive private constructor(val apk: File, private val zip: ZipFile) : 
             } else {
                 val e = zip.getEntry(name)
                 val size = pending[name]?.size?.toLong() ?: e?.size ?: 0
-                files += Node(name, rest, false, size, e?.compressedSize ?: size, e?.method == ZipEntry.STORED, 0)
+                files += Node(name, rest, false, size, e?.compressedSize ?: size, e?.method == ZipEntry.STORED, 0,
+                    if (name in pending) System.currentTimeMillis() else (e?.time ?: 0))
             }
         }
         val dirNodes = dirs.map { (d, list) ->
             val count = all.count { it.startsWith("$prefix$d/") }
-            Node("$prefix$d/", d, true, list.sumOf { it.size }, list.sumOf { it.compressedSize }, false, count)
+            Node("$prefix$d/", d, true, list.sumOf { it.size }, list.sumOf { it.compressedSize }, false, count, list.maxOfOrNull { it.time } ?: 0)
         }
         return dirNodes.sortedBy { it.name.lowercase() } + files.sortedBy { it.name.lowercase() }
     }

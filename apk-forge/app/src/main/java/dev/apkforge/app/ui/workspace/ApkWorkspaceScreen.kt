@@ -143,7 +143,9 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
     }
     val nodes by produceState<List<ApkArchive.Node>?>(null, archive, dir, version) {
         val a = archive?.getOrNull()
-        value = if (a == null) null else withContext(Workers.dispatcher) { runCatching { a.list(dir) }.getOrDefault(emptyList()) }
+        value = if (a == null) null else withContext(Workers.dispatcher) {
+            runCatching { sortNodes(a.list(dir), prefs.sortMode, prefs.foldersFirst) }.getOrDefault(emptyList())
+        }
     }
     val pending = archive?.getOrNull()?.let { a -> version.let { a.pendingCount } } ?: 0
 
@@ -368,6 +370,21 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
             confirmButton = { TextButton(onClick = { preview = null }) { Text("Cerrar") } },
         )
     }
+}
+
+/** Mismo orden que el explorador (por defecto: carpetas primero, lo más reciente arriba). */
+private fun sortNodes(nodes: List<ApkArchive.Node>, mode: String, foldersFirst: Boolean): List<ApkArchive.Node> {
+    val byName = compareBy<ApkArchive.Node, String>(String.CASE_INSENSITIVE_ORDER) { it.name }
+    val cmp: Comparator<ApkArchive.Node> = when (mode) {
+        "DATE_ASC" -> compareBy<ApkArchive.Node> { it.time }.then(byName)
+        "NAME_ASC" -> byName
+        "NAME_DESC" -> byName.reversed()
+        "SIZE_DESC" -> compareByDescending<ApkArchive.Node> { it.size }.then(byName)
+        "SIZE_ASC" -> compareBy<ApkArchive.Node> { it.size }.then(byName)
+        "TYPE" -> compareBy<ApkArchive.Node, String>(String.CASE_INSENSITIVE_ORDER) { it.name.substringAfterLast('.', "") }.then(byName)
+        else -> compareByDescending<ApkArchive.Node> { it.time }.then(byName)
+    }
+    return if (foldersFirst) nodes.sortedWith(compareBy<ApkArchive.Node> { !it.isDir }.then(cmp)) else nodes.sortedWith(cmp)
 }
 
 private fun collectFiles(a: ApkArchive, dir: String): List<String> =

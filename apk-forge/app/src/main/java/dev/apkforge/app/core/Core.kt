@@ -112,6 +112,13 @@ class Prefs(ctx: Context) {
     var editorAiMode: Boolean
         get() = p.getBoolean("editorAi", false)
         set(v) = p.edit().putBoolean("editorAi", v).apply()
+    /** Orden de archivos: DATE_DESC (por defecto), DATE_ASC, NAME_ASC, NAME_DESC, SIZE_DESC, SIZE_ASC, TYPE. */
+    var sortMode: String
+        get() = p.getString("sortMode", "DATE_DESC")!!
+        set(v) = p.edit().putString("sortMode", v).apply()
+    var foldersFirst: Boolean
+        get() = p.getBoolean("foldersFirst", true)
+        set(v) = p.edit().putBoolean("foldersFirst", v).apply()
     var showHidden: Boolean
         get() = p.getBoolean("hidden", false)
         set(v) = p.edit().putBoolean("hidden", v).apply()
@@ -206,4 +213,39 @@ fun Long.humanSize(): String {
     val mb = kb / 1024
     if (mb < 1024) return "%.1f MB".format(mb)
     return "%.2f GB".format(mb / 1024)
+}
+
+/** Ordena una lista de archivos según los Ajustes (por defecto: carpetas primero, lo más reciente arriba). */
+object FileSort {
+    val modes = listOf(
+        "DATE_DESC" to "Fecha: más reciente primero",
+        "DATE_ASC" to "Fecha: más antiguo primero",
+        "NAME_ASC" to "Nombre: A → Z",
+        "NAME_DESC" to "Nombre: Z → A",
+        "SIZE_DESC" to "Tamaño: más grande primero",
+        "SIZE_ASC" to "Tamaño: más pequeño primero",
+        "TYPE" to "Tipo (extensión)",
+    )
+
+    fun sort(files: List<File>, mode: String, foldersFirst: Boolean): List<File> {
+        val byName = compareBy<File, String>(String.CASE_INSENSITIVE_ORDER) { it.name }
+        val inner: Comparator<File> = when (mode) {
+            "DATE_ASC" -> compareBy<File> { it.lastModified() }.then(byName)
+            "NAME_ASC" -> byName
+            "NAME_DESC" -> byName.reversed()
+            "SIZE_DESC" -> compareByDescending<File> { if (it.isDirectory) 0L else it.length() }.then(byName)
+            "SIZE_ASC" -> compareBy<File> { if (it.isDirectory) 0L else it.length() }.then(byName)
+            "TYPE" -> compareBy<File, String>(String.CASE_INSENSITIVE_ORDER) { it.extension }.then(byName)
+            else -> compareByDescending<File> { it.lastModified() }.then(byName) // DATE_DESC
+        }
+        // Leemos la fecha una sola vez por archivo (en la sdcard cada lectura es lenta).
+        val dates = HashMap<File, Long>(files.size)
+        files.forEach { dates[it] = it.lastModified() }
+        val cmp = when (mode) {
+            "DATE_DESC" -> compareByDescending<File> { dates[it] }.then(byName)
+            "DATE_ASC" -> compareBy<File> { dates[it] }.then(byName)
+            else -> inner
+        }
+        return if (foldersFirst) files.sortedWith(compareBy<File> { !it.isDirectory }.then(cmp)) else files.sortedWith(cmp)
+    }
 }
