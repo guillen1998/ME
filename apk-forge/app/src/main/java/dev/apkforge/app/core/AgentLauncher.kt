@@ -8,6 +8,10 @@ import dev.apkforge.engine.AiProvider
 import dev.apkforge.engine.ForgeAgent
 import dev.apkforge.engine.JavaDecompiler
 import dev.apkforge.engine.OpenAiCompatAgent
+import dev.apkforge.engine.AiTeam
+import dev.apkforge.engine.ApkProject
+import dev.apkforge.engine.BuiltinAi
+import dev.apkforge.engine.OpenAiTextClient
 import java.io.File
 
 /**
@@ -27,8 +31,16 @@ object AgentLauncher {
         val apkFile = if (target.isFile && target.extension.equals("apk", true)) target else null
         val javaInput = if (target.isDirectory || apkFile != null) target else null
         val java: () -> JavaDecompiler? = { javaInput?.let { runCatching { JavaSessions.get(it, prefs.javaOptions()) }.getOrNull() } }
-        if (provider == AiProvider.BUILTIN) return OpenAiCompatAgent(target, apkFile, prefs.builtinEndpoints(),
-            preset, allowEdits, java, session.onEvent)
+        if (provider == AiProvider.BUILTIN) {
+            val eps = prefs.builtinEndpoints()
+            val exec = OpenAiCompatAgent(target, apkFile, eps, preset, allowEdits, java, session.onEvent)
+            // Equipo: un modelo planifica, el agente ejecuta con herramientas y OTRO modelo revisa los cambios
+            val project = (if (target.isDirectory) target else target.parentFile)?.takeIf { ApkProject.isProject(it) }
+            if (project == null || !allowEdits) return exec
+            val planners = BuiltinAi.plannerOrder(eps); val reviewers = BuiltinAi.reviewerOrder(eps)
+            return AiTeam(project, exec, OpenAiTextClient(planners), OpenAiTextClient(reviewers),
+                planners.first().label, reviewers.first().label, session.onEvent)
+        }
         return if (provider == AiProvider.CLAUDE)
             ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), allowEdits),
                 preset, java, session.onEvent)

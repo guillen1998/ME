@@ -51,6 +51,7 @@ class AgentToolbox(
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
         - Trabaja solo en apps propias, de código abierto o con permiso; no ayudes a saltarse pagos, licencias o DRM de apps comerciales de terceros.
+        - Para cambios de diseño grandes (p. ej. pasar una lista de filas a cuadrícula de filas y columnas) usa find_lists y list_to_grid, y después adapta el layout del elemento si hace falta.
         - Responde en español, claro y organizado.
     """.trimIndent()
 
@@ -101,7 +102,11 @@ class AgentToolbox(
                 "iv" to str("IV opcional"),
                 "save_to" to str("Ruta relativa donde guardar el primer resultado plausible (opcional)"),
             ), listOf("key")))
+        add(tool("find_lists", "Encuentra las LISTAS de la app (RecyclerView con LinearLayoutManager) en smali y layouts XML: clase, método y línea. Úsalo para cambios de diseño como pasar filas a cuadrícula.",
+            mapOf(), listOf()))
         if (allowEdits) {
+            add(tool("list_to_grid", "Convierte una lista vertical en CUADRÍCULA de N columnas (filas y columnas) de forma segura: cambia LinearLayoutManager por GridLayoutManager ajustando registros. Pasa el 'site' que devolvió find_lists.",
+                mapOf("site" to str("ruta:línea tal como lo dio find_lists"), "columns" to int("Número de columnas (2 por defecto)")), listOf("site")))
             add(tool("hex_patch", "Edita un archivo BINARIO (.so, .dex, .bin, assets, imágenes…): escribe bytes en un offset, o busca y reemplaza texto/bytes. Por defecto mantiene el tamaño (obligatorio en .so/.dex).",
                 mapOf("path" to str("Ruta relativa"), "offset" to int("Offset donde escribir (con 'hex')"), "hex" to str("Bytes a escribir en hex, p. ej. '00 00 A0 E3'"),
                     "find_text" to str("Texto a buscar"), "replace_text" to str("Texto nuevo"), "find_hex" to str("Bytes a buscar (hex)"), "replace_hex" to str("Bytes nuevos (hex)"),
@@ -279,6 +284,23 @@ class AgentToolbox(
                 "${BinaryTools.identify(f)} · ${f.length()} bytes\n" + BinaryTools.hexDump(f, off.coerceIn(0, f.length()), len)
             }
         }
+        "find_lists" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val sites = LayoutPatcher.find(p)
+            if (sites.isEmpty()) "No hay listas con LinearLayoutManager" else sites.take(60).joinToString("\n") {
+                "${it.file.relativeTo(p).path}:${it.line} · ${it.owner}${if (it.method.isNotEmpty()) " · ${it.method}" else ""} (${it.kind})"
+            } + "\nPista: identifica cuál es la pantalla buscando su adaptador o textos (search_text) antes de cambiarla."
+        }
+        "list_to_grid" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val want = (a["site"] as String).trim()
+            val site = LayoutPatcher.find(p).firstOrNull { s -> "${s.file.relativeTo(p).path}:${s.line}" == want || want.endsWith("${s.file.name}:${s.line}") }
+                ?: throw EngineException("No encuentro esa lista; usa find_lists")
+            backup(site.file)
+            LayoutPatcher.toGrid(p, site, (a["columns"] as? Number)?.toInt() ?: 2) +
+                "\nSi las celdas quedan estrechas, ajusta el layout del elemento (p. ej. orientación vertical: imagen arriba y texto debajo)."
+        }
         "hex_patch" -> {
             if (!allowEdits) throw EngineException("Edición desactivada")
             val f = resolve(a["path"] as String)
@@ -401,6 +423,7 @@ class AgentToolbox(
         "hex_read", "hex_patch", "delete_file" -> "${a["path"]}"
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"
+        "list_to_grid" -> "${a["site"]} → ${a["columns"] ?: 2} columnas"
         "replace_all" -> "“${a["find"]}” → “${a["replace"]}”"
         "search_text" -> "“${a["query"]}”" + ((a["extension"] as? String)?.takeIf { it.isNotEmpty() }?.let { " en .$it" } ?: "")
         "java_class", "class_xref" -> "${a["class_name"]}"

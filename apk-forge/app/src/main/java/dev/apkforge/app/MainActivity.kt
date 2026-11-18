@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
                     onOpenDir = { nav.navigate(Routes.files(it)) },
                     onOpenFile = { nav.navigate(Routes.editor(it)) },
                     onOpenAgent = { nav.navigate(Routes.agent(it)) },
+                    onOpenFileAt = { f, line -> nav.navigate(Routes.editor(f, line)) },
                 )
             }
         }

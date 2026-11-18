@@ -20,6 +20,8 @@ data class TaskState(
     val result: File? = null,
     val resultKind: ResultKind = ResultKind.NONE,
     val percent: Int = -1,
+    /** Proyecto sobre el que se trabajaba (para "Corregir con la IA" si falla). */
+    val project: File? = null,
     val startedAt: Long = System.currentTimeMillis(),
     val finishedAt: Long? = null,
 )
@@ -39,10 +41,11 @@ object TaskRunner {
     fun run(
         title: String,
         resultKind: ResultKind = ResultKind.NONE,
+        project: File? = null,
         block: suspend (ProgressListener) -> File?,
     ) {
         if (isBusy) return
-        _state.value = TaskState(title)
+        _state.value = TaskState(title, project = project)
         BackgroundService.ensureRunning() // sigue aunque salgas de la app, con progreso en la notificación
         val listener = object : ProgressListener {
             override fun onProgress(message: String) { _state.update { it?.copy(logs = (it.logs + message).takeLast(400)) } }

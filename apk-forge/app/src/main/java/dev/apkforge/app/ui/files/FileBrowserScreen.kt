@@ -222,7 +222,7 @@ fun FileBrowserScreen(
             onDismiss = { exportFor = null },
             project = root,
         ) { out ->
-            TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log ->
+            TaskRunner.run("Exportando ${out.name}", ResultKind.APK, project = root) { log ->
                 ApkProject.build(root, out, BuildOptions(signing = prefs.signingConfig()), log)
             }
         }

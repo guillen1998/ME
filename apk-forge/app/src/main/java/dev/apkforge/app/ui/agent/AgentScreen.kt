@@ -159,7 +159,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
             onDismiss = { showExport = false; exportDir = null },
             project = dir,
         ) { out ->
-            dev.apkforge.app.core.TaskRunner.run("Exportando ${out.name}", dev.apkforge.app.core.ResultKind.APK) { log ->
+            dev.apkforge.app.core.TaskRunner.run("Exportando ${out.name}", dev.apkforge.app.core.ResultKind.APK, project = dir) { log ->
                 dev.apkforge.engine.ApkProject.build(dir, out, dev.apkforge.engine.BuildOptions(signing = prefs.signingConfig()), log)
             }
         }

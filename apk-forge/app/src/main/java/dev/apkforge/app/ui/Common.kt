@@ -48,7 +48,8 @@ import java.io.File
 
 /** Consola de la tarea en curso (decompilar, compilar, firmar…) con log en vivo. */
 @Composable
-fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit, onOpenAgent: (File) -> Unit = {}) {
+fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit, onOpenAgent: (File) -> Unit = {},
+                onOpenFileAt: (File, Int) -> Unit = { f, _ -> onOpenFile(f) }) {
     val state by TaskRunner.state.collectAsState()
     val s = state ?: return
     val ctx = LocalContext.current
@@ -131,6 +132,16 @@ fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit, onOpenAge
                         }
                         ResultKind.FILE -> TextButton(onClick = { TaskRunner.dismiss(); onOpenFile(r) }) { Text("Abrir") }
                         ResultKind.NONE -> {}
+                    }
+                    s.error?.let { err ->
+                        val loc = androidx.compose.runtime.remember(err) { dev.apkforge.engine.BuildErrors.locate(err) }
+                        if (loc != null && loc.file.isFile) TextButton(onClick = { TaskRunner.dismiss(); onOpenFileAt(loc.file, loc.line) }) { Text("Ir al error") }
+                        val proj = s.project
+                        if (proj != null && err != "Cancelado") TextButton(onClick = {
+                            TaskRunner.dismiss()
+                            dev.apkforge.app.core.AgentLauncher.start(proj, dev.apkforge.engine.BuildErrors.fixPrompt(proj, err))
+                            onOpenAgent(proj)
+                        }) { Text("Corregir con la IA") }
                     }
                     TextButton(onClick = { TaskRunner.dismiss() }) { Text("Cerrar") }
                 }

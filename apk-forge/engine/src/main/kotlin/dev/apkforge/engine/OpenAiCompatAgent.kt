@@ -23,6 +23,10 @@ data class AiEndpoint(val baseUrl: String, val apiKey: String, val model: String
  * si uno se satura o falla, se pasa al siguiente automáticamente.
  */
 object BuiltinAi {
+    /** Orden para el PLANIFICADOR (modelo más grande primero) y para el REVISOR (otro modelo distinto). */
+    fun plannerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { if (it.model.contains("397B")) 0 else if (it.model.contains("DeepSeek")) 1 else 2 }
+    fun reviewerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { if (it.model.contains("gpt-oss-120b")) 0 else if (it.model.contains("qwen3.6")) 1 else 2 }
+
     private const val OVH = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
 
     /**

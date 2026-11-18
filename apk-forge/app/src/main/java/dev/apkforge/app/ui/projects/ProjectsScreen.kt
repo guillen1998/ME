@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Delete
@@ -90,6 +91,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
     var exportFor by remember { mutableStateOf<ProjectInfo?>(null) }
     var deleteFor by remember { mutableStateOf<ProjectInfo?>(null) }
     var reportFor by remember { mutableStateOf<ProjectInfo?>(null) }
+    var designFor by remember { mutableStateOf<ProjectInfo?>(null) }
     val projects by produceState<List<ProjectInfo>?>(null, refresh) {
         value = withContext(Workers.dispatcher) { runCatching { ApkProject.listProjects(Workspace.projects) }.getOrDefault(emptyList()) }
     }
@@ -134,6 +136,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
                         onSearch = { nav.search(p.dir) },
                         onJava = { nav.java(p.dir) },
                         onReport = { reportFor = p },
+                        onDesign = { designFor = p },
                         onDelete = { deleteFor = p })
                 }
                 if (studio.isNotEmpty()) {
@@ -164,11 +167,15 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
             onDismiss = { exportFor = null },
             project = p.dir,
         ) { out ->
-            TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log ->
+            TaskRunner.run("Exportando ${out.name}", ResultKind.APK, project = p.dir) { log ->
                 ApkProject.build(p.dir, out, BuildOptions(signing = prefs.signingConfig()), log)
             }
         }
     }
+    designFor?.let { p -> GridDialog(p.dir, onDismiss = { designFor = null; refresh++ }, onAskAi = { prompt ->
+        designFor = null
+        dev.apkforge.app.core.AgentLauncher.start(p.dir, prompt); nav.agent(p.dir)
+    }) }
     reportFor?.let { p ->
         AlertDialog(
             onDismissRequest = { reportFor = null },
@@ -198,7 +205,7 @@ private val dateFmt = SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault())
 @Composable
 private fun ProjectCard(
     p: ProjectInfo, onAgent: () -> Unit, onExport: () -> Unit, onOpen: () -> Unit,
-    onSearch: () -> Unit, onJava: () -> Unit, onReport: () -> Unit, onDelete: () -> Unit,
+    onSearch: () -> Unit, onJava: () -> Unit, onReport: () -> Unit, onDesign: () -> Unit, onDelete: () -> Unit,
 ) {
     val changes = remember(p.dir) { dev.apkforge.engine.ChangeLog.all(p.dir) }
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(14.dp)) {
@@ -228,10 +235,71 @@ private fun ProjectCard(
                 OutlinedButton(onClick = onSearch, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Search, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Buscar", fontSize = 12.sp) }
                 OutlinedButton(onClick = onJava, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Coffee, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Java", fontSize = 12.sp) }
             }
+            OutlinedButton(onClick = onDesign, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                Icon(Icons.Default.GridView, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Diseño: listas → cuadrícula (filas y columnas)", fontSize = 12.sp)
+            }
             androidx.compose.material3.TextButton(onClick = onReport) {
                 Text(if (changes.isEmpty()) "Sin cambios todavía" else "Cambios: ${changes.size} en ${changes.map { it.file }.distinct().size} archivo(s) — ver informe",
                     fontSize = 12.sp, color = if (changes.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else AccentWarm)
             }
         }
     }
+}
+
+
+/** Cambia listas de filas a cuadrícula: la app lo hace sola, o se lo encarga a la IA con el contexto ya preparado. */
+@Composable
+private fun GridDialog(project: java.io.File, onDismiss: () -> Unit, onAskAi: (String) -> Unit) {
+    var sites by remember { mutableStateOf<List<dev.apkforge.engine.LayoutPatcher.Site>?>(null) }
+    var columns by remember { mutableStateOf(2) }
+    var msg by remember { mutableStateOf<String?>(null) }
+    var reload by remember { mutableStateOf(0) }
+    androidx.compose.runtime.LaunchedEffect(reload) {
+        sites = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { dev.apkforge.engine.LayoutPatcher.find(project) }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Listas → cuadrícula") },
+        text = {
+            Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Columnas:", fontSize = 13.sp)
+                    (2..4).forEach { n ->
+                        androidx.compose.material3.FilterChip(selected = columns == n, onClick = { columns = n }, label = { Text("$n") },
+                            modifier = Modifier.padding(start = 6.dp))
+                    }
+                }
+                msg?.let { Text(it, fontSize = 12.sp, color = AccentWarm, modifier = Modifier.padding(vertical = 6.dp)) }
+                val l = sites
+                when {
+                    l == null -> CircularProgressIndicator(Modifier.padding(16.dp))
+                    l.isEmpty() -> Text("No encontré listas con LinearLayoutManager. Pídeselo a la IA: buscará cómo está hecha esa pantalla.", fontSize = 12.sp)
+                    else -> l.forEach { s ->
+                        Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                            Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(s.owner.substringAfterLast('.'), fontWeight = FontWeight.SemiBold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text("${s.file.name}:${s.line} ${s.method}", fontSize = 10.sp, fontFamily = Mono, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                TextButton(onClick = {
+                                    msg = runCatching { dev.apkforge.engine.LayoutPatcher.toGrid(project, s, columns) }.getOrElse { "✖ " + it.message }
+                                    reload++
+                                }) { Text("Cambiar") }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onAskAi("Quiero que la lista principal (por ejemplo la de canales/categorías) se vea en CUADRÍCULA de $columns columnas (filas y columnas) en vez de una fila por elemento. " +
+                    "Usa find_lists para localizar las listas, identifica cuál es la pantalla correcta buscando su adaptador y textos, conviértela con list_to_grid " +
+                    "y adapta el layout del elemento para que se vea bien en celdas (imagen arriba, texto centrado debajo, ancho match_parent).")
+            }) { Text("Que lo haga la IA") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+    )
 }

@@ -157,6 +157,9 @@ object ApkProject {
         )
 
         listener.onPercent(2)
+        // Recursos nuevos (colores, textos, layouts, @+id…) necesitan ID: se registran solos.
+        if (info.resourcesDecoded) runCatching { ResourceIds.registerNew(projectDir, listener) }
+            .onFailure { listener.onProgress("⚠ No se pudieron registrar recursos nuevos: ${it.message}") }
         listener.onProgress(if (info.resourcesDecoded) "Compilando recursos y manifest…" else "Empaquetando archivos…")
         encoder.scanDirectory(projectDir)
         listener.onPercent(84)

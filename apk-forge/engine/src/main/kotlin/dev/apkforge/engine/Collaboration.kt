@@ -266,3 +266,38 @@ object MessagePreparer {
         return Prepared(text, notes, related)
     }
 }
+
+/** Localiza en un error de compilación el archivo y la línea exactos donde falla. */
+object BuildErrors {
+    data class Location(val file: File, val line: Int, val message: String)
+
+    fun locate(error: String): Location? {
+        // ARSCLib: "at /ruta/res/values/colors.xml [line = 108]"
+        Regex("""(/[^\s\[\]"]+\.(?:xml|json))\s*\[line\s*=\s*(\d+)]""").find(error)?.let { m ->
+            return Location(File(m.groupValues[1]), m.groupValues[2].toInt(), error.lines().lastOrNull { it.isNotBlank() }?.trim().orEmpty())
+        }
+        // smali: "/ruta/smali/classes/com/app/A.smali[12,4] no viable alternative…"
+        Regex("""(/[^\s\[\]"]+\.smali)\[(\d+),\d+]\s*(.*)""").find(error)?.let { m ->
+            return Location(File(m.groupValues[1]), m.groupValues[2].toInt(), m.groupValues[3].trim())
+        }
+        // genérico: "/ruta/archivo.xml:12"
+        Regex("""(/[^\s:"]+\.(?:xml|smali)):(\d+)""").find(error)?.let { m -> return Location(File(m.groupValues[1]), m.groupValues[2].toInt(), error.take(200)) }
+        return null
+    }
+
+    /** Instrucción para que la IA corrija el error, con el extracto de código alrededor. */
+    fun fixPrompt(project: File, error: String): String {
+        val loc = locate(error)
+        return buildString {
+            appendLine("La exportación del APK falló. Corrige el error para que compile, con el cambio mínimo, sin perder lo que se quería hacer.")
+            appendLine(); appendLine("ERROR:"); appendLine(error.take(1500))
+            if (loc != null && loc.file.isFile) {
+                val lines = loc.file.readLines()
+                val from = (loc.line - 8).coerceAtLeast(1); val to = (loc.line + 8).coerceAtMost(lines.size)
+                appendLine(); appendLine("ARCHIVO: ${runCatching { loc.file.relativeTo(project).path }.getOrDefault(loc.file.path)} (línea ${loc.line})")
+                (from..to).forEach { n -> appendLine((if (n == loc.line) "→ " else "  ") + "$n: " + lines[n - 1]) }
+            }
+            appendLine(); append("Revisa también list_changes para ver qué se editó antes y que la corrección no lo deshaga.")
+        }
+    }
+}
