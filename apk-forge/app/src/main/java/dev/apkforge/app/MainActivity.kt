@@ -32,6 +32,10 @@ import dev.apkforge.app.ui.agent.AgentScreen
 import dev.apkforge.app.ui.binary.BinaryViewerScreen
 import dev.apkforge.app.ui.scan.ScannerScreen
 import dev.apkforge.app.ui.search.ProjectSearchScreen
+import dev.apkforge.app.ui.workspace.ApkWorkspaceScreen
+import dev.apkforge.app.ui.workspace.DexEditorScreen
+import dev.apkforge.app.ui.workspace.EntryEditorScreen
+import dev.apkforge.app.ui.workspace.WorkspaceNav
 import dev.apkforge.app.ui.settings.SettingsScreen
 import java.io.File
 
@@ -48,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 val nav = rememberNavController()
                 AppNav(nav)
                 LaunchedEffect(pendingApk) {
-                    pendingApk?.let { nav.navigate(Routes.apk(it)); pendingApk = null }
+                    pendingApk?.let { nav.navigate(Routes.workspace(it)); pendingApk = null }
                 }
                 TaskConsole(
                     onOpenDir = { nav.navigate(Routes.files(it)) },
@@ -96,6 +100,9 @@ object Routes {
     fun javaClass(f: File, cls: String) = "javaclass?path=${enc(f)}&cls=${Uri.encode(cls)}"
     fun search(root: File) = "search?path=${enc(root)}"
     fun scan(target: File) = "scan?path=${enc(target)}"
+    fun workspace(apk: File) = "workspace?path=${enc(apk)}"
+    fun entry(apk: File, entry: String) = "entry?path=${enc(apk)}&entry=${Uri.encode(entry)}"
+    fun dexEdit(apk: File) = "dexedit?path=${enc(apk)}"
     fun binary(f: File) = "binary?path=${enc(f)}"
     fun agent(target: File, prompt: String? = null): String {
         val auto = prompt ?: if (target.isFile && !target.extension.equals("apk", true))
@@ -116,7 +123,7 @@ private fun AppNav(nav: NavHostController) {
         composable("files?path={path}", arguments = listOf(pathArg)) { e ->
             FileBrowserScreen(
                 startPath = e.arguments?.getString("path"),
-                onOpenApk = { nav.navigate(Routes.apk(it)) },
+                onOpenApk = { nav.navigate(Routes.workspace(it)) },
                 onOpenEditor = { nav.navigate(Routes.editor(it)) },
                 onOpenBinary = { nav.navigate(Routes.binary(it)) },
                 onOpenJava = { nav.navigate(Routes.java(it)) },
@@ -136,6 +143,31 @@ private fun AppNav(nav: NavHostController) {
                 onScan = { nav.navigate(Routes.scan(it)) },
                 onAgent = { nav.navigate(Routes.agent(it)) },
             )
+        }
+        composable("workspace?path={path}", arguments = listOf(pathArg)) { e ->
+            ApkWorkspaceScreen(
+                apk = File(e.arguments?.getString("path")!!),
+                onBack = { nav.back() },
+                nav = WorkspaceNav(
+                    info = { nav.navigate(Routes.apk(it)) },
+                    java = { nav.navigate(Routes.java(it)) },
+                    dexEditor = { nav.navigate(Routes.dexEdit(it)) },
+                    scan = { nav.navigate(Routes.scan(it)) },
+                    agent = { nav.navigate(Routes.agent(it)) },
+                    openDir = { nav.navigate(Routes.files(it)) },
+                    editEntry = { apk, entry -> nav.navigate(Routes.entry(apk, entry)) },
+                    binary = { nav.navigate(Routes.binary(it)) },
+                ),
+            )
+        }
+        composable(
+            "entry?path={path}&entry={entry}",
+            arguments = listOf(pathArg, navArgument("entry") { type = NavType.StringType; defaultValue = "" }),
+        ) { e ->
+            EntryEditorScreen(File(e.arguments?.getString("path")!!), e.arguments?.getString("entry")!!, onBack = { nav.back() })
+        }
+        composable("dexedit?path={path}", arguments = listOf(pathArg)) { e ->
+            DexEditorScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() })
         }
         composable("scan?path={path}", arguments = listOf(pathArg)) { e ->
             ScannerScreen(
@@ -188,7 +220,7 @@ private fun AppNav(nav: NavHostController) {
                 onOpen = { f, line -> nav.navigate(Routes.editor(f, line)) },
             )
         }
-        composable(Routes.APPS) { InstalledAppsScreen(onBack = { nav.back() }, onOpenApk = { nav.navigate(Routes.apk(it)) }) }
+        composable(Routes.APPS) { InstalledAppsScreen(onBack = { nav.back() }, onOpenApk = { nav.navigate(Routes.workspace(it)) }) }
         composable(Routes.SETTINGS) { SettingsScreen(onBack = { nav.back() }) }
         composable(Routes.VIEWER) { TextViewerScreen(onBack = { nav.back() }) }
     }
