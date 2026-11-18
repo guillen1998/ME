@@ -554,17 +554,20 @@ object NeuralBrain {
      * El razonador local PIENSA sobre el pedido con los hechos que preparó el resto del motor
      * (significado, grafo, nombres desofuscados, recetas). Devuelve su razonamiento y su conclusión.
      */
-    fun deliberate(query: String, facts: String, maxOutput: Int = 900): Deliberation? {
+    fun deliberate(query: String, facts: String, maxOutput: Int = 900, web: Boolean = false, onStep: (String) -> Unit = {}): Deliberation? {
         val r = reasoner() ?: return null
-        val res = runCatching {
-            r.reason(
-                "Eres el razonador local de ApkForge, experto en apps Android decompiladas (smali y recursos XML). Piensa paso a paso " +
-                    "usando SOLO los hechos dados. Responde en español, breve: 1) qué quiere el usuario, 2) qué archivos concretos tocar y por qué, " +
-                    "3) el cambio exacto en cada uno, 4) riesgos. Si falta información, di qué hay que buscar.",
-                "HECHOS DEL PROYECTO:\n${facts.take(5000)}\n\nPEDIDO DEL USUARIO:\n${query.take(1500)}",
-                think = true, budget = 700, maxOutput = maxOutput,
-            )
-        }.getOrNull() ?: return null
+        val sys = "Eres el razonador local de ApkForge, experto en apps Android decompiladas (smali y recursos XML). Piensa paso a paso " +
+            "usando los hechos dados. Responde en español, breve: 1) qué quiere el usuario, 2) qué archivos concretos tocar y por qué, " +
+            "3) el cambio exacto en cada uno, 4) riesgos. Si falta información, dilo."
+        val userMsg = "HECHOS DEL PROYECTO:\n${facts.take(5000)}\n\nPEDIDO DEL USUARIO:\n${query.take(1500)}"
+        val t0 = System.currentTimeMillis()
+        // Con internet: el modelo local puede buscar/leer la web antes de responder
+        if (web) {
+            val answer = runCatching { r.reasonWithWeb(sys, userMsg, onStep) }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
+            history.recent += "🧠🌐 Razonó con internet “${query.take(40)}”"; saveStats()
+            return Deliberation("", answer, r.backend, System.currentTimeMillis() - t0)
+        }
+        val res = runCatching { r.reason(sys, userMsg, think = true, budget = 700, maxOutput = maxOutput) }.getOrNull() ?: return null
         if (res.answer.isBlank()) return null
         history.recent += "🧠 Razonó “${query.take(40)}” en ${res.millis / 1000}s"
         saveStats()

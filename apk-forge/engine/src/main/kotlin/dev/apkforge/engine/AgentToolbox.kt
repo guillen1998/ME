@@ -115,6 +115,10 @@ class AgentToolbox(
             mapOf("kind" to str("class | method | field"), "class_name" to str("Clase propietaria (a.b.c)"),
                 "symbol" to str("Para método: nombre(params)retorno del smali, p. ej. a(I)V; para campo: nombre:tipo, p. ej. a:Ljava/lang/String;; vacío para clase"),
                 "new_name" to str("Nombre real propuesto"), "reason" to str("Por qué")), listOf("kind", "class_name", "new_name", "reason")))
+        add(tool("web_search", "Busca en INTERNET (sin clave). Úsalo para documentación, sintaxis de smali, cómo funciona una librería, qué devuelve una API, etc. Devuelve título, URL y un fragmento de cada resultado.",
+            mapOf("query" to str("Qué buscar")), listOf("query")))
+        add(tool("web_fetch", "Lee una página web o una URL (JSON, texto, HTML) y devuelve su contenido legible. Úsalo para leer la documentación o lo que encontró web_search, o una URL que aparezca en la app.",
+            mapOf("url" to str("La URL a leer")), listOf("url")))
         add(tool("check_integrity", "Comprueba si la app tiene PROTECCIONES CONTRA MODIFICACIÓN (comprobación de firma local o enviada al servidor, Play Integrity, root/emulador/depurador). Es la causa nº1 de que un mod 'deje de funcionar' al re-firmar aunque el cambio sea cosmético. Úsalo SIEMPRE que un cambio no se refleje o la app falle al cargar datos/login tras modificarla.",
             mapOf(), listOf()))
         add(tool("decrypt_strings", "La APP busca los textos CIFRADOS de la app (métodos descifradores llamados con constantes raras), los descifra ejecutando el método en un intérprete aislado o probando cifrados típicos, y devuelve los textos claros. Lo que no pueda, te lo pasa con el código del descifrador para que deduzcas el algoritmo.",
@@ -350,6 +354,11 @@ class AgentToolbox(
                 a["new_name"] as String, "IA", (a["reason"] as? String).orEmpty())
             "Guardado: ${r.cls} ${r.kind} ${r.obf} → ${r.name}"
         }
+        "web_search" -> WebTools.searchFormatted(a["query"] as String)
+        "web_fetch" -> {
+            val url = a["url"] as String
+            "Contenido de $url:\n" + runCatching { WebTools.fetch(url) }.getOrElse { "No se pudo leer: ${it.message}" }
+        }
         "check_integrity" -> {
             val p = projectDir() ?: throw EngineException("No es un proyecto")
             IntegrityScanner.scan(p).explain()
@@ -539,6 +548,8 @@ class AgentToolbox(
         "hex_read", "hex_patch", "delete_file" -> "${a["path"]}"
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"
+        "web_search" -> "“${a["query"]}”"
+        "web_fetch" -> "${a["url"]}"
         "semantic_search" -> "“${a["query"]}”"
         "decrypt_recipe" -> "${(a["decryptor"] as? String)?.substringAfterLast('/')}"
         "rename_symbol" -> "${a["class_name"]} ${a["symbol"] ?: ""} → ${a["new_name"]}"

@@ -50,6 +50,37 @@ class LocalReasoner private constructor(
 
     override fun complete(system: String, user: String): String = reason(system, user, think = true).answer
 
+    /**
+     * Razona CON INTERNET: el modelo local puede pedir buscar o leer la web. Si en su respuesta
+     * escribe "BUSCAR: <texto>" o "LEER: <url>", la app lo hace y le pasa el resultado para que
+     * continúe. Así el modelo gratis del móvil investiga y luego actúa. Máx. [maxSteps] búsquedas.
+     */
+    fun reasonWithWeb(system: String, user: String, onStep: (String) -> Unit = {}, maxSteps: Int = 3): String {
+        val sys = system + "\n\nTIENES INTERNET. Si necesitas información actual o que no sabes, escribe en una línea " +
+            "'BUSCAR: <lo que buscas>' o 'LEER: <url>' y PARA; la app te dará el resultado y seguirás. Cuando tengas la " +
+            "respuesta, contéstala directamente sin BUSCAR ni LEER."
+        var convo = "PREGUNTA: $user"
+        repeat(maxSteps + 1) { step ->
+            val ans = reason(sys, convo, think = step == 0, budget = 512, maxOutput = 900).answer
+            val search = Regex("""(?im)^\s*BUSCAR:\s*(.+)$""").find(ans)?.groupValues?.get(1)?.trim()
+            val read = Regex("""(?im)^\s*LEER:\s*(\S+)$""").find(ans)?.groupValues?.get(1)?.trim()
+            when {
+                step < maxSteps && !search.isNullOrBlank() -> {
+                    onStep("🌐 Busca en internet: $search")
+                    val res = runCatching { WebTools.searchFormatted(search, 5) }.getOrElse { "Error: ${it.message}" }
+                    convo += "\n\nBuscaste \"$search\". Resultados:\n$res\n\nUsa esto para responder (o LEER: una url para ver más)."
+                }
+                step < maxSteps && !read.isNullOrBlank() -> {
+                    onStep("🌐 Lee: $read")
+                    val res = runCatching { WebTools.fetch(read, 6000) }.getOrElse { "Error: ${it.message}" }
+                    convo += "\n\nLeíste $read:\n$res\n\nUsa esto para responder."
+                }
+                else -> return ans.replace(Regex("""(?im)^\s*(BUSCAR|LEER):.*$"""), "").trim()
+            }
+        }
+        return reason(sys, convo + "\n\nResponde ya con lo que tienes.", think = false, maxOutput = 900).answer
+    }
+
     override fun close() = runCatching { engine.close() }.let { }
 
     companion object {
