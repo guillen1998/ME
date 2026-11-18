@@ -133,6 +133,10 @@ object ProjectScanner {
                     }
                     scanFile(f, target, options, ::scanText, ::emit)
                 }
+                // Textos que la app descifró (URLs y claves que estaban ocultas)
+                StringDecryptor.load(target).forEach { d ->
+                    active.forEach { r -> r.regex.findAll(d.output).forEach { m -> emit(r.kind, r.name, m.value, "${d.file}:${d.line} (descifrado)", File(target, d.file), d.line) } }
+                }
             }
             target.extension.equals("apk", true) || target.extension.equals("zip", true) ||
                 target.extension.equals("jar", true) || target.extension.equals("apks", true) -> {

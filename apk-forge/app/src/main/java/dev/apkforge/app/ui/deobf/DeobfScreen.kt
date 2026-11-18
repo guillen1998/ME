@@ -78,7 +78,11 @@ fun DeobfScreen(project: File, onBack: () -> Unit, onOpenJava: (File) -> Unit) {
     var editing by remember { mutableStateOf<Deobfuscator.Rename?>(null) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(refresh) { list = withContext(Dispatchers.IO) { Deobfuscator.load(project) } }
+    var strings by remember { mutableStateOf<List<dev.apkforge.engine.StringDecryptor.Decrypted>>(emptyList()) }
+    LaunchedEffect(refresh) {
+        list = withContext(Dispatchers.IO) { Deobfuscator.load(project) }
+        strings = withContext(Dispatchers.IO) { dev.apkforge.engine.StringDecryptor.load(project) }
+    }
 
     fun run(block: (ProgressListener) -> String) {
         busy = true; percent = 0
@@ -94,7 +98,7 @@ fun DeobfScreen(project: File, onBack: () -> Unit, onOpenJava: (File) -> Unit) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Column { Text("Desofuscar", fontSize = 18.sp); Text(project.name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1) } },
+            title = { Column { Text("Desofuscar y descifrar", fontSize = 18.sp); Text(project.name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1) } },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
             actions = { IconButton(onClick = { onOpenJava(project) }) { Icon(Icons.Default.Coffee, "Ver Java con nombres reales") } },
         )
@@ -118,11 +122,39 @@ fun DeobfScreen(project: File, onBack: () -> Unit, onOpenJava: (File) -> Unit) {
                 if (busy) LinearProgressIndicator(progress = { (percent.coerceAtLeast(0)) / 100f }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
                 status?.let { Text(it, fontSize = 12.sp, color = if (it.startsWith("✖")) MaterialTheme.colorScheme.error else Ok, modifier = Modifier.padding(top = 4.dp)) }
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
-                    listOf("class" to "Clases", "method" to "Métodos", "field" to "Campos").forEach { (k, t) ->
-                        FilterChip(kind == k, { kind = k }, label = { Text(t + " (" + (list?.count { it.kind == k } ?: 0) + ")") }, modifier = Modifier.padding(end = 6.dp))
+                    listOf("class" to "Clases", "method" to "Métodos", "field" to "Campos", "strings" to "Textos").forEach { (k, t) ->
+                        val n = if (k == "strings") strings.size else (list?.count { it.kind == k } ?: 0)
+                        FilterChip(kind == k, { kind = k }, label = { Text("$t ($n)", fontSize = 12.sp) }, modifier = Modifier.padding(end = 4.dp))
                     }
                 }
                 OutlinedTextField(filter, { filter = it }, singleLine = true, label = { Text("Filtrar") }, modifier = Modifier.fillMaxWidth())
+            }
+            if (kind == "strings") {
+                Column(Modifier.padding(horizontal = 12.dp)) {
+                    Text("Textos cifrados: la app ejecuta el método que los descifra en un intérprete aislado o prueba cifrados típicos; lo que no pueda, lo deduce la IA y la app lo verifica.",
+                        fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
+                    Button(enabled = !busy, onClick = {
+                        val client = AiFactory.textClient(ApkForgeApp.prefs)
+                        run { l -> dev.apkforge.engine.StringDecryptor.run(project, client, l).let { r ->
+                            "✔ ${r.decrypted} texto(s) descifrado(s) de ${r.decryptors} descifrador(es)" + if (r.pending.isNotEmpty()) " · ${r.pending.size} sin resolver" else "" } }
+                    }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) { Text("Descifrar textos (app + IA)") }
+                }
+                val shown = strings.filter { filter.isBlank() || it.output.contains(filter, true) || it.file.contains(filter, true) }
+                if (shown.isEmpty()) Text(if (strings.isEmpty()) "Aún no hay textos descifrados." else "Nada coincide con el filtro.", modifier = Modifier.padding(16.dp))
+                else LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(shown.take(1000), key = { it.file + ":" + it.line }) { d ->
+                        Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(10.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(10.dp)) {
+                                androidx.compose.foundation.text.selection.SelectionContainer { Text(d.output, fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
+                                Text("${d.file.substringAfterLast('/')}:${d.line} · ${d.how}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("cifrado: ${d.input.take(60)}", fontSize = 11.sp, fontFamily = Mono, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+                return@Column
             }
             val l = list
             when {

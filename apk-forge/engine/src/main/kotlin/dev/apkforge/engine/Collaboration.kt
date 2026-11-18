@@ -309,6 +309,10 @@ object MessagePreparer {
         if (project != null && !Deobfuscator.mappingFile(project).isFile) runCatching {
             listener.onProgress("🔍 La app desofusca el proyecto (nombres reales)…"); Deobfuscator.analyze(project, ProgressListener.NONE)
         }
+        // Textos cifrados: la primera vez, la app intenta descifrarlos sola (intérprete aislado + cifrados típicos)
+        if (project != null && !StringDecryptor.file(project).isFile) runCatching {
+            listener.onProgress("🔐 La app busca y descifra textos cifrados…"); StringDecryptor.run(project, null, ProgressListener.NONE, maxSites = 1500)
+        }
         // El motor neuronal piensa: significado (CPU/GPU) + grafo del proyecto + lo aprendido
         val thought = if (project != null) runCatching {
             listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
@@ -330,6 +334,8 @@ object MessagePreparer {
             if (related.isNotEmpty()) { appendLine(); appendLine(); append(ContextFinder.format(related)) }
             thought?.format()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
             deobfCtx.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
+            if (project != null) runCatching { StringDecryptor.contextFor(project, related.map { it.path } + (thought?.ranked?.map { it.first } ?: emptyList())) }
+                .getOrNull()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
             AndroidKnowledge.format(recipes).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
             deliberation?.let { appendLine(); appendLine(); append(it.format()) }
         }

@@ -243,7 +243,7 @@ private fun ProjectCard(
                 OutlinedButton(onClick = onJava, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Coffee, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Java", fontSize = 12.sp) }
             }
             OutlinedButton(onClick = onDeobf, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
-                Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Desofuscar (app + IA): nombres reales", fontSize = 12.sp)
+                Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Desofuscar y descifrar textos (app + IA)", fontSize = 12.sp)
             }
             OutlinedButton(onClick = onBackups, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
                 Icon(Icons.Default.History, null, Modifier.size(16.dp)); Spacer(Modifier.size(6.dp)); Text("Copias de seguridad · restaurar / explicar con IA", fontSize = 12.sp)

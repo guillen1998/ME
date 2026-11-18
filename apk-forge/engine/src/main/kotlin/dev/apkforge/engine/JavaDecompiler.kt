@@ -26,6 +26,8 @@ data class JavaDecompilerOptions(
     val threads: Int = Runtime.getRuntime().availableProcessors().coerceIn(1, 4),
     /** Nombres reales deducidos por el desofuscador (app + IA) que se aplican al Java. */
     val renames: List<jadx.api.data.ICodeRename> = emptyList(),
+    /** Comentarios en el Java (p. ej. textos descifrados por la app). */
+    val comments: List<jadx.api.data.ICodeComment> = emptyList(),
 )
 
 /** Resultado de la búsqueda de clases. */
@@ -174,7 +176,8 @@ class JavaDecompiler private constructor(
                 setEscapeUnicode(false)
                 setRespectBytecodeAccModifiers(false)
                 setCommentsLevel(CommentsLevel.INFO)
-                if (options.renames.isNotEmpty()) setCodeData(jadx.api.data.impl.JadxCodeData().apply { renames = options.renames })
+                if (options.renames.isNotEmpty() || options.comments.isNotEmpty())
+                    setCodeData(jadx.api.data.impl.JadxCodeData().apply { renames = options.renames; comments = options.comments })
                 setUseKotlinMethodsForVarNames(
                     if (options.kotlinNames) JadxArgs.UseKotlinMethodsForVarNames.APPLY
                     else JadxArgs.UseKotlinMethodsForVarNames.DISABLE
