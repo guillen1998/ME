@@ -61,6 +61,7 @@ tasks.test {
     System.getProperty("apkforge.sampleApk")?.let { systemProperty("apkforge.sampleApk", it) }
     System.getProperty("apkforge.live")?.let { systemProperty("apkforge.live", it) }
     System.getProperty("apkforge.reasonerModel")?.let { systemProperty("apkforge.reasonerModel", it) }
+    System.getProperty("apkforge.smaliDir")?.let { systemProperty("apkforge.smaliDir", it) }
 }
 
 // Modelo de embeddings para el motor neuronal (all-MiniLM-L6-v2 cuantizado, Apache-2.0). Se descarga

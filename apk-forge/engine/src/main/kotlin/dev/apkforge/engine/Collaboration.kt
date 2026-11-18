@@ -313,6 +313,10 @@ object MessagePreparer {
         if (project != null && !StringDecryptor.file(project).isFile) runCatching {
             listener.onProgress("🔐 La app busca y descifra textos cifrados…"); StringDecryptor.run(project, null, ProgressListener.NONE, maxSites = 1500)
         }
+        // Protecciones contra modificación (firma, Play Integrity…): se detectan una vez y se avisan
+        val integrity = if (project != null) runCatching {
+            listener.onProgress("🛡 La app busca protecciones contra modificación…"); IntegrityScanner.cachedExplain(project)
+        }.getOrNull()?.takeIf { it.contains("DETECTADA") } else null
         // El motor neuronal piensa: significado (CPU/GPU) + grafo del proyecto + lo aprendido
         val thought = if (project != null) runCatching {
             listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
@@ -338,6 +342,7 @@ object MessagePreparer {
                 .getOrNull()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
             AndroidKnowledge.format(recipes).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
             deliberation?.let { appendLine(); appendLine(); append(it.format()) }
+            integrity?.let { appendLine(); appendLine(); append(it) }
         }
         return Prepared(text, notes, related, thought, deliberation)
     }

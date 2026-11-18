@@ -444,6 +444,7 @@ private val quickTasks = listOf(
     "Explicar esta pantalla" to "Te adjunto una captura: dime qué layout y qué clases forman esta pantalla y cómo se podría cambiar.",
     "Cambiar un texto" to "Cambia el texto \"\" por \"\" en toda la app.",
     "Cambiar diseño de lista" to "En la pantalla de la captura, haz que los elementos de la lista se muestren en cuadrícula de 3 columnas.",
+    "¿Por qué mi mod se rompe?" to "Modifiqué la app y ahora falla (no carga datos, no inicia sesión o se cierra). Usa check_integrity para ver si hay comprobación de firma u otra protección contra modificación, y dime con claridad si tiene arreglo o no.",
 )
 
 /** Lee una imagen elegida y la reduce (máx. 1280 px, JPEG) para enviarla rápido. */

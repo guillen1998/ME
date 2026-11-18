@@ -51,6 +51,7 @@ class AgentToolbox(
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
         - Trabaja solo en apps propias, de código abierto o con permiso; no ayudes a saltarse pagos, licencias o DRM de apps comerciales de terceros.
+        - IMPORTANTE: si tras un cambio la app "no cambia", se cierra, o falla al cargar la lista/el login, NO insistas editando la pantalla: usa check_integrity. Casi siempre es una comprobación de FIRMA (local o en el servidor) que se dispara al re-firmar el APK. Si la firma la valida el SERVIDOR, no se puede arreglar en el móvil: dilo claramente al usuario en vez de seguir intentando.
         - Si hay textos CIFRADOS (URLs, claves o mensajes ilegibles que pasan por un método), usa decrypt_strings: la app los descifra; para los pendientes, lee el descifrador, deduce el algoritmo y dáselo con decrypt_recipe.
         - Si el código está OFUSCADO (clases a, b, c…), no te rindas: usa deobfuscate (la app deduce nombres reales), deobf_info para estudiar las clases que falten y rename_symbol para guardar lo que deduzcas. Así tú y la app desofuscan juntos.
         - Para cambios de diseño grandes (p. ej. pasar una lista de filas a cuadrícula de filas y columnas) usa find_lists y list_to_grid, y después adapta el layout del elemento si hace falta.
@@ -114,6 +115,8 @@ class AgentToolbox(
             mapOf("kind" to str("class | method | field"), "class_name" to str("Clase propietaria (a.b.c)"),
                 "symbol" to str("Para método: nombre(params)retorno del smali, p. ej. a(I)V; para campo: nombre:tipo, p. ej. a:Ljava/lang/String;; vacío para clase"),
                 "new_name" to str("Nombre real propuesto"), "reason" to str("Por qué")), listOf("kind", "class_name", "new_name", "reason")))
+        add(tool("check_integrity", "Comprueba si la app tiene PROTECCIONES CONTRA MODIFICACIÓN (comprobación de firma local o enviada al servidor, Play Integrity, root/emulador/depurador). Es la causa nº1 de que un mod 'deje de funcionar' al re-firmar aunque el cambio sea cosmético. Úsalo SIEMPRE que un cambio no se refleje o la app falle al cargar datos/login tras modificarla.",
+            mapOf(), listOf()))
         add(tool("decrypt_strings", "La APP busca los textos CIFRADOS de la app (métodos descifradores llamados con constantes raras), los descifra ejecutando el método en un intérprete aislado o probando cifrados típicos, y devuelve los textos claros. Lo que no pueda, te lo pasa con el código del descifrador para que deduzcas el algoritmo.",
             mapOf("filter" to str("Opcional: solo textos que contengan esto")), listOf()))
         add(tool("decrypt_recipe", "Cuando deduzcas el algoritmo de un descifrador, dale a la app la receta de pasos; la app la aplica a TODOS sus textos y solo la acepta si salen legibles. Pasos: base64, hex, reverse, rot(n), add(n), xor(key|n), xorchars(key|n), aes(key,mode,iv), rc4(key).",
@@ -153,6 +156,21 @@ class AgentToolbox(
         return f
     }
 
+    /** Resuelve una ruta que DEBE ser un archivo. Si es una carpeta, lo dice claro y orienta (en vez de reventar con EISDIR). */
+    private fun fileArg(path: String?): File {
+        val f = resolve(path)
+        if (f.isDirectory) {
+            val kids = f.listFiles()?.sortedWith(compareBy({ !it.isDirectory }, { it.name })).orEmpty()
+            val bins = kids.filter { it.isFile && it.extension.lowercase() in setOf("so", "bin", "dex", "dat", "jar", "zip", "png", "jpg", "ttf", "mp3", "mp4") }
+            throw EngineException("“$path” es una CARPETA, no un archivo. " +
+                (if (f.name == "classes" || f.path.contains("/smali")) "Dentro hay código smali (texto): usa search_text, scan_findings o read_file sobre un .smali concreto. " else "") +
+                (if (bins.isNotEmpty()) "Binarios dentro: " + bins.take(8).joinToString { it.name } + ". " else "") +
+                "Contenido: " + kids.take(12).joinToString { if (it.isDirectory) it.name + "/" else it.name } + (if (kids.size > 12) "…" else ""))
+        }
+        if (!f.exists()) throw EngineException("No existe: $path")
+        return f
+    }
+
     fun run(name: String, a: Map<String, Any?>): String = when (name) {
         "list_files" -> {
             val dir = resolve(a["path"] as? String)
@@ -178,8 +196,7 @@ class AgentToolbox(
             }
         }
         "analyze_file" -> {
-            val f = resolve(a["path"] as String)
-            if (!f.isFile) throw EngineException("No existe: ${a["path"]}")
+            val f = fileArg(a["path"] as? String)
             val bytes = if (f.length() <= 32L * 1024 * 1024) f.readBytes() else f.inputStream().use { it.readNBytes(32 * 1024 * 1024) }
             val ent = entropy(bytes)
             val strs = if (f.extension == "dex") BinaryTools.dexStrings(f) else BinaryTools.strings(f)
@@ -281,14 +298,14 @@ class AgentToolbox(
                 "\n\nDepende de:\n" + j.dependencies(c).take(80).joinToString("\n") { "  $it" }
         }
         "binary_strings" -> {
-            val f = resolve(a["path"] as String)
+            val f = fileArg(a["path"] as? String)
             val filter = (a["filter"] as? String).orEmpty()
             val s = if (f.extension == "dex") BinaryTools.dexStrings(f) else BinaryTools.strings(f)
             val list = if (filter.isEmpty()) s else s.filter { it.contains(filter, true) }
             "${BinaryTools.identify(f)} — ${list.size} cadenas\n" + list.take(400).joinToString("\n")
         }
         "hex_read" -> {
-            val f = resolve(a["path"] as String)
+            val f = fileArg(a["path"] as? String)
             val ft = a["find_text"] as? String; val fh = a["find_hex"] as? String
             if (!ft.isNullOrEmpty() || !fh.isNullOrEmpty()) {
                 val needle = if (!ft.isNullOrEmpty()) ft.toByteArray() else BinaryPatch.parseHex(fh!!)
@@ -333,6 +350,10 @@ class AgentToolbox(
                 a["new_name"] as String, "IA", (a["reason"] as? String).orEmpty())
             "Guardado: ${r.cls} ${r.kind} ${r.obf} → ${r.name}"
         }
+        "check_integrity" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            IntegrityScanner.scan(p).explain()
+        }
         "decrypt_strings" -> {
             val p = projectDir() ?: throw EngineException("No es un proyecto")
             val rep = StringDecryptor.run(p)
@@ -368,7 +389,7 @@ class AgentToolbox(
         }
         "hex_patch" -> {
             if (!allowEdits) throw EngineException("Edición desactivada")
-            val f = resolve(a["path"] as String)
+            val f = fileArg(a["path"] as? String)
             val keep = a["keep_size"] != false
             val r = when {
                 a["hex"] != null && a["offset"] != null -> BinaryPatch.writeAt(f, (a["offset"] as Number).toLong(), BinaryPatch.parseHex(a["hex"] as String), "IA")
