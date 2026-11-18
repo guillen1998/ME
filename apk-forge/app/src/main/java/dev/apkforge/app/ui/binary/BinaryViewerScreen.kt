@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,6 +67,8 @@ import java.io.File
 fun BinaryViewerScreen(file: File, onBack: () -> Unit, onAnalyzeAi: (File) -> Unit = {}) {
     var tab by remember { mutableIntStateOf(0) }
     var showDecrypt by remember { mutableStateOf(false) }
+    var showEdit by remember { mutableStateOf(false) }
+    var version by remember { mutableIntStateOf(0) }
     val tabs = remember(file) {
         buildList {
             add("Cadenas"); add("Hex")
@@ -85,6 +88,7 @@ fun BinaryViewerScreen(file: File, onBack: () -> Unit, onAnalyzeAi: (File) -> Un
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
                     IconButton(onClick = { onAnalyzeAi(file) }) { Icon(Icons.Default.AutoAwesome, "Analizar con IA") }
+                    IconButton(onClick = { showEdit = true }) { Icon(Icons.Default.Edit, "Editar bytes") }
                     IconButton(onClick = { showDecrypt = true }) { Icon(Icons.Default.LockOpen, "Descifrar") }
                 },
             )
@@ -100,15 +104,18 @@ fun BinaryViewerScreen(file: File, onBack: () -> Unit, onAnalyzeAi: (File) -> Un
             TabRow(tab) {
                 tabs.forEachIndexed { i, t -> Tab(tab == i, { tab = i }, text = { Text(t) }) }
             }
-            when (tabs.getOrNull(tab)) {
-                "Cadenas" -> StringsTab(file)
-                "Hex" -> HexTab(file)
-                "Símbolos" -> SymbolsTab(file)
+            androidx.compose.runtime.key(version) {
+                when (tabs.getOrNull(tab)) {
+                    "Cadenas" -> StringsTab(file)
+                    "Hex" -> HexTab(file)
+                    "Símbolos" -> SymbolsTab(file)
+                }
             }
         }
     }
 
     if (showDecrypt) DecryptDialog(file) { showDecrypt = false }
+    if (showEdit) HexEditDialog(file, onDone = { version++ }) { showEdit = false }
 }
 
 @Composable
@@ -223,3 +230,74 @@ private fun DecryptDialog(file: File, onDismiss: () -> Unit) {
     )
 }
 
+
+
+/**
+ * Editor de bytes (estilo MT Manager): reemplazar texto o bytes, o escribir en un offset.
+ * Mantiene el tamaño por defecto (necesario en .so/.dex). Copia de seguridad + informe de cambios.
+ */
+@Composable
+private fun HexEditDialog(file: File, onDone: () -> Unit, onDismiss: () -> Unit) {
+    var mode by remember { mutableIntStateOf(0) } // 0 texto, 1 hex, 2 offset
+    var find by remember { mutableStateOf("") }
+    var repl by remember { mutableStateOf("") }
+    var offset by remember { mutableStateOf("0x0") }
+    var keep by remember { mutableStateOf(true) }
+    var result by remember { mutableStateOf<String?>(null) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar bytes") },
+        text = {
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("Texto", "Hex", "Offset").forEachIndexed { i, l ->
+                        androidx.compose.material3.FilterChip(mode == i, { mode = i; result = null }, label = { Text(l) })
+                    }
+                }
+                when (mode) {
+                    0 -> {
+                        OutlinedTextField(find, { find = it }, label = { Text("Buscar texto") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(repl, { repl = it }, label = { Text("Reemplazar por") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    }
+                    1 -> {
+                        OutlinedTextField(find, { find = it }, label = { Text("Buscar bytes (hex)") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("00 00 A0 E3") })
+                        OutlinedTextField(repl, { repl = it }, label = { Text("Reemplazar por (hex)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    }
+                    else -> {
+                        OutlinedTextField(offset, { offset = it }, label = { Text("Offset (0x… o decimal)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(repl, { repl = it }, label = { Text("Bytes a escribir (hex)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                if (mode != 2) Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(keep, { keep = it })
+                    Text("Mantener tamaño (recomendado en .so/.dex)", fontSize = 12.sp)
+                }
+                result?.let { Text(it, fontSize = 12.sp, fontFamily = Mono, modifier = Modifier.padding(top = 6.dp)) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                scope.launch {
+                    result = withContext(Workers.dispatcher) {
+                        runCatching {
+                            val r = when (mode) {
+                                0 -> dev.apkforge.engine.BinaryPatch.replaceText(file, find, repl, keep)
+                                1 -> dev.apkforge.engine.BinaryPatch.replace(file, dev.apkforge.engine.BinaryPatch.parseHex(find),
+                                    dev.apkforge.engine.BinaryPatch.parseHex(repl), keep)
+                                else -> {
+                                    val off = offset.trim().let { if (it.startsWith("0x", true)) it.substring(2).toLong(16) else it.toLong() }
+                                    dev.apkforge.engine.BinaryPatch.writeAt(file, off, dev.apkforge.engine.BinaryPatch.parseHex(repl))
+                                }
+                            }
+                            "✔ " + r.message + if (r.offsets.isNotEmpty()) " · " + r.offsets.take(6).joinToString { "0x%X".format(it) } else ""
+                        }.getOrElse { "✖ " + (it.message ?: it.toString()) }
+                    }
+                    onDone()
+                }
+            }) { Text("Aplicar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+    )
+}

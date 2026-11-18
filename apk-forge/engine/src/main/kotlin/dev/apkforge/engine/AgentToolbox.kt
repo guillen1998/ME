@@ -34,6 +34,7 @@ class AgentToolbox(
         - Para leer lógica prefiere java_class (Java legible) y usa smali solo cuando haga falta editar.
         - Sé eficiente: busca primero (search_text, find_classes, scan_findings) y lee solo lo necesario.
         - Si es un proyecto con cambios previos, consulta list_changes para saber qué se editó antes.
+        - Puedes editar CUALQUIER cosa del proyecto: smali, XML, recursos, manifest, assets, imágenes y binarios (.so/.dex/.bin con hex_read + hex_patch, manteniendo el tamaño). No digas que algo no se puede editar: busca la forma con las herramientas.
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
         - Trabaja solo en apps propias, de código abierto o con permiso; no ayudes a saltarse pagos, licencias o DRM de apps comerciales de terceros.
@@ -61,6 +62,9 @@ class AgentToolbox(
             mapOf("path" to str("Ruta relativa del archivo")), listOf("path")))
         add(tool("list_changes", "Informe de TODO lo que se ha editado en este proyecto (por la IA y a mano): archivos, quién, cuándo y las líneas cambiadas. Consúltalo antes de seguir editando para no repetir ni deshacer cambios.",
             mapOf("only_pending" to bool("true = solo lo cambiado desde la última exportación")), listOf()))
+        add(tool("hex_read", "Lee bytes de un archivo binario en hexadecimal (offset y longitud), o busca dónde aparece un texto/bytes. Úsalo antes de parchear .so/.dex/.bin.",
+            mapOf("path" to str("Ruta relativa"), "offset" to int("Offset inicial (por defecto 0)"), "length" to int("Bytes a leer (máx. 4096)"),
+                "find_text" to str("Opcional: texto a buscar (devuelve offsets)"), "find_hex" to str("Opcional: bytes en hex a buscar")), listOf("path")))
         add(tool("decrypt", "Descifra o decodifica datos automáticamente. Úsalo cuando encuentres AES/DES/RC4/XOR/Base64/gzip en el código: lee la clave e IV del smali y descífralo tú.",
             mapOf(
                 "algorithm" to str("aes | aes-ecb | aes-gcm | aes-ctr | des | 3des | rc4 | xor | base64 | hex | gzip | zlib | deflate"),
@@ -81,6 +85,18 @@ class AgentToolbox(
                 "save_to" to str("Ruta relativa donde guardar el primer resultado plausible (opcional)"),
             ), listOf("key")))
         if (allowEdits) {
+            add(tool("hex_patch", "Edita un archivo BINARIO (.so, .dex, .bin, assets, imágenes…): escribe bytes en un offset, o busca y reemplaza texto/bytes. Por defecto mantiene el tamaño (obligatorio en .so/.dex).",
+                mapOf("path" to str("Ruta relativa"), "offset" to int("Offset donde escribir (con 'hex')"), "hex" to str("Bytes a escribir en hex, p. ej. '00 00 A0 E3'"),
+                    "find_text" to str("Texto a buscar"), "replace_text" to str("Texto nuevo"), "find_hex" to str("Bytes a buscar (hex)"), "replace_hex" to str("Bytes nuevos (hex)"),
+                    "keep_size" to bool("Mantener tamaño (por defecto true)")), listOf("path")))
+            add(tool("replace_all", "Busca y reemplaza un texto (o regex) en TODOS los archivos de texto del proyecto (smali, xml, json…). Devuelve en qué archivos cambió.",
+                mapOf("find" to str("Texto o regex"), "replace" to str("Reemplazo"), "regex" to bool("true si 'find' es regex"), "extension" to str("Solo esta extensión ('' = todas)")), listOf("find", "replace")))
+            add(tool("delete_file", "Borra un archivo o carpeta del proyecto (se guarda copia de seguridad).",
+                mapOf("path" to str("Ruta relativa")), listOf("path")))
+            add(tool("move_file", "Mueve o renombra un archivo/carpeta dentro del proyecto.",
+                mapOf("from" to str("Ruta relativa actual"), "to" to str("Ruta relativa nueva")), listOf("from", "to")))
+            add(tool("import_file", "Copia un archivo del móvil al proyecto (p. ej. una imagen o icono nuevo que el usuario tiene en Descargas).",
+                mapOf("source" to str("Ruta absoluta en el móvil, p. ej. /storage/emulated/0/Download/icono.png"), "to" to str("Ruta relativa destino en el proyecto")), listOf("source", "to")))
             add(tool("write_file", "Crea o reemplaza un archivo de texto completo (guarda copia de seguridad).",
                 mapOf("path" to str("Ruta relativa"), "content" to str("Contenido completo")), listOf("path", "content")))
             add(tool("replace_in_file", "Reemplaza un fragmento exacto (que aparece una sola vez) dentro de un archivo.",
@@ -223,6 +239,74 @@ class AgentToolbox(
             val list = if (filter.isEmpty()) s else s.filter { it.contains(filter, true) }
             "${BinaryTools.identify(f)} — ${list.size} cadenas\n" + list.take(400).joinToString("\n")
         }
+        "hex_read" -> {
+            val f = resolve(a["path"] as String)
+            val ft = a["find_text"] as? String; val fh = a["find_hex"] as? String
+            if (!ft.isNullOrEmpty() || !fh.isNullOrEmpty()) {
+                val needle = if (!ft.isNullOrEmpty()) ft.toByteArray() else BinaryPatch.parseHex(fh!!)
+                val offs = BinaryPatch.find(f, needle)
+                if (offs.isEmpty()) "No aparece en ${f.name}" else "Aparece ${offs.size} vez/veces en: " + offs.joinToString { "0x%X".format(it) } +
+                    "\n\n" + BinaryTools.hexDump(f, (offs.first() - 32).coerceAtLeast(0), 128)
+            } else {
+                val off = (a["offset"] as? Number)?.toLong() ?: 0L
+                val len = ((a["length"] as? Number)?.toInt() ?: 256).coerceIn(1, 4096)
+                "${BinaryTools.identify(f)} · ${f.length()} bytes\n" + BinaryTools.hexDump(f, off.coerceIn(0, f.length()), len)
+            }
+        }
+        "hex_patch" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val f = resolve(a["path"] as String)
+            val keep = a["keep_size"] != false
+            val r = when {
+                a["hex"] != null && a["offset"] != null -> BinaryPatch.writeAt(f, (a["offset"] as Number).toLong(), BinaryPatch.parseHex(a["hex"] as String), "IA")
+                !(a["find_text"] as? String).isNullOrEmpty() -> BinaryPatch.replaceText(f, a["find_text"] as String, (a["replace_text"] as? String).orEmpty(), keep, "IA")
+                !(a["find_hex"] as? String).isNullOrEmpty() -> BinaryPatch.replace(f, BinaryPatch.parseHex(a["find_hex"] as String),
+                    BinaryPatch.parseHex((a["replace_hex"] as? String).orEmpty().ifBlank { "" }.let { if (it.isEmpty()) "00" else it }), keep, who = "IA")
+                else -> throw EngineException("Indica offset+hex, find_text+replace_text o find_hex+replace_hex")
+            }
+            r.message + if (r.offsets.isNotEmpty()) " (" + r.offsets.take(10).joinToString { "0x%X".format(it) } + ")" else ""
+        }
+        "replace_all" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val base = if (root.isDirectory) root else root.parentFile
+            val ext = (a["extension"] as? String).orEmpty()
+            val rx = if (a["regex"] == true) Regex(a["find"] as String) else Regex(Regex.escape(a["find"] as String))
+            val repl = a["replace"] as String
+            val changed = mutableListOf<String>()
+            base.walkTopDown().onEnter { it.name != ".apkforge" && it.name != "android-studio" }
+                .filter { it.isFile && it.length() < 8_000_000 && (if (ext.isEmpty()) it.extension in setOf("smali", "xml", "json", "txt", "properties", "html", "js") else it.extension == ext) }
+                .forEach { f ->
+                    val old = f.readText()
+                    val new = old.replace(rx, if (a["regex"] == true) repl else Regex.escapeReplacement(repl))
+                    if (new != old) { backup(f); f.writeText(new); ChangeLog.record(f, old, new, "IA", "replace_all"); changed += f.relativeTo(base).path }
+                }
+            if (changed.isEmpty()) "Sin coincidencias" else "Cambiado en ${changed.size} archivo(s):\n" + changed.take(100).joinToString("\n")
+        }
+        "delete_file" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val f = resolve(a["path"] as String)
+            if (!f.exists()) throw EngineException("No existe")
+            if (f.isFile) backup(f) else f.walkTopDown().filter { it.isFile }.forEach { backup(it) }
+            ChangeLog.recordBinary(f, "IA · borrado", 0, "IA")
+            f.deleteRecursively(); "Borrado ${a["path"]}"
+        }
+        "move_file" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val from = resolve(a["from"] as String); val to = resolve(a["to"] as String)
+            if (!from.exists()) throw EngineException("No existe: ${a["from"]}")
+            to.parentFile?.mkdirs()
+            if (!from.renameTo(to)) { from.copyRecursively(to, overwrite = true); from.deleteRecursively() }
+            ChangeLog.recordBinary(to, "IA · movido desde ${a["from"]}", 0, "IA"); "Movido a ${a["to"]}"
+        }
+        "import_file" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val src = File(a["source"] as String)
+            if (!src.isFile) throw EngineException("No existe en el móvil: ${src.path}")
+            val to = resolve(a["to"] as String)
+            if (to.isFile) backup(to)
+            to.parentFile?.mkdirs(); src.copyTo(to, overwrite = true)
+            ChangeLog.recordBinary(to, "IA · importado desde ${src.name}", src.length().toInt(), "IA"); "Importado ${src.name} → ${a["to"]} (${src.length()} B)"
+        }
         "write_file" -> {
             if (!allowEdits) throw EngineException("Edición desactivada")
             val f = resolve(a["path"] as String)
@@ -286,6 +370,10 @@ class AgentToolbox(
     fun summarize(name: String, a: Map<String, Any?>) = when (name) {
         "read_file", "list_files", "binary_strings", "write_file", "replace_in_file", "analyze_file" -> "${a["path"] ?: "/"}"
         "list_changes" -> if (a["only_pending"] == true) "pendientes" else "todos"
+        "hex_read", "hex_patch", "delete_file" -> "${a["path"]}"
+        "move_file" -> "${a["from"]} → ${a["to"]}"
+        "import_file" -> "${a["source"]} → ${a["to"]}"
+        "replace_all" -> "“${a["find"]}” → “${a["replace"]}”"
         "search_text" -> "“${a["query"]}”" + ((a["extension"] as? String)?.takeIf { it.isNotEmpty() }?.let { " en .$it" } ?: "")
         "java_class", "class_xref" -> "${a["class_name"]}"
         "find_classes" -> "“${a["query"]}”"

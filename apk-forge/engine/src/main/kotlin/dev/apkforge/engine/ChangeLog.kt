@@ -42,6 +42,15 @@ object ChangeLog {
         }
     }
 
+    /** Cambio en un archivo binario o de estructura (borrar, mover, importar…). */
+    fun recordBinary(file: File, note: String, changed: Int = 0, who: String = note.substringBefore(" ·").ifBlank { "Manual" }) {
+        val project = projectOf(file) ?: return
+        runCatching {
+            val e = ChangeEntry(System.currentTimeMillis(), file.absoluteFile.relativeTo(project).path, who, changed, 0, note.take(300))
+            logFile(project).apply { parentFile?.mkdirs() }.appendText(gson.toJson(e) + "\n")
+        }
+    }
+
     fun all(project: File): List<ChangeEntry> = runCatching {
         logFile(project).takeIf { it.isFile }?.readLines()?.filter { it.isNotBlank() }
             ?.mapNotNull { runCatching { gson.fromJson(it, ChangeEntry::class.java) }.getOrNull() }.orEmpty()
