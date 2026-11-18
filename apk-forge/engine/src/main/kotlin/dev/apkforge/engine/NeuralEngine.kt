@@ -13,7 +13,8 @@ import kotlin.random.Random
  * Es una red pequeña "wide & deep":
  *  - parte ancha: pesos aprendidos para cada par (palabra del pedido × tipo de archivo), p. ej.
  *    "cuadrícula × smali propio" o "color × values", que se aprenden con el uso;
- *  - parte profunda: 12 rasgos → 16 neuronas ocultas (tanh) → probabilidad.
+ *  - parte profunda: 14 rasgos (incluida la similitud de significado de la red de embeddings y la
+ *    conexión en el grafo del proyecto) → 16 neuronas ocultas (tanh) → probabilidad.
  *
  * La APP AYUDA A LA IA: antes de cada pedido ordena los archivos candidatos por probabilidad de ser
  * los que hay que tocar, y la IA recibe primero los buenos.
@@ -35,7 +36,8 @@ class NeuralEngine(private val store: File? = null) {
     private var w: Weights = load()
     val examples get() = w.examples
 
-    data class Candidate(val path: String, val heuristicRank: Int = 0, val keywordHits: Int = 0)
+    /** [semantic] = similitud de significado (red de embeddings), [graph] = conexión en el grafo del proyecto. */
+    data class Candidate(val path: String, val heuristicRank: Int = 0, val keywordHits: Int = 0, val semantic: Float = 0f, val graph: Float = 0f)
     data class Scored(val path: String, val score: Float)
 
     // ───────────── rasgos ─────────────
@@ -63,6 +65,8 @@ class NeuralEngine(private val store: File? = null) {
         f[2] = 1f / (1f + c.heuristicRank)
         f[3] = if (touchedBefore) 1f else 0f
         f[4 + fileType(c.path)] = 1f   // 8 posiciones: 4..11
+        f[12] = c.semantic
+        f[13] = c.graph
         return f
     }
 
@@ -122,6 +126,10 @@ class NeuralEngine(private val store: File? = null) {
         save()
     }
 
+    /** Olvida todo lo aprendido. */
+    @Synchronized
+    fun reset() { w = Weights(); save() }
+
     // ───────────── persistencia ─────────────
 
     private fun load(): Weights = runCatching {
@@ -133,7 +141,7 @@ class NeuralEngine(private val store: File? = null) {
 
     companion object {
         private const val WIDE = 1 shl 14
-        private const val FEATS = 12
+        private const val FEATS = 14
         private const val HIDDEN = 16
         private const val LR = 0.05f
         private const val LR_WIDE = 0.3f

@@ -35,6 +35,10 @@ Carpetas en el móvil: `/sdcard/ApkTools/` con **Proyectos** (lo que editas), **
 
 ## Novedades
 
+- **Motor neuronal 2** (0.14): red MiniLM (transformer de 6 capas, ONNX Runtime) en el móvil; prueba GPU/NPU (NNAPI), CPU multinúcleo (XNNPACK) y CPU, y usa la más rápida. Búsqueda por significado en el proyecto (índice incremental), razonamiento sobre el grafo del proyecto (pantalla → adaptador → layout, quién infla qué), memoria de experiencias que corrige sus errores con lo que la IA editó, detector de cambios arriesgados que aprende de compilaciones fallidas y del revisor IA, herramienta `semantic_search` para el agente y panel en Ajustes.
+- **Historial del chat del agente** guardado en disco y botón "Reanudar sesión".
+- **Copias de seguridad** por fecha: restaurar, borrar y explicar con IA.
+
 - **Doctor de compilación** (0.11): antes de exportar revisa todos los archivos tocados (smali ensamblado uno a uno, XML válido, recursos duplicados o inexistentes), unifica duplicados solo, la IA repara lo que pueda y, si no, deshace únicamente el archivo que rompe. Siempre sale un APK y el informe dice qué se deshizo.
 - **Equipo de IAs**: un modelo planifica, el agente ejecuta con herramientas y otro modelo de otra familia revisa y devuelve los fallos.
 - **16 modelos gratis sin clave**: DeepSeek V4.1/V4, Kimi K2.7 Code, Qwen 3.5 397B / 3.6 / 3.8, GLM 5.3 Flash, MiMo v2.6, MiniMax M2.7, Codestral, GPT-OSS 120B/20B, Gemma 4, Llama 3.3. Con una clave gratis de Gemini (Google AI Studio), OpenRouter o Groq, ese modelo se suma al equipo.

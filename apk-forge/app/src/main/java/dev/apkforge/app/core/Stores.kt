@@ -251,8 +251,14 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
                     status.value = null
                     val parts = buildList {
                         if (prep.imageNotes != null) add("leí ${images.size} imagen(es)")
-                        if (prep.related.isNotEmpty()) add("encontré ${prep.related.size} archivo(s) relacionado(s) (ordenados por el motor neuronal): " +
+                        if (prep.related.isNotEmpty()) add("encontré ${prep.related.size} archivo(s) relacionado(s): " +
                             prep.related.map { it.path.substringAfterLast('/') }.distinct().take(4).joinToString(", "))
+                        prep.thought?.let { t ->
+                            if (t.ranked.isNotEmpty() || t.chains.isNotEmpty())
+                                add("🧠 motor neuronal${t.backend?.let { b -> " ($b)" } ?: ""}: ${t.ranked.take(3).joinToString { it.first.substringAfterLast('/') }}" +
+                                    if (t.chains.isNotEmpty()) " · ${t.chains.size} deducción(es)" else "")
+                            if (t.risks.isNotEmpty()) add("⚠ ${t.risks.size} cambio(s) con riesgo de romper la compilación")
+                        }
                     }
                     if (parts.isNotEmpty()) messages += AgentMsg.Info("🧩 La app: " + parts.joinToString(" · "), false)
                 }
@@ -260,7 +266,9 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
                 a.send(prep.text) { !isActive }
                 // La IA ayuda a la app: el motor neuronal aprende qué archivos tocó para este tipo de pedido
                 if (project != null) runCatching { dev.apkforge.engine.MessagePreparer.learnFrom(project, text, t0) }.getOrNull()?.takeIf { it > 0 }?.let { n ->
-                    onMain { messages += AgentMsg.Info("🧬 Motor neuronal: aprendió de $n archivo(s) editado(s) (${dev.apkforge.engine.NeuralEngine.shared.examples} ejemplos en total)", false) }
+                    val st = dev.apkforge.engine.NeuralBrain.stats()
+                    onMain { messages += AgentMsg.Info("🧬 Motor neuronal: " + (st.recent.firstOrNull() ?: "aprendió de $n archivo(s)") +
+                        (st.precision?.let { " · acierto reciente $it%" } ?: ""), false) }
                 }
             } finally { onMain { running.value = false; status.value = null; persist() } }
         }

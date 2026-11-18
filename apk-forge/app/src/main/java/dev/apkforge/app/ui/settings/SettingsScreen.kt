@@ -38,6 +38,12 @@ import dev.apkforge.app.core.JavaSessions
 import dev.apkforge.app.core.Workspace
 import dev.apkforge.app.ui.SectionCard
 import dev.apkforge.app.ui.apk.CheckRow
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,6 +164,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 }
             }
 
+            SectionCard("Motor neuronal (en el móvil)") { NeuralPanel() }
             SectionCard("Decompilador Java (jadx)") {
                 CheckRow("Mostrar código aunque sea inconsistente", "Muestra lo que se pudo reconstruir en vez de “dump skipped”", inconsistent) {
                     inconsistent = it; p.showInconsistent = it; JavaSessions.close()
@@ -245,4 +252,45 @@ private fun BuiltinModelsEditor(p: dev.apkforge.app.core.Prefs) {
             dismissButton = { androidx.compose.material3.TextButton(onClick = { adding = false }) { Text("Cancelar") } },
         )
     }
+}
+
+
+/** Estado del motor neuronal: acelerador (GPU/NPU/CPU), lo aprendido, aciertos y errores corregidos. */
+@Composable
+private fun NeuralPanel() {
+    var stats by remember { mutableStateOf(dev.apkforge.engine.NeuralBrain.stats()) }
+    var loading by remember { mutableStateOf(false) }
+    var confirmReset by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    Column {
+        Text("Red neuronal MiniLM (6 capas) que corre en tu móvil: entiende el significado de tus pedidos, razona sobre cómo está " +
+            "conectado el proyecto y aprende de las IAs y de sus propios errores. Prepara el trabajo para los modelos de internet.",
+            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(8.dp))
+        dev.apkforge.app.ui.KeyValue("Acelerador", stats.backend?.let { "$it · %.1f ms por texto".format(stats.msPerText) } ?: "Sin cargar (se carga al usar el agente)")
+        dev.apkforge.app.ui.KeyValue("Ejemplos aprendidos de la IA", "${stats.rankerExamples}")
+        dev.apkforge.app.ui.KeyValue("Acierto reciente", stats.precision?.let { "$it % (últimos pedidos)" } ?: "aún pocos datos")
+        dev.apkforge.app.ui.KeyValue("Errores propios corregidos", "${stats.mistakesFixed}")
+        dev.apkforge.app.ui.KeyValue("Detector de riesgo", "${stats.riskExamples} cambios vistos · ${stats.riskErrors} rompían")
+        if (stats.recent.isNotEmpty()) {
+            Text("Últimos aprendizajes", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+            stats.recent.forEach { Text(it, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+        Row(Modifier.padding(top = 8.dp)) {
+            OutlinedButton(enabled = !loading, onClick = {
+                loading = true
+                scope.launch {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { dev.apkforge.engine.NeuralBrain.embedder() }
+                    stats = dev.apkforge.engine.NeuralBrain.stats(); loading = false
+                }
+            }) { Text(if (loading) "Probando GPU/CPU…" else if (stats.backend == null) "Cargar y probar acelerador" else "Actualizar") }
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = { confirmReset = true }) { Text("Reiniciar aprendizaje", color = dev.apkforge.app.ui.Danger) }
+        }
+    }
+    if (confirmReset) androidx.compose.material3.AlertDialog(onDismissRequest = { confirmReset = false },
+        title = { Text("¿Reiniciar el aprendizaje?") },
+        text = { Text("El motor neuronal olvida lo aprendido (aciertos, errores y riesgos). La red de significado se mantiene.") },
+        confirmButton = { TextButton(onClick = { dev.apkforge.engine.NeuralBrain.reset(); stats = dev.apkforge.engine.NeuralBrain.stats(); confirmReset = false }) { Text("Reiniciar") } },
+        dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancelar") } })
 }

@@ -46,7 +46,7 @@ class AiTeam(
             if (isCancelled()) return
             val changes = ChangeLog.all(project).filter { it.time >= t0 }
             if (changes.isEmpty()) return
-            val checks = appChecks(changes)
+            val checks = appChecks(changes) + neuralRisk(changes)
             val verdict = runCatching {
                 reviewer.complete(
                     "Eres el REVISOR de un equipo que modifica apps Android decompiladas. Revisa los cambios del ejecutor: ¿cumplen el " +
@@ -59,11 +59,20 @@ class AiTeam(
             }.getOrElse { onEvent(AgentEvent.Text("🔍 Revisor no disponible (${it.message?.take(80)}).")); return }
             onEvent(AgentEvent.Text("🔍 Revisión $reviewerName:\n$verdict"))
             val ok = verdict.lineSequence().firstOrNull()?.trim()?.uppercase()?.startsWith("OK") == true && !checks.contains("✖")
+            // Destilación: el veredicto del revisor IA entrena al detector de riesgo del motor neuronal
+            runCatching { NeuralBrain.learnFromReview(changes, ok) }
             if (ok) return
             if (round == maxReviewRounds - 1) { onEvent(AgentEvent.Text("⚠ Quedan observaciones del revisor: revísalas antes de exportar.")); return }
             onEvent(AgentEvent.Text("🔧 Ejecutor: corrigiendo lo que marcó el revisor…"))
             executor.send("El REVISOR encontró estos problemas en tus cambios. Corrígelos:\n$verdict\n\nComprobaciones de la app:\n$checks", isCancelled)
         }
+    }
+
+    /** Riesgo estimado por el motor neuronal (aprendido de compilaciones fallidas y revisiones). */
+    private fun neuralRisk(changes: List<ChangeEntry>): String {
+        if (NeuralBrain.risk.examples < 5) return ""
+        val risky = changes.groupBy { it.file }.mapValues { (_, l) -> l.maxOf { NeuralBrain.risk.risk(it) } }.filterValues { it >= 0.6f }
+        return if (risky.isEmpty()) "" else "Motor neuronal (riesgo aprendido):\n" + risky.entries.joinToString("\n") { "• ${it.key}: riesgo ${(it.value * 100).toInt()}% — revísalo con cuidado" } + "\n"
     }
 
     /** Comprobaciones automáticas de la app sobre los archivos tocados. */

@@ -12,9 +12,15 @@ android {
         applicationId = "dev.apkforge.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "0.13.0"
+        versionCode = 14
+        versionName = "0.14.0"
+        // Solo ARM de 64 bits (prácticamente todos los móviles actuales): el motor neuronal trae librerías nativas
+        ndk { abiFilters += listOf("arm64-v8a") }
     }
+
+    // El modelo del motor neuronal (descargado y verificado por :engine) va dentro del APK
+    sourceSets["main"].assets.srcDir(project(":engine").layout.buildDirectory.dir("neural"))
+
 
     signingConfigs {
         // Firma fija para que las actualizaciones se instalen encima sin desinstalar.
@@ -46,6 +52,8 @@ android {
     buildFeatures { compose = true }
 
     packaging {
+        // Librerías nativas comprimidas dentro del APK (se descomprimen al instalar): APK mucho más pequeño
+        jniLibs { useLegacyPackaging = true }
         resources {
             excludes += setOf(
                 "META-INF/versions/**", "META-INF/LICENSE*", "META-INF/NOTICE*",
@@ -63,6 +71,8 @@ configurations.all {
 
 dependencies {
     implementation(project(":engine"))
+    // Motor neuronal en el móvil: CPU multinúcleo (XNNPACK) y GPU/NPU (NNAPI)
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
@@ -83,3 +93,5 @@ dependencies {
     implementation("io.github.Rosemoe.sora-editor:editor:0.23.6")
     implementation("io.github.Rosemoe.sora-editor:language-textmate:0.23.6")
 }
+
+tasks.named("preBuild") { dependsOn(":engine:downloadNeuralModel") }

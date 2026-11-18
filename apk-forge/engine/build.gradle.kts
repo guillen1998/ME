@@ -1,3 +1,7 @@
+import java.security.MessageDigest
+import java.net.URI
+import java.io.File as JFile
+
 plugins {
     id("org.jetbrains.kotlin.jvm")
 }
@@ -32,6 +36,10 @@ dependencies {
     // Diferencias línea a línea para mostrar qué cambió la IA
     api("io.github.java-diff-utils:java-diff-utils:4.12")
 
+    // Motor neuronal: ONNX Runtime (en el móvil la app usa onnxruntime-android: mismo API, con NNAPI → GPU/NPU)
+    compileOnly("com.microsoft.onnxruntime:onnxruntime:1.31.0")
+    testImplementation("com.microsoft.onnxruntime:onnxruntime:1.31.0")
+
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
 }
@@ -46,4 +54,31 @@ tasks.register("printCp") {
 tasks.test {
     System.getProperty("apkforge.sampleApk")?.let { systemProperty("apkforge.sampleApk", it) }
     System.getProperty("apkforge.live")?.let { systemProperty("apkforge.live", it) }
+}
+
+// Modelo de embeddings para el motor neuronal (all-MiniLM-L6-v2 cuantizado, Apache-2.0). Se descarga
+// una vez y se verifica su huella; la app lo empaqueta como asset.
+val neuralDir = layout.buildDirectory.dir("neural")
+val downloadNeuralModel by tasks.registering {
+    val out = neuralDir
+    outputs.dir(out)
+    doLast {
+        val base = "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/"
+        val files = mapOf(
+            "neural/minilm.onnx" to Pair(base + "onnx/model_qint8_arm64.onnx", "4278337fd0ff3c68bfb6291042cad8ab363e1d9fbc43dcb499fe91c871902474"),
+            "neural/vocab.txt" to Pair(base + "vocab.txt", "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"),
+        )
+        files.forEach { (name, src) ->
+            val f = out.get().file(name).asFile
+            fun sha(file: JFile) = MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) }
+            if (f.isFile && sha(f) == src.second) return@forEach
+            f.parentFile.mkdirs()
+            URI(src.first).toURL().openStream().use { input -> f.outputStream().use { input.copyTo(it) } }
+            check(sha(f) == src.second) { "Huella incorrecta de ${f.name}" }
+        }
+    }
+}
+tasks.test {
+    dependsOn(downloadNeuralModel)
+    systemProperty("apkforge.neuralDir", neuralDir.get().dir("neural").asFile.absolutePath)
 }

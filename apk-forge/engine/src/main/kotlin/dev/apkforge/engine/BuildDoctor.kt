@@ -216,7 +216,10 @@ object BuildDoctor {
         revertBroken: Boolean = true,
     ): File {
         val reverted = mutableListOf<String>()
+        val pending = ChangeLog.sinceLastExport(project)
         var problems = diagnose(project, listener).filter { it.hard }
+        // El motor neuronal aprende qué tipo de cambios rompen la compilación
+        if (problems.isNotEmpty()) runCatching { NeuralBrain.learnFromBuild(project, problems.map { it.file.relativeTo(project).path }.toSet(), pending) }
         if (problems.isNotEmpty()) {
             listener.onProgress("⚠ ${problems.size} problema(s):")
             problems.take(30).forEach { listener.onProgress("  • " + it.label(project)) }
@@ -235,6 +238,7 @@ object BuildDoctor {
         repeat(6) {
             try {
                 val apk = ApkProject.build(project, out, options, listener)
+                if (problems.isEmpty() && reverted.isEmpty()) runCatching { NeuralBrain.learnFromBuild(project, emptySet(), pending) }
                 if (reverted.isNotEmpty()) {
                     listener.onProgress("✔ APK exportado. Se deshicieron ${reverted.size} archivo(s) que no compilaban: " + reverted.joinToString())
                     runCatching { File(out.parentFile, out.nameWithoutExtension + "_cambios.txt").appendText(
@@ -248,6 +252,7 @@ object BuildDoctor {
                 val loc = BuildErrors.locate(msg) ?: throw t
                 val file = loc.file.takeIf { it.isFile && it.absolutePath.startsWith(project.absolutePath) } ?: throw t
                 if (ai != null && runCatching { aiFix(project, Problem(file, loc.line, loc.message), ai, listener) }.getOrDefault(false)) return@repeat
+                runCatching { NeuralBrain.learnFromBuild(project, setOf(file.relativeTo(project).path), pending) }
                 if (!revert(project, file, loc.message)) throw t
                 reverted += file.relativeTo(project).path
                 listener.onProgress("↩ Deshecho ${file.name} (la compilación falló ahí: ${loc.message.take(100)}); reintentando…")

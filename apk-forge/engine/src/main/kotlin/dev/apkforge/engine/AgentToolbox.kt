@@ -102,6 +102,8 @@ class AgentToolbox(
                 "iv" to str("IV opcional"),
                 "save_to" to str("Ruta relativa donde guardar el primer resultado plausible (opcional)"),
             ), listOf("key")))
+        add(tool("semantic_search", "Búsqueda por SIGNIFICADO con el motor neuronal de la app (red en la CPU/GPU del móvil) + razonamiento sobre el grafo del proyecto: devuelve los archivos más probables y cadenas como 'pantalla → adaptador → layout de la fila'. Úsalo cuando no sepas el nombre exacto de lo que buscas.",
+            mapOf("query" to str("Qué buscas, en lenguaje natural (p. ej. 'pantalla de canales', 'donde se descarga la lista')")), listOf("query")))
         add(tool("find_lists", "Encuentra las LISTAS de la app (RecyclerView con LinearLayoutManager) en smali y layouts XML: clase, método y línea. Úsalo para cambios de diseño como pasar filas a cuadrícula.",
             mapOf(), listOf()))
         if (allowEdits) {
@@ -284,6 +286,12 @@ class AgentToolbox(
                 "${BinaryTools.identify(f)} · ${f.length()} bytes\n" + BinaryTools.hexDump(f, off.coerceIn(0, f.length()), len)
             }
         }
+        "semantic_search" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val q = a["query"] as String
+            val hits = runCatching { ContextFinder.find(p, q, 40) }.getOrDefault(emptyList())
+            NeuralBrain.think(p, q, hits).format().ifBlank { "El motor neuronal no encontró nada relacionado" }
+        }
         "find_lists" -> {
             val p = projectDir() ?: throw EngineException("No es un proyecto")
             val sites = LayoutPatcher.find(p)
@@ -423,6 +431,7 @@ class AgentToolbox(
         "hex_read", "hex_patch", "delete_file" -> "${a["path"]}"
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"
+        "semantic_search" -> "“${a["query"]}”"
         "list_to_grid" -> "${a["site"]} → ${a["columns"] ?: 2} columnas"
         "replace_all" -> "“${a["find"]}” → “${a["replace"]}”"
         "search_text" -> "“${a["query"]}”" + ((a["extension"] as? String)?.takeIf { it.isNotEmpty() }?.let { " en .$it" } ?: "")

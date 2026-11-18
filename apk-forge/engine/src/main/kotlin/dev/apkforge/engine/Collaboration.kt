@@ -215,13 +215,32 @@ object ContextFinder {
     }
 
     /** Pequeño diccionario es→en de palabras típicas de UI (los nombres de layouts suelen estar en inglés). */
-    internal fun translate(w: String): String? = mapOf(
-        "canal" to "channel", "pelicula" to "movie", "película" to "movie", "serie" to "series", "boton" to "button", "botón" to "button",
-        "lista" to "list", "inicio" to "home", "menu" to "menu", "ajuste" to "setting", "perfil" to "profile", "busqueda" to "search",
-        "búsqueda" to "search", "buscar" to "search", "categoria" to "category", "categoría" to "category", "imagen" to "image",
-        "icono" to "icon", "fondo" to "background", "titulo" to "title", "título" to "title", "reproductor" to "player", "video" to "video",
-        "favorito" to "favorite", "cuadricula" to "grid", "cuadrícula" to "grid", "tarjeta" to "card", "pestaña" to "tab", "barra" to "bar",
-    )[w.lowercase()]
+    /** Diccionario es→en de palabras típicas de apps (los nombres de clases/layouts y la red neuronal van en inglés). */
+    private val ES_EN: Map<String, String> = """
+        canal=channel pelicula=movie serie=series boton=button lista=list inicio=home menu=menu ajuste=settings ajustes=settings
+        configuracion=settings opcion=option opciones=options perfil=profile busqueda=search buscar=search categoria=category
+        imagen=image icono=icon fondo=background titulo=title reproductor=player video=video favorito=favorite cuadricula=grid
+        tarjeta=card pestana=tab barra=bar pantalla=screen detalle=detail detalles=details aplicacion=app aplicaciones=apps
+        descargar=download descarga=download subir=upload repositorio=repository usuario=user cuenta=account contrasena=password
+        clave=key iniciar=login sesion=session registro=register cerrar=close abrir=open guardar=save borrar=delete eliminar=delete
+        editar=edit nuevo=new actualizar=update actualizacion=update notificacion=notification mensaje=message chat=chat
+        pago=payment pagos=payment compra=purchase premium=premium suscripcion=subscription anuncio=ad anuncios=ads publicidad=ads
+        idioma=language tema=theme oscuro=dark claro=light color=color texto=text letra=font fuente=font tamano=size
+        ventana=window dialogo=dialog alerta=alert error=error cargando=loading cargar=load red=network internet=network
+        servidor=server enlace=link direccion=url conexion=connection archivo=file carpeta=folder foto=photo camara=camera
+        galeria=gallery mapa=map ubicacion=location telefono=phone correo=email contacto=contact ayuda=help acerca=about
+        version=version licencia=license privacidad=privacy seguridad=security cifrado=encryption cifrar=encrypt descifrar=decrypt
+        firma=signature permiso=permission permisos=permissions instalar=install desinstalar=uninstall reproducir=play pausa=pause
+        musica=music audio=audio volumen=volume deporte=sports deportes=sports noticias=news en vivo=live directo=live
+        envivo=live calidad=quality filtro=filter ordenar=sort fecha=date hora=time precio=price tienda=store carrito=cart
+        producto=product pedido=order fila=row filas=rows columna=column columnas=columns celda=cell elemento=item
+        adaptador=adapter vista=view diseno=layout estilo=style animacion=animation splash=splash bienvenida=welcome
+    """.trim().split(Regex("\\s+")).mapNotNull { it.split('=').takeIf { p -> p.size == 2 }?.let { p -> p[0] to p[1] } }.toMap()
+
+    internal fun translate(w: String): String? {
+        val k = java.text.Normalizer.normalize(w.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
+        return ES_EN[k] ?: ES_EN[k.removeSuffix("s")] ?: ES_EN[k.removeSuffix("es")]
+    }
 
     fun format(hits: List<Hit>): String = if (hits.isEmpty()) "" else buildString {
         appendLine("ARCHIVOS RELACIONADOS (la app los encontró por tu mensaje; empieza por aquí):")
@@ -259,17 +278,13 @@ object MessagePreparer {
         return hits.sortedByDescending { scores[it.path] ?: 0f }.take(limit)
     }
 
-    /** Después de que la IA trabaje: lo que editó de verdad enseña a la red. Devuelve cuántos archivos aprendió. */
+    /** Después de que la IA trabaje: lo que editó de verdad enseña a la red (y mide si acertó). */
     fun learnFrom(project: File, query: String, since: Long): Int {
-        val changed = ChangeLog.all(project).filter { it.time >= since && it.who.startsWith("IA") }.map { it.file }.toSet()
-        if (changed.isEmpty()) return 0
         val hits = runCatching { ContextFinder.find(project, query, 60) }.getOrDefault(emptyList())
-        val touchedBefore = ChangeLog.all(project).filter { it.time < since }.map { it.file }.toSet()
-        NeuralEngine.shared.learn(query, candidates(project, hits), changed, touchedBefore)
-        return changed.size
+        return NeuralBrain.learnFromEdit(project, query, since, hits)
     }
 
-    data class Prepared(val text: String, val imageNotes: String?, val related: List<ContextFinder.Hit>)
+    data class Prepared(val text: String, val imageNotes: String?, val related: List<ContextFinder.Hit>, val thought: NeuralBrain.Thought? = null)
 
     fun prepare(
         project: File?, userText: String, images: List<ByteArray>,
@@ -286,12 +301,18 @@ object MessagePreparer {
             val raw = runCatching { ContextFinder.find(project, q, 60) }.getOrDefault(emptyList())
             runCatching { neuralRerank(project, q, raw) }.getOrDefault(raw.take(25))
         } else emptyList()
+        // El motor neuronal piensa: significado (CPU/GPU) + grafo del proyecto + lo aprendido
+        val thought = if (project != null) runCatching {
+            listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
+            NeuralBrain.think(project, userText + "\n" + (notes ?: ""), related, listener)
+        }.getOrNull() else null
         val text = buildString {
             append(userText)
             notes?.let { appendLine(); appendLine(); appendLine("IMÁGENES ADJUNTAS (analizadas por la app):"); appendLine(it) }
             if (related.isNotEmpty()) { appendLine(); appendLine(); append(ContextFinder.format(related)) }
+            thought?.format()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
         }
-        return Prepared(text, notes, related)
+        return Prepared(text, notes, related, thought)
     }
 }
 
