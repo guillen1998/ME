@@ -215,7 +215,7 @@ object ContextFinder {
     }
 
     /** Pequeño diccionario es→en de palabras típicas de UI (los nombres de layouts suelen estar en inglés). */
-    private fun translate(w: String): String? = mapOf(
+    internal fun translate(w: String): String? = mapOf(
         "canal" to "channel", "pelicula" to "movie", "película" to "movie", "serie" to "series", "boton" to "button", "botón" to "button",
         "lista" to "list", "inicio" to "home", "menu" to "menu", "ajuste" to "setting", "perfil" to "profile", "busqueda" to "search",
         "búsqueda" to "search", "buscar" to "search", "categoria" to "category", "categoría" to "category", "imagen" to "image",
@@ -243,6 +243,32 @@ object XmlCheck {
  * (texto leído + descripción) y los archivos del proyecto que la app encontró relacionados.
  */
 object MessagePreparer {
+    /** Candidatos para el motor neuronal: archivos encontrados por la app + los ya editados antes. */
+    fun candidates(project: File, hits: List<ContextFinder.Hit>): List<NeuralEngine.Candidate> {
+        val byFile = hits.groupBy { it.path }
+        val order = hits.map { it.path }.distinct()
+        val touched = ChangeLog.all(project).map { it.file }.distinct()
+        return (order + touched.filter { it !in byFile }).map { p -> NeuralEngine.Candidate(p, order.indexOf(p).let { if (it < 0) 50 else it }, byFile[p]?.size ?: 0) }
+    }
+
+    /** La red neuronal del móvil reordena lo encontrado: primero los archivos con más probabilidad de ser los que hay que tocar. */
+    fun neuralRerank(project: File, query: String, hits: List<ContextFinder.Hit>, limit: Int = 25): List<ContextFinder.Hit> {
+        if (hits.isEmpty()) return hits
+        val touched = ChangeLog.all(project).map { it.file }.toSet()
+        val scores = NeuralEngine.shared.rank(query, candidates(project, hits), touched).associate { it.path to it.score }
+        return hits.sortedByDescending { scores[it.path] ?: 0f }.take(limit)
+    }
+
+    /** Después de que la IA trabaje: lo que editó de verdad enseña a la red. Devuelve cuántos archivos aprendió. */
+    fun learnFrom(project: File, query: String, since: Long): Int {
+        val changed = ChangeLog.all(project).filter { it.time >= since && it.who.startsWith("IA") }.map { it.file }.toSet()
+        if (changed.isEmpty()) return 0
+        val hits = runCatching { ContextFinder.find(project, query, 60) }.getOrDefault(emptyList())
+        val touchedBefore = ChangeLog.all(project).filter { it.time < since }.map { it.file }.toSet()
+        NeuralEngine.shared.learn(query, candidates(project, hits), changed, touchedBefore)
+        return changed.size
+    }
+
     data class Prepared(val text: String, val imageNotes: String?, val related: List<ContextFinder.Hit>)
 
     fun prepare(
@@ -256,7 +282,9 @@ object MessagePreparer {
         }
         val related = if (project != null) {
             listener.onProgress("La app busca archivos relacionados…")
-            runCatching { ContextFinder.find(project, userText + "\n" + (notes ?: "")) }.getOrDefault(emptyList())
+            val q = userText + "\n" + (notes ?: "")
+            val raw = runCatching { ContextFinder.find(project, q, 60) }.getOrDefault(emptyList())
+            runCatching { neuralRerank(project, q, raw) }.getOrDefault(raw.take(25))
         } else emptyList()
         val text = buildString {
             append(userText)

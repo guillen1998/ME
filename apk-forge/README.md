@@ -35,6 +35,12 @@ Carpetas en el móvil: `/sdcard/ApkTools/` con **Proyectos** (lo que editas), **
 
 ## Novedades
 
+- **Doctor de compilación** (0.11): antes de exportar revisa todos los archivos tocados (smali ensamblado uno a uno, XML válido, recursos duplicados o inexistentes), unifica duplicados solo, la IA repara lo que pueda y, si no, deshace únicamente el archivo que rompe. Siempre sale un APK y el informe dice qué se deshizo.
+- **Equipo de IAs**: un modelo planifica, el agente ejecuta con herramientas y otro modelo de otra familia revisa y devuelve los fallos.
+- **16 modelos gratis sin clave**: DeepSeek V4.1/V4, Kimi K2.7 Code, Qwen 3.5 397B / 3.6 / 3.8, GLM 5.3 Flash, MiMo v2.6, MiniMax M2.7, Codestral, GPT-OSS 120B/20B, Gemma 4, Llama 3.3. Con una clave gratis de Gemini (Google AI Studio), OpenRouter o Groq, ese modelo se suma al equipo.
+- **Motor neuronal local**: red wide & deep en el móvil que ordena los archivos relevantes para cada pedido y aprende de lo que la IA edita.
+- **Listas → cuadrícula** automático (LinearLayoutManager → GridLayoutManager, en smali y XML).
+
 - **Modo IA / Modo manual** en todos los editores: la IA reemplaza, parchea, quita o crea código sobre la selección o el archivo, muestra el diff antes de aplicar y, en smali, lo ensambla y revisa los registros; si falla, se corrige sola.
 - **Pantalla doble estilo MT Manager**: opciones a la izquierda, interior del APK a la derecha; edición de XML binario dentro del APK sin decompilar.
 - **Segundo plano**: servicio con progreso en la notificación; búsquedas, escáner, agente y ediciones IA siguen aunque salgas.

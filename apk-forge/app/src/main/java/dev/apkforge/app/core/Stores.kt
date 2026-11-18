@@ -189,12 +189,17 @@ class AgentSession(val key: String, val title: String) {
                     status.value = null
                     val parts = buildList {
                         if (prep.imageNotes != null) add("leí ${images.size} imagen(es)")
-                        if (prep.related.isNotEmpty()) add("encontré ${prep.related.size} archivo(s) relacionado(s): " +
+                        if (prep.related.isNotEmpty()) add("encontré ${prep.related.size} archivo(s) relacionado(s) (ordenados por el motor neuronal): " +
                             prep.related.map { it.path.substringAfterLast('/') }.distinct().take(4).joinToString(", "))
                     }
                     if (parts.isNotEmpty()) messages += AgentMsg.Info("🧩 La app: " + parts.joinToString(" · "), false)
                 }
+                val t0 = System.currentTimeMillis()
                 a.send(prep.text) { !isActive }
+                // La IA ayuda a la app: el motor neuronal aprende qué archivos tocó para este tipo de pedido
+                if (project != null) runCatching { dev.apkforge.engine.MessagePreparer.learnFrom(project, text, t0) }.getOrNull()?.takeIf { it > 0 }?.let { n ->
+                    onMain { messages += AgentMsg.Info("🧬 Motor neuronal: aprendió de $n archivo(s) editado(s) (${dev.apkforge.engine.NeuralEngine.shared.examples} ejemplos en total)", false) }
+                }
             } finally { onMain { running.value = false; status.value = null } }
         }
     }

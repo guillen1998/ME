@@ -23,26 +23,36 @@ data class AiEndpoint(val baseUrl: String, val apiKey: String, val model: String
  * si uno se satura o falla, se pasa al siguiente automáticamente.
  */
 object BuiltinAi {
-    /** Orden para el PLANIFICADOR (modelo más grande primero) y para el REVISOR (otro modelo distinto). */
-    fun plannerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { if (it.model.contains("397B")) 0 else if (it.model.contains("DeepSeek")) 1 else 2 }
-    fun reviewerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { if (it.model.contains("gpt-oss-120b")) 0 else if (it.model.contains("qwen3.6")) 1 else 2 }
+    /** PLANIFICADOR: los modelos de razonamiento más grandes primero. REVISOR: otra familia distinta. */
+    fun plannerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { rank(it, listOf("397B", "kimi", "DeepSeek-V4.1")) }
+    fun reviewerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { rank(it, listOf("glm-5.3", "gpt-oss-120b", "gpt-oss:120b", "codestral")) }
+    private fun rank(e: AiEndpoint, prefs: List<String>) = prefs.indexOfFirst { e.model.contains(it, ignoreCase = true) }.let { if (it < 0) prefs.size else it }
 
     private const val OVH = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+    private const val LLM7 = "https://api.llm7.io/v1"
 
     /**
-     * Probados sin clave y con herramientas. Ordenados por potencia y velocidad para código.
-     * Cada servicio limita peticiones por modelo, así que la cadena reparte el trabajo entre todos.
+     * Probados sin clave y con herramientas (tool calling). Se alternan servicios para repartir los
+     * límites de cada uno: si un modelo está ocupado, sigue el siguiente sin que lo notes.
+     * Incluye los modelos chinos abiertos más potentes: DeepSeek, Kimi, Qwen, GLM, MiMo y MiniMax.
      */
     val endpoints = listOf(
         AiEndpoint(OVH, "", "DeepSeek-V4.1-Flash-1017", "DeepSeek V4.1 Flash (OVH)"),
+        AiEndpoint(LLM7, "", "kimi-k2.7-code", "Kimi K2.7 Code (LLM7)"),
         AiEndpoint(OVH, "", "Qwen3.5-397B-A17B", "Qwen 3.5 397B (OVH)"),
+        AiEndpoint(LLM7, "", "glm-5.3-flash", "GLM 5.3 Flash (LLM7)"),
         AiEndpoint(OVH, "", "gpt-oss-120b", "GPT-OSS 120B (OVH)"),
+        AiEndpoint(LLM7, "", "DeepSeek-V4-Flash-0731", "DeepSeek V4 Flash (LLM7)"),
+        AiEndpoint(LLM7, "", "codestral-latest", "Codestral · código (LLM7)"),
         AiEndpoint(OVH, "", "qwen3.6-35b-a3b", "Qwen 3.6 35B (OVH)"),
+        AiEndpoint(LLM7, "", "mimo-v2.6-flash", "MiMo v2.6 Flash · Xiaomi (LLM7)"),
         AiEndpoint("https://api.kilo.ai/api/openrouter", "", "kilo-auto/free", "Kilo Auto (gratis)"),
-        AiEndpoint("https://api.llm7.io/v1", "", "default", "Gemma 4 31B (LLM7)"),
+        AiEndpoint(LLM7, "", "minimax-m2.7", "MiniMax M2.7 (LLM7)"),
         AiEndpoint(OVH, "", "Qwen3.8-27B", "Qwen 3.8 27B (OVH)"),
+        AiEndpoint(LLM7, "", "gpt-oss:120b", "GPT-OSS 120B (LLM7)"),
+        AiEndpoint(LLM7, "", "gemma4:31b", "Gemma 4 31B (LLM7)"),
         AiEndpoint(OVH, "", "Meta-Llama-3_3-70B-Instruct", "Llama 3.3 70B (OVH)"),
-        AiEndpoint("https://text.pollinations.ai/openai", "", "openai", "GPT-OSS 20B (Pollinations)"),
+        AiEndpoint("https://text.pollinations.ai/openai", "", "openai-fast", "GPT-OSS 20B (Pollinations)"),
     )
 }
 
@@ -55,11 +65,13 @@ enum class AiProvider(
     val help: String,
 ) {
     BUILTIN("ApkForge IA · integrada, gratis, sin clave", "", "auto", false,
-        "Ya viene lista: une 9 modelos abiertos gratuitos (DeepSeek, Qwen 397B, GPT-OSS 120B, Gemma, Llama…) que trabajan en conjunto: si uno está ocupado, sigue otro. No necesitas configurar nada."),
+        "Ya viene lista: une 16 modelos abiertos gratuitos (DeepSeek, Kimi K2.7 Code, Qwen 397B, GLM 5.3, MiMo, MiniMax, Codestral, GPT-OSS 120B…) que trabajan en equipo: uno planifica, otro ejecuta y otro revisa; si uno está ocupado, sigue otro. No necesitas configurar nada."),
     CLAUDE("Claude (Anthropic)", "", "claude-opus-5-5", true,
         "Clave en console.anthropic.com. El más capaz."),
     OPENROUTER("OpenRouter · modelos abiertos gratis", "https://openrouter.ai/api/v1", "openrouter/free", true,
-        "Clave gratis en openrouter.ai. 'openrouter/free' elige un modelo abierto gratis con herramientas (Qwen, Llama, DeepSeek…)."),
+        "Clave gratis en openrouter.ai. 'openrouter/free' elige un modelo abierto gratis con herramientas; también puedes poner p. ej. moonshotai/kimi-k3:free, z-ai/glm-5.3:free o deepseek/deepseek-v4:free si están disponibles."),
+    GEMINI("Google Gemini · clave gratis", "https://generativelanguage.googleapis.com/v1beta/openai", "gemini-flash-latest", true,
+        "API oficial de Google con nivel gratuito: crea la clave gratis en aistudio.google.com (Get API key). Modelos: gemini-flash-latest, gemini-pro-latest."),
     GROQ("Groq · Llama muy rápido", "https://api.groq.com/openai/v1", "llama-3.3-70b-versatile", true,
         "Clave gratis en console.groq.com. Solo modelos abiertos."),
     OLLAMA("Ollama · en tu PC, sin clave", "http://192.168.1.10:11434/v1", "qwen2.5-coder:7b", false,
@@ -206,7 +218,7 @@ class OpenAiCompatAgent(
                     errors[ep.label] = e.message ?: "error"
                 }
             }
-            if (round == 3) break
+            if (round == 3 || endpoints.all { OpenAiHttp.isCooled(it) }) break
             val wait = OpenAiHttp.waitSeconds(errors.values, round)
             onEvent(AgentEvent.Text("⏳ Servicios de IA ocupados; reintento en $wait s…"))
             Thread.sleep(wait * 1000L)

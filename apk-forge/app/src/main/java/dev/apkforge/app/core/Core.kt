@@ -190,7 +190,11 @@ class Prefs(ctx: Context) {
 
     /** Cadena final de la IA integrada: tus modelos añadidos primero + los integrados activos. */
     fun builtinEndpoints(): List<dev.apkforge.engine.AiEndpoint> {
-        val list = customModels.filter { it.label !in disabledModels } +
+        // Si guardaste una clave gratis (Gemini, OpenRouter, Groq…), ese modelo SE SUMA al equipo integrado
+        val keyed = dev.apkforge.engine.AiProvider.entries.filter {
+            it != dev.apkforge.engine.AiProvider.BUILTIN && it != dev.apkforge.engine.AiProvider.CLAUDE && it.needsKey && keyFor(it).isNotBlank()
+        }.map { dev.apkforge.engine.AiEndpoint(urlFor(it), keyFor(it), modelFor(it), "${modelFor(it)} (${it.title.substringBefore(" ·")})") }
+        val list = customModels.filter { it.label !in disabledModels } + keyed.filter { it.label !in disabledModels } +
             dev.apkforge.engine.BuiltinAi.endpoints.filter { it.label !in disabledModels }
         return list.ifEmpty { dev.apkforge.engine.BuiltinAi.endpoints }
     }
@@ -205,9 +209,20 @@ class Prefs(ctx: Context) {
     var agentEffort: String
         get() = p.getString("agentEffort", "high")!!
         set(v) = p.edit().putString("agentEffort", v).apply()
+    /** Al exportar: reparar errores (app + IA) y deshacer solo lo que no compile. */
+    var autoRepair: Boolean
+        get() = p.getBoolean("autoRepair", true)
+        set(v) = p.edit().putBoolean("autoRepair", v).apply()
     var agentAllowEdits: Boolean
         get() = p.getBoolean("agentEdits", true)
         set(v) = p.edit().putBoolean("agentEdits", v).apply()
+
+    /** Exporta un proyecto con el doctor de compilación (si está activado). */
+    fun exportProject(dir: java.io.File, out: java.io.File, log: dev.apkforge.engine.ProgressListener): java.io.File {
+        val opts = dev.apkforge.engine.BuildOptions(signing = signingConfig())
+        return if (autoRepair) dev.apkforge.engine.BuildDoctor.buildRepairing(dir, out, opts, AiFactory.textClient(this), log)
+        else dev.apkforge.engine.ApkProject.build(dir, out, opts, log)
+    }
 
     fun signingConfig(): SigningConfig =
         if (signMode == "keystore" && keystorePath.isNotBlank()) SigningConfig.Keystore(

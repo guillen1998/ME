@@ -168,7 +168,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
             project = p.dir,
         ) { out ->
             TaskRunner.run("Exportando ${out.name}", ResultKind.APK, project = p.dir) { log ->
-                ApkProject.build(p.dir, out, BuildOptions(signing = prefs.signingConfig()), log)
+                prefs.exportProject(p.dir, out, log)
             }
         }
     }

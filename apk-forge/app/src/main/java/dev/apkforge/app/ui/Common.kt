@@ -136,6 +136,9 @@ fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit, onOpenAge
                     s.error?.let { err ->
                         val loc = androidx.compose.runtime.remember(err) { dev.apkforge.engine.BuildErrors.locate(err) }
                         if (loc != null && loc.file.isFile) TextButton(onClick = { TaskRunner.dismiss(); onOpenFileAt(loc.file, loc.line) }) { Text("Ir al error") }
+        val projForUndo = s.project
+        if (loc != null && projForUndo != null && dev.apkforge.engine.BuildDoctor.canRevert(projForUndo, loc.file))
+            TextButton(onClick = { dev.apkforge.engine.BuildDoctor.revert(projForUndo, loc.file, loc.message); TaskRunner.dismiss() }) { Text("Deshacer ese archivo") }
                         val proj = s.project
                         if (proj != null && err != "Cancelado") TextButton(onClick = {
                             TaskRunner.dismiss()
@@ -238,6 +241,14 @@ fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, 
                     label = { Text("Nombre") }, suffix = { Text(".apk") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.size(8.dp))
                 Text("Firma: $signing", fontSize = 12.sp)
+                if (project != null) {
+                    var repair by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(prefs.autoRepair) }
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                        androidx.compose.material3.Checkbox(repair, { repair = it; prefs.autoRepair = it })
+                        Text("Reparar errores solo: la app y la IA corrigen lo que no compila y, si no pueden, deshacen solo ese archivo",
+                            fontSize = 12.sp)
+                    }
+                }
                 Text("Se guardará en ApkTools/Compilados" + (if (project != null) " junto con el informe de cambios" else ""),
                     fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

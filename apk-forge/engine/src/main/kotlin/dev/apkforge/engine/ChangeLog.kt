@@ -27,12 +27,23 @@ object ChangeLog {
     private fun logFile(project: File) = File(project, ".apkforge/changes.jsonl")
     private fun lastExportFile(project: File) = File(project, ".apkforge/last_export")
 
+    const val NEW_MARK = ".__nuevo__"
+
     /** Proyecto al que pertenece un archivo (sube carpetas hasta encontrar .apkforge/project.properties). */
     fun projectOf(file: File): File? = generateSequence(file.absoluteFile.parentFile) { it.parentFile }.firstOrNull { ApkProject.isProject(it) }
 
     /** Registra un cambio comparando el contenido anterior y el nuevo. No hace nada si el archivo no está en un proyecto. */
     fun record(file: File, before: String?, after: String?, who: String, note: String = "") {
         val project = projectOf(file) ?: return
+        // Guarda el ORIGINAL la primera vez que se toca un archivo: permite "deshacer lo que rompe la compilación"
+        runCatching {
+            val orig = File(project, "$META_DIR/original/" + file.absoluteFile.relativeTo(project).path)
+            val newMark = File(orig.path + NEW_MARK)
+            if (!orig.exists() && !newMark.exists()) {
+                orig.parentFile?.mkdirs()
+                if (before != null) orig.writeText(before) else newMark.writeText("")
+            }
+        }
         runCatching {
             val (diff, add, rem) = CodeAssistant.diff(before ?: "", after ?: "", file.name)
             if (add == 0 && rem == 0) return

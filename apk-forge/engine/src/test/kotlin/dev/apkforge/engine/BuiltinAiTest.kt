@@ -58,4 +58,31 @@ class BuiltinAiTest {
         assertTrue(events.any { it is AgentEvent.ToolCall }, "La IA integrada debe usar herramientas")
         assertTrue(after.contains("Hola ApkForge"), "La IA integrada debe haber editado el archivo")
     }
+
+    /** Cada modelo chino gratuito nuevo, por separado, con el ciclo completo de herramientas. */
+    @Test fun liveChineseModelsEachEdit() {
+        assumeTrue(System.getProperty("apkforge.live") == "true")
+        val results = mutableListOf<String>()
+        BuiltinAi.endpoints.filter { it.baseUrl.contains("llm7") }.forEach { ep ->
+            val proj = File(System.getProperty("java.io.tmpdir"), "live-${ep.model.replace(':', '_')}").apply { deleteRecursively(); mkdirs() }
+            File(proj, "res/values").mkdirs()
+            File(proj, "res/values/strings.xml").writeText("<resources>\n    <string name=\"app_name\">Demo</string>\n</resources>\n")
+            var tools = 0
+            var lastError = ""
+            runCatching {
+                OpenAiCompatAgent(proj, null, listOf(ep), AgentPreset.CHAT, true, { null }, {
+                    if (it is AgentEvent.ToolCall) tools++
+                    if (it is AgentEvent.Error) lastError = it.message.lines().last().take(120)
+                })
+                    .send("En res/values/strings.xml cambia el texto de app_name a 'Hola ApkForge'. Lee el archivo y usa replace_in_file.")
+            }
+            val ok = File(proj, "res/values/strings.xml").readText().contains("Hola ApkForge")
+            results += "${if (ok) "✔" else "✖"} ${ep.label}: herramientas=$tools $lastError"
+        }
+        results.forEach { println("  $it") }
+        // LLM7 sin clave tiene cuota diaria por IP: si se agotó, no es un fallo de la app
+        val quota = results.count { it.contains("cuota") || it.contains("quota") || it.contains("pausa") }
+        assumeTrue("Cuota diaria de LLM7 agotada en esta IP", quota < results.size)
+        assertTrue(results.count { it.startsWith("✔") } >= 2, "Al menos 2 modelos chinos deben editar de verdad")
+    }
 }
