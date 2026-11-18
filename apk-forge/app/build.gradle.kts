@@ -12,8 +12,8 @@ android {
         applicationId = "dev.apkforge.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.15.0"
+        versionCode = 16
+        versionName = "0.16.0"
         // Solo ARM de 64 bits (prácticamente todos los móviles actuales): el motor neuronal trae librerías nativas
         ndk { abiFilters += listOf("arm64-v8a") }
     }
@@ -48,7 +48,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
-    kotlinOptions { jvmTarget = "17" }
+    kotlinOptions { jvmTarget = "17"; freeCompilerArgs += "-Xskip-metadata-version-check" }
     buildFeatures { compose = true }
 
     packaging {
@@ -73,6 +73,8 @@ dependencies {
     implementation(project(":engine"))
     // Motor neuronal en el móvil: CPU multinúcleo (XNNPACK) y GPU/NPU (NNAPI)
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.0")
+    // Modelo que razona en el móvil (Qwen3, se descarga desde la app) con GPU/NPU/CPU
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1") { exclude(group = "org.jetbrains.kotlin"); exclude(group = "org.jetbrains.kotlinx") }
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")

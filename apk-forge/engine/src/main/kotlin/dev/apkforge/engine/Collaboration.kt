@@ -284,7 +284,11 @@ object MessagePreparer {
         return NeuralBrain.learnFromEdit(project, query, since, hits)
     }
 
-    data class Prepared(val text: String, val imageNotes: String?, val related: List<ContextFinder.Hit>, val thought: NeuralBrain.Thought? = null)
+    data class Prepared(val text: String, val imageNotes: String?, val related: List<ContextFinder.Hit>, val thought: NeuralBrain.Thought? = null,
+                        val deliberation: NeuralBrain.Deliberation? = null)
+
+    /** ¿Razonar en el móvil antes de cada pedido? (la app lo activa si hay modelo descargado) */
+    @Volatile var localReasoning = true
 
     fun prepare(
         project: File?, userText: String, images: List<ByteArray>,
@@ -310,16 +314,26 @@ object MessagePreparer {
             listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
             NeuralBrain.think(project, userText + "\n" + (notes ?: ""), related, listener)
         }.getOrNull() else null
+        // Conocimiento + razonamiento local: el modelo del móvil piensa con los hechos ya filtrados
+        val recipes = runCatching { AndroidKnowledge.find(userText) }.getOrDefault(emptyList())
+        val deobfCtx = if (project != null) runCatching {
+            Deobfuscator.contextFor(project, related.map { it.path } + (thought?.ranked?.map { it.first } ?: emptyList()))
+        }.getOrDefault("") else ""
+        val deliberation = if (localReasoning && NeuralBrain.reasonerLoader != null) runCatching {
+            listener.onProgress("🧠 El razonador local piensa paso a paso…")
+            NeuralBrain.deliberate(userText, listOf(AndroidKnowledge.format(recipes), thought?.format().orEmpty(), deobfCtx, notes.orEmpty())
+                .filter { it.isNotBlank() }.joinToString("\n\n"))
+        }.getOrNull() else null
         val text = buildString {
             append(userText)
             notes?.let { appendLine(); appendLine(); appendLine("IMÁGENES ADJUNTAS (analizadas por la app):"); appendLine(it) }
             if (related.isNotEmpty()) { appendLine(); appendLine(); append(ContextFinder.format(related)) }
             thought?.format()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
-            if (project != null) runCatching {
-                Deobfuscator.contextFor(project, related.map { it.path } + (thought?.ranked?.map { it.first } ?: emptyList()))
-            }.getOrNull()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
+            deobfCtx.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
+            AndroidKnowledge.format(recipes).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
+            deliberation?.let { appendLine(); appendLine(); append(it.format()) }
         }
-        return Prepared(text, notes, related, thought)
+        return Prepared(text, notes, related, thought, deliberation)
     }
 }
 

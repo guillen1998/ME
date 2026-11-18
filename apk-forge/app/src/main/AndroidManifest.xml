@@ -29,6 +29,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ApkForge">
 
+        <!-- GPU del móvil para el modelo que razona (LiteRT-LM); opcional: si no existe, usa la CPU -->
+        <uses-native-library android:name="libOpenCL.so" android:required="false" />
+        <uses-native-library android:name="libOpenCL-car.so" android:required="false" />
+        <uses-native-library android:name="libOpenCL-pixel.so" android:required="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

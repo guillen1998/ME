@@ -276,6 +276,7 @@ private fun NeuralPanel() {
             Text("Últimos aprendizajes", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
             stats.recent.forEach { Text(it, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
+        ReasonerSection()
         Row(Modifier.padding(top = 8.dp)) {
             OutlinedButton(enabled = !loading, onClick = {
                 loading = true
@@ -293,4 +294,73 @@ private fun NeuralPanel() {
         text = { Text("El motor neuronal olvida lo aprendido (aciertos, errores y riesgos). La red de significado se mantiene.") },
         confirmButton = { TextButton(onClick = { dev.apkforge.engine.NeuralBrain.reset(); stats = dev.apkforge.engine.NeuralBrain.stats(); confirmReset = false }) { Text("Reiniciar") } },
         dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancelar") } })
+}
+
+
+/** El modelo que RAZONA en el móvil: descargar, elegir, probar y cuándo usarlo. */
+@Composable
+private fun ReasonerSection() {
+    val prefs = dev.apkforge.app.ApkForgeApp.prefs
+    var selected by remember { mutableStateOf(prefs.reasonerModel) }
+    var mode by remember { mutableStateOf(prefs.reasonMode) }
+    var test by remember { mutableStateOf<String?>(null) }
+    var testing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    Column(Modifier.padding(top = 10.dp)) {
+        Text("Razonamiento en el móvil", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+        Text("Un modelo que PIENSA paso a paso (Qwen3) en la GPU/NPU/CPU de tu móvil, sin internet. Usa lo que prepara el motor " +
+            "(significado, conexiones del proyecto, nombres desofuscados y recetas) y su conclusión la verifican y ejecutan las IAs de internet. " +
+            "Sin internet, responde él solo.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        dev.apkforge.engine.LocalReasoner.MODELS.forEach { m ->
+            val st = dev.apkforge.app.core.ReasonerModels.states[m.id]
+            val have = dev.apkforge.app.core.ReasonerModels.isDownloaded(m)
+            androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                Column(Modifier.padding(10.dp)) {
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        androidx.compose.material3.RadioButton(selected = selected == m.id, enabled = have, onClick = {
+                            selected = m.id; prefs.reasonerModel = m.id; dev.apkforge.engine.NeuralBrain.resetReasoner()
+                        })
+                        Column(Modifier.weight(1f)) {
+                            Text(m.title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(m.note, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    when {
+                        st?.running == true -> {
+                            androidx.compose.material3.LinearProgressIndicator(progress = { st.percent / 100f }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                            Row { Text("Descargando ${st.percent}%", fontSize = 11.sp, modifier = Modifier.weight(1f)); TextButton(onClick = { dev.apkforge.app.core.ReasonerModels.cancel(m.id) }) { Text("Pausar") } }
+                        }
+                        have -> Row { Text("✔ Descargado", fontSize = 12.sp, color = dev.apkforge.app.ui.Ok, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { dev.apkforge.app.core.ReasonerModels.delete(m.id); if (selected == m.id) selected = "" }) { Text("Borrar") } }
+                        else -> Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text(st?.error ?: "No descargado", fontSize = 11.sp, modifier = Modifier.weight(1f), color = if (st?.error != null) dev.apkforge.app.ui.Danger else MaterialTheme.colorScheme.onSurfaceVariant)
+                            OutlinedButton(onClick = { dev.apkforge.app.core.ReasonerModels.download(m) }) { Text(if ((st?.percent ?: 0) > 0) "Continuar" else "Descargar") }
+                        }
+                    }
+                }
+            }
+        }
+        Text("Cuándo razonar", fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+        Row {
+            listOf("always" to "Antes de cada pedido", "offline" to "Solo sin internet", "off" to "Nunca").forEach { (k, t) ->
+                androidx.compose.material3.FilterChip(mode == k, { mode = k; prefs.reasonMode = k }, label = { Text(t, fontSize = 11.sp) }, modifier = Modifier.padding(end = 4.dp))
+            }
+        }
+        if (selected.isNotBlank()) OutlinedButton(enabled = !testing, onClick = {
+            testing = true; test = "Cargando el modelo y razonando…"
+            scope.launch {
+                test = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    runCatching {
+                        val r = dev.apkforge.engine.NeuralBrain.reasoner() ?: error("No se pudo cargar el modelo")
+                        val res = r.reason("Eres un experto en apps Android. Responde en español, breve.",
+                            "Una app muestra los canales en una lista de filas con LinearLayoutManager. ¿Qué cambio exacto hace falta para verlos en 3 columnas?", think = true, budget = 512, maxOutput = 700)
+                        "✔ ${r.backend} · ${res.millis / 1000} s\n${res.answer}"
+                    }.getOrElse { "✖ ${it.message}" }
+                }
+                testing = false
+            }
+        }, modifier = Modifier.padding(top = 6.dp)) { Text(if (testing) "Razonando…" else "Probar razonamiento") }
+        test?.let { Text(it, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp)) }
+    }
 }

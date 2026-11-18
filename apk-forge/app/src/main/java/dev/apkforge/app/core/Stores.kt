@@ -261,9 +261,25 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
                         }
                     }
                     if (parts.isNotEmpty()) messages += AgentMsg.Info("🧩 La app: " + parts.joinToString(" · "), false)
+                    prep.deliberation?.let { d ->
+                        messages += AgentMsg.Info("🧠 Razonador local (${d.backend}, ${d.millis / 1000} s):\n${d.conclusion}", false)
+                    }
                 }
                 val t0 = System.currentTimeMillis()
                 a.send(prep.text) { !isActive }
+                // Sin internet (o todas las IAs fallaron): responde el modelo que razona en el móvil
+                val failed = messages.lastOrNull().let { it is AgentMsg.Info && it.error && it.text.contains("Ningún servicio de IA respondió") }
+                if (failed && dev.apkforge.app.ApkForgeApp.prefs.reasonMode != "off") {
+                    onMain { status.value = "🧠 Sin IAs de internet: razona el modelo del móvil…" }
+                    val d = prep.deliberation ?: runCatching {
+                        dev.apkforge.engine.NeuralBrain.deliberate(text, prep.text.removePrefix(toAgent).take(5000))
+                    }.getOrNull()
+                    onMain {
+                        status.value = null
+                        messages += if (d != null) AgentMsg.Assistant("🧠 Respuesta del razonador local (${d.backend}, sin internet):\n\n${d.conclusion}")
+                        else AgentMsg.Info("Descarga un modelo que razona en Ajustes → Motor neuronal para trabajar sin internet.", false)
+                    }
+                }
                 // La IA ayuda a la app: el motor neuronal aprende qué archivos tocó para este tipo de pedido
                 if (project != null) runCatching { dev.apkforge.engine.MessagePreparer.learnFrom(project, text, t0) }.getOrNull()?.takeIf { it > 0 }?.let { n ->
                     val st = dev.apkforge.engine.NeuralBrain.stats()

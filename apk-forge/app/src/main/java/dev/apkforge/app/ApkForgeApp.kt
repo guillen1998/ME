@@ -27,6 +27,9 @@ class ApkForgeApp : Application() {
             val vocab = assets.open("neural/vocab.txt").bufferedReader().readLines()
             dev.apkforge.engine.OnnxEmbedder.load(model, vocab)
         }
+        // Modelo que RAZONA en el móvil (si lo descargaste en Ajustes → Motor neuronal)
+        dev.apkforge.engine.NeuralBrain.reasonerLoader = { dev.apkforge.app.core.ReasonerModels.load() }
+        dev.apkforge.engine.MessagePreparer.localReasoning = prefs.reasonMode == "always"
         // Carga gramáticas y tema del editor en segundo plano para que abrir archivos sea instantáneo.
         Thread { runCatching { CodeLanguages.init(this) } }.start()
     }

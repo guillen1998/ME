@@ -10,7 +10,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
-kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17); freeCompilerArgs.add("-Xskip-metadata-version-check") } }
 
 configurations.all {
     exclude(group = "org.antlr", module = "antlr")
@@ -39,6 +39,12 @@ dependencies {
     // Motor neuronal: ONNX Runtime (en el móvil la app usa onnxruntime-android: mismo API, con NNAPI → GPU/NPU)
     compileOnly("com.microsoft.onnxruntime:onnxruntime:1.31.0")
     testImplementation("com.microsoft.onnxruntime:onnxruntime:1.31.0")
+    // Modelo que RAZONA en el móvil (Qwen3 con modo "thinking") con LiteRT-LM: GPU, NPU o CPU.
+    // En el móvil la app usa litertlm-android (mismo API).
+    // (sin su Kotlin 2.2: usamos el nuestro)
+    compileOnly("com.google.ai.edge.litertlm:litertlm-jvm:0.18.1") { exclude(group = "org.jetbrains.kotlin"); exclude(group = "org.jetbrains.kotlinx") }
+    testImplementation("com.google.ai.edge.litertlm:litertlm-jvm:0.18.1") { exclude(group = "org.jetbrains.kotlin"); exclude(group = "org.jetbrains.kotlinx") }
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
@@ -54,6 +60,7 @@ tasks.register("printCp") {
 tasks.test {
     System.getProperty("apkforge.sampleApk")?.let { systemProperty("apkforge.sampleApk", it) }
     System.getProperty("apkforge.live")?.let { systemProperty("apkforge.live", it) }
+    System.getProperty("apkforge.reasonerModel")?.let { systemProperty("apkforge.reasonerModel", it) }
 }
 
 // Modelo de embeddings para el motor neuronal (all-MiniLM-L6-v2 cuantizado, Apache-2.0). Se descarga

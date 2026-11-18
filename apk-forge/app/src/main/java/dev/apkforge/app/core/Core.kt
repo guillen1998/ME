@@ -209,6 +209,14 @@ class Prefs(ctx: Context) {
     var agentEffort: String
         get() = p.getString("agentEffort", "high")!!
         set(v) = p.edit().putString("agentEffort", v).apply()
+    /** Modelo que razona en el móvil (id de LocalReasoner.MODELS) y cuándo usarlo: always | offline | off. */
+    var reasonerModel: String
+        get() = p.getString("reasonerModel", "")!!
+        set(v) = p.edit().putString("reasonerModel", v).apply()
+    var reasonMode: String
+        get() = p.getString("reasonMode", "always")!!
+        set(v) { p.edit().putString("reasonMode", v).apply(); dev.apkforge.engine.MessagePreparer.localReasoning = v == "always" }
+
     /** Al exportar: reparar errores (app + IA) y deshacer solo lo que no compile. */
     var autoRepair: Boolean
         get() = p.getBoolean("autoRepair", true)

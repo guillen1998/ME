@@ -38,7 +38,9 @@ object AgentLauncher {
             val project = (if (target.isDirectory) target else target.parentFile)?.takeIf { ApkProject.isProject(it) }
             if (project == null || !allowEdits) return exec
             val planners = BuiltinAi.plannerOrder(eps); val reviewers = BuiltinAi.reviewerOrder(eps)
-            return AiTeam(project, exec, OpenAiTextClient(planners), OpenAiTextClient(reviewers),
+            val local = { if (prefs.reasonMode != "off") dev.apkforge.engine.NeuralBrain.reasoner() else null }
+            return AiTeam(project, exec, dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(planners), local),
+                dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(reviewers), local),
                 planners.first().label, reviewers.first().label, session.onEvent)
         }
         return if (provider == AiProvider.CLAUDE)
