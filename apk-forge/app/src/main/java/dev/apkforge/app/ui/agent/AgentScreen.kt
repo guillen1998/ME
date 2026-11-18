@@ -1,6 +1,13 @@
 package dev.apkforge.app.ui.agent
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.FolderSpecial
+import androidx.compose.material.icons.filled.ViewSidebar
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -78,9 +85,10 @@ import java.io.File
  */
 @Composable
 fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
-                initialPreset: AgentPreset? = null, initialPrompt: String? = null, onOpenDir: (File) -> Unit = {}) {
+                initialPreset: AgentPreset? = null, initialPrompt: String? = null, onOpenDir: (File) -> Unit = {},
+                onSwitch: (File) -> Unit = {}) {
     val isApk = target.isFile && target.extension.equals("apk", true)
-    if (!isApk) { AgentChat(target, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir); return }
+    if (!isApk) { AgentChat(target, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch); return }
 
     var project by remember(target) {
         mutableStateOf(dev.apkforge.engine.ApkProject.findProjectFor(target, dev.apkforge.app.core.Workspace.projects)?.dir)
@@ -103,7 +111,7 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
         }
     }
     val p = project
-    if (p != null) AgentChat(p, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir)
+    if (p != null) AgentChat(p, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch)
     else Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.size(80.dp))
         CircularProgressIndicator()
@@ -117,22 +125,26 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
-                      initialPreset: AgentPreset?, initialPrompt: String?, onOpenDir: (File) -> Unit) {
+                      initialPreset: AgentPreset?, initialPrompt: String?, onOpenDir: (File) -> Unit,
+                      onSwitch: (File) -> Unit = {}) {
     val prefs = ApkForgeApp.prefs
     var preset by rememberSaveable {
         mutableStateOf(initialPreset ?: if (target.isFile && !target.extension.equals("apk", true)) AgentPreset.FILE_ANALYST else AgentPreset.EXPLAIN)
     }
     var input by remember { mutableStateOf("") }
     var showExport by remember { mutableStateOf(false) }
-    if (showExport) {
-        val info = remember(target) { runCatching { dev.apkforge.engine.ApkProject.readInfo(target) }.getOrNull() }
+    var exportDir by remember { mutableStateOf<File?>(null) }
+    var showSide by rememberSaveable { mutableStateOf(true) }
+    if (showExport || exportDir != null) {
+        val dir = exportDir ?: target
+        val info = remember(dir) { runCatching { dev.apkforge.engine.ApkProject.readInfo(dir) }.getOrNull() }
         dev.apkforge.app.ui.ExportApkDialog(
-            defaultName = dev.apkforge.app.core.Workspace.exportName(info?.packageName ?: target.name),
-            detail = "Compila el proyecto con los cambios de la IA y lo firma, listo para instalar y probar.",
-            onDismiss = { showExport = false },
+            defaultName = dev.apkforge.app.core.Workspace.exportName(info?.packageName ?: dir.name),
+            detail = "Compila “${dir.name}” con los cambios (tuyos y de la IA) y lo firma, listo para instalar y probar.",
+            onDismiss = { showExport = false; exportDir = null },
         ) { out ->
             dev.apkforge.app.core.TaskRunner.run("Exportando ${out.name}", dev.apkforge.app.core.ResultKind.APK) { log ->
-                dev.apkforge.engine.ApkProject.build(target, out, dev.apkforge.engine.BuildOptions(signing = prefs.signingConfig()), log)
+                dev.apkforge.engine.ApkProject.build(dir, out, dev.apkforge.engine.BuildOptions(signing = prefs.signingConfig()), log)
             }
         }
     }
@@ -175,6 +187,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
+                    IconButton(onClick = { showSide = !showSide }) { Icon(Icons.Default.ViewSidebar, if (showSide) "Ocultar proyectos" else "Mostrar proyectos") }
                     if (messages.isNotEmpty() && !running) IconButton(onClick = { AgentStore.drop(key); resetCounter++ }) {
                         Icon(Icons.Default.DeleteSweep, "Nueva conversación")
                     }
@@ -182,7 +195,12 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
             )
         },
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize().imePadding()) {
+        Row(Modifier.padding(pad).fillMaxSize().imePadding()) {
+        if (showSide) {
+            ProjectsSidePanel(current = target, onSwitch = onSwitch, onExport = { exportDir = it })
+            androidx.compose.material3.VerticalDivider()
+        }
+        Column(Modifier.weight(1f).fillMaxHeight()) {
             if (dev.apkforge.engine.ApkProject.isProject(target)) {
                 Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
@@ -241,6 +259,61 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                 if (running) IconButton(onClick = { session.stop() }) { Icon(Icons.Default.Stop, "Parar", tint = Danger) }
                 else IconButton(onClick = { send() }, enabled = ready) { Icon(Icons.AutoMirrored.Filled.Send, "Enviar", tint = Accent) }
             }
+        }
+        }
+    }
+}
+
+/**
+ * Panel lateral del agente: el proyecto que edita la IA ahora y tus otros proyectos
+ * (decompilaciones), cada uno con botón para exportarlo firmado. Tocar uno cambia la IA a ese proyecto.
+ */
+@Composable
+private fun ProjectsSidePanel(current: File, onSwitch: (File) -> Unit, onExport: (File) -> Unit) {
+    val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
+    val projects by androidx.compose.runtime.produceState<List<dev.apkforge.engine.ProjectInfo>>(emptyList(), current) {
+        value = kotlinx.coroutines.withContext(dev.apkforge.app.core.Workers.dispatcher) {
+            runCatching { dev.apkforge.engine.ApkProject.listProjects(dev.apkforge.app.core.Workspace.projects) }.getOrDefault(emptyList())
+        }
+    }
+    val active = AgentStore.activeTargets()
+    LazyColumn(
+        Modifier.width(if (wide) 240.dp else 150.dp).fillMaxHeight()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow).padding(vertical = 6.dp),
+    ) {
+        item {
+            Text("Editando", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+            SideProject(current.name, isCurrent = true, working = active[current.absolutePath] == true,
+                exportable = dev.apkforge.engine.ApkProject.isProject(current), onClick = {}, onExport = { onExport(current) })
+            androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
+            Text("Proyectos", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+        }
+        items(projects.filter { it.dir.absolutePath != current.absolutePath }, key = { it.dir.absolutePath }) { p ->
+            SideProject(p.dir.name, isCurrent = false, working = active[p.dir.absolutePath] == true, exportable = true,
+                onClick = { onSwitch(p.dir) }, onExport = { onExport(p.dir) })
+        }
+        if (projects.size <= 1) item {
+            Text("Decompila otros APK y aparecerán aquí.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(10.dp))
+        }
+    }
+}
+
+@Composable
+private fun SideProject(name: String, isCurrent: Boolean, working: Boolean, exportable: Boolean, onClick: () -> Unit, onExport: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth()
+            .background(if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f) else androidx.compose.ui.graphics.Color.Transparent)
+            .clickable(onClick = onClick).padding(horizontal = 10.dp, vertical = 8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.FolderSpecial, null, tint = Accent, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(6.dp))
+            Text(name, fontSize = 12.sp, fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        if (working) Text("IA trabajando…", fontSize = 10.sp, color = AccentWarm, modifier = Modifier.padding(start = 24.dp))
+        if (exportable) androidx.compose.material3.TextButton(onClick = onExport, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+            modifier = Modifier.padding(start = 16.dp)) {
+            Icon(Icons.Default.Save, null, Modifier.size(14.dp), tint = Ok); Spacer(Modifier.size(4.dp)); Text("Exportar APK", fontSize = 11.sp, color = Ok)
         }
     }
 }

@@ -53,13 +53,23 @@ class AdvancedTest {
         val out = File(work, "studio")
         out.deleteRecursively()
         ApkProject.exportStudioProject(sample!!, out, listener = log)
-        val must = listOf("settings.gradle.kts", "build.gradle.kts", "app/build.gradle.kts",
-            "app/src/main/AndroidManifest.xml", "app/src/main/res", "app/src/main/java")
-        must.forEach { assertTrue(File(out, it).exists(), "Falta $it") }
-        val manifest = File(out, "app/src/main/AndroidManifest.xml").readText()
-        assertTrue(!manifest.contains("package="), "El manifest no debe llevar package= (AGP 8)")
-        val javaFiles = File(out, "app/src/main/java").walkTopDown().count { it.extension == "java" }
-        println("Proyecto: $javaFiles .java, res=${File(out, "app/src/main/res").list()?.size} tipos")
+        // Es un proyecto editable normal (exportable en el móvil)…
+        assertTrue(ApkProject.isProject(out), "Debe ser un proyecto editable y exportable")
+        // …y dentro lleva la versión para Android Studio.
+        val st = File(out, "android-studio")
+        listOf("settings.gradle.kts", "build.gradle.kts", "app/build.gradle.kts", "app/src/main/AndroidManifest.xml",
+            "app/src/main/res", "app/src/main/java").forEach { assertTrue(File(st, it).exists(), "Falta android-studio/$it") }
+        assertTrue(!File(st, "app/src/main/AndroidManifest.xml").readText().contains("package="))
+        val javaFiles = File(st, "app/src/main/java").walkTopDown().count { it.extension == "java" }
+        println("Proyecto: $javaFiles .java")
         assertTrue(javaFiles > 10)
+
+        // Exportar a APK desde ese mismo proyecto
+        val apk = File(work, "studio-export.apk")
+        ApkProject.build(out, apk)
+        assertTrue(ApkInspector.verify(apk).verified)
+        val entries = java.util.zip.ZipFile(apk).use { z -> z.entries().toList().map { it.name } }
+        assertTrue(entries.none { it.startsWith("android-studio") || it.contains("/android-studio/") }, "El APK no debe incluir la carpeta de Android Studio")
+        println("APK exportado desde el proyecto Studio: ${apk.length() / 1024} KB, ${entries.size} entradas")
     }
 }

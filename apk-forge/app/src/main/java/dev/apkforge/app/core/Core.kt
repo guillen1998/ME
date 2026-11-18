@@ -38,6 +38,20 @@ object Workspace {
     /** Proyectos para Android Studio en PC (código Java): no se compilan en el móvil. */
     val studio get() = File(projects, "AndroidStudio").also { it.mkdirs() }
 
+    /**
+     * APK de origen de una carpeta antigua de Android Studio: por el applicationId busca la app
+     * instalada o un APK extraído con ese paquete.
+     */
+    fun findSourceApkForStudio(ctx: android.content.Context, studioDir: File, marker: String?): File? {
+        marker?.takeIf { it.isNotBlank() }?.let(::File)?.takeIf { it.isFile }?.let { return it }
+        val gradle = File(studioDir, "app/build.gradle.kts").takeIf { it.isFile }?.readText() ?: return null
+        val pkg = Regex("applicationId\\s*=\\s*\"([^\"]+)\"").find(gradle)?.groupValues?.get(1) ?: return null
+        runCatching { ctx.packageManager.getApplicationInfo(pkg, 0).sourceDir }.getOrNull()
+            ?.let(::File)?.takeIf { it.canRead() }?.let { return it }
+        return extracted.walkTopDown().maxDepth(3).filter { it.isFile && it.extension == "apk" }
+            .firstOrNull { runCatching { dev.apkforge.engine.ApkInspector.inspect(it, verifySignature = false).packageName == pkg }.getOrDefault(false) }
+    }
+
     /** Carpeta para decompilar este APK: nombre del paquete + versión (sin repetir). */
     fun newProjectDir(apk: File): File {
         val info = runCatching { dev.apkforge.engine.ApkInspector.inspect(apk, verifySignature = false) }.getOrNull()

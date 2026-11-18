@@ -193,6 +193,10 @@ object AgentStore {
 
     fun drop(key: String) { sessions.remove(key)?.stop() }
 
+    /** Carpetas sobre las que hay conversación con la IA (ruta -> ¿está trabajando ahora?). */
+    fun activeTargets(): Map<String, Boolean> =
+        sessions.values.groupBy { it.key.substringBefore('|') }.mapValues { (_, l) -> l.any { it.running.value } }
+
     fun busyInfo(): BusyInfo? = sessions.values.firstOrNull { it.running.value }?.let { s ->
         val last = s.messages.lastOrNull()
         BusyInfo("Agente IA: ${s.title}", when (last) {

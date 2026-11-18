@@ -196,6 +196,7 @@ private fun AppNav(nav: NavHostController) {
                 File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onOpenSettings = { nav.navigate(Routes.SETTINGS) },
                 initialPrompt = e.arguments?.getString("prompt"),
                 onOpenDir = { nav.navigate(Routes.files(it)) },
+                onSwitch = { dir -> nav.navigate(Routes.agent(dir)) { popUpTo(nav.currentBackStackEntry?.destination?.id ?: 0) { inclusive = true } } },
             )
         }
         composable(

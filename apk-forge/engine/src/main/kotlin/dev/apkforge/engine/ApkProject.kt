@@ -196,15 +196,14 @@ object ApkProject {
         javaOptions: JavaDecompilerOptions = JavaDecompilerOptions(),
         listener: ProgressListener = ProgressListener.NONE,
     ): File {
-        outDir.ensureDir()
-        val mainDir = File(outDir, "app/src/main").apply { ensureDir() }
+        // 1) Proyecto EDITABLE normal (smali + recursos): se puede editar y exportar como APK en el móvil.
+        listener.onProgress("Creando proyecto editable…")
+        decompile(apk, outDir, DecompileOptions(), listener)
 
-        // 1) Recursos + manifest con ARSCLib (decodifica a XML sin aapt ni AWT).
-        listener.onProgress("Decodificando recursos con ARSCLib…")
-        val resTmp = File(outDir, ".res-tmp")
-        decompile(apk, resTmp, DecompileOptions(decodeResources = true, decodeDex = false), listener)
-
-        File(resTmp, "AndroidManifest.xml").takeIf { it.isFile }?.let { manifest ->
+        // 2) Dentro, la versión para Android Studio (PC): Gradle + recursos + Java.
+        val studioDir = File(outDir, "android-studio").apply { ensureDir() }
+        val mainDir = File(studioDir, "app/src/main").apply { ensureDir() }
+        File(outDir, "AndroidManifest.xml").takeIf { it.isFile }?.let { manifest ->
             // AGP 8 no admite package= en el manifest: lo movemos a namespace del build.gradle.
             val text = manifest.readText()
             val pkg = Regex("package=\"([^\"]+)\"").find(text)?.groupValues?.get(1)
@@ -213,36 +212,31 @@ object ApkProject {
                 .replace(Regex("\\s+platformBuildVersion(?:Code|Name)=\"[^\"]*\""), "")
                 .replace(Regex("\\s+compileSdkVersion(?:Codename)?=\"[^\"]*\""), "")
             File(mainDir, "AndroidManifest.xml").writeText(cleaned)
-            File(outDir, ".pkg").writeText(pkg ?: "")
+            File(studioDir, ".pkg").writeText(pkg ?: "")
         }
-        // res/ del paquete base (ARSCLib lo deja en resources/package_*/res).
-        val resSrc = File(resTmp, "resources").listFiles()?.sortedBy { it.name }
+        val resSrc = File(outDir, "resources").listFiles()?.sortedBy { it.name }
             ?.firstNotNullOfOrNull { File(it, "res").takeIf { r -> r.isDirectory } }
         if (resSrc != null) {
             val resDst = File(mainDir, "res")
             resSrc.copyRecursively(resDst, overwrite = true)
-            // public.xml fija los IDs: AGP los regenera, así que lo quitamos para evitar choques.
             File(resDst, "values/public.xml").delete()
         }
-        resTmp.deleteRecursively()
 
-        // 2) Código Java con jadx.
+        // 3) Código Java con jadx.
         listener.onProgress("Decompilando código a Java…")
-        JavaDecompiler.open(apk, javaOptions, listener).use { it.exportSourcesTo(File(mainDir, "java"), File(outDir, ".res-ignore"), listener) }
-        File(outDir, ".res-ignore").deleteRecursively()
+        JavaDecompiler.open(apk, javaOptions, listener).use { it.exportSourcesTo(File(mainDir, "java"), File(studioDir, ".res-ignore"), listener) }
+        File(studioDir, ".res-ignore").deleteRecursively()
 
         // 3) Scripts de Gradle.
         val info = runCatching { ApkInspector.inspect(apk, verifySignature = false) }.getOrNull()
-        val pkg = File(outDir, ".pkg").takeIf { it.isFile }?.readText()?.ifBlank { null }
+        val pkg = File(studioDir, ".pkg").takeIf { it.isFile }?.readText()?.ifBlank { null }
             ?: info?.packageName ?: "com.decompiled.app"
-        File(outDir, ".pkg").delete()
+        File(studioDir, ".pkg").delete()
         val min = info?.minSdk ?: 21
         val target = info?.targetSdk ?: 34
-        writeGradleFiles(outDir, pkg, min, target, info?.versionCode ?: 1, info?.versionName ?: "1.0")
+        writeGradleFiles(studioDir, pkg, min, target, info?.versionCode ?: 1, info?.versionName ?: "1.0")
 
-        File(outDir, "$META_DIR").mkdirs()
-        File(outDir, "$META_DIR/studio.properties").writeText("sourceApk=" + apk.absolutePath.replace("\\", "/") + "\n")
-        listener.onProgress("✔ Proyecto Android en ${outDir.absolutePath} — ábrelo en Android Studio")
+        listener.onProgress("✔ Proyecto en ${outDir.absolutePath}: editable y exportable aquí; para PC abre la carpeta android-studio")
         return outDir
     }
 

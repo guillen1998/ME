@@ -306,21 +306,24 @@ fun FileBrowserScreen(
                 generateSequence(dir) { it.parentFile }.take(4).firstNotNullOfOrNull { d -> ApkProject.studioSource(d)?.let { d to it } }
             }
             if (projectRoot == null && studioSrc != null) {
-                val srcApk = studioSrc.second.takeIf { it.isNotBlank() }?.let(::File)?.takeIf { it.isFile }
+                val srcApk by produceState<File?>(null, studioSrc) {
+                    value = withContext(Workers.dispatcher) { Workspace.findSourceApkForStudio(ctx, studioSrc.first, studioSrc.second) }
+                }
                 Surface(color = AccentWarm.copy(alpha = 0.14f), shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
-                        Text("Proyecto para Android Studio (PC)", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                        Text("Es código Java para abrir en el ordenador: el móvil no puede compilarlo a APK. " +
-                            "Para editar y exportar aquí, crea un proyecto editable desde el APK original.",
+                        Text("Esta carpeta es solo para Android Studio (PC)", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text("La creó una versión anterior y no se puede exportar a APK. " +
+                            (if (srcApk != null) "Encontré el APK original (${srcApk!!.name}): pulsa para crear el proyecto editable y exportable."
+                             else "No encontré el APK original: ábrelo de nuevo y pulsa Decompilar o Agente IA."),
                             fontSize = 12.sp, modifier = Modifier.padding(vertical = 6.dp))
                         Row {
-                            if (srcApk != null) Button(onClick = {
+                            srcApk?.let { src -> Button(onClick = {
                                 TaskRunner.run("Creando proyecto editable", ResultKind.DIRECTORY) { log ->
-                                    val existing = ApkProject.findProjectFor(srcApk, Workspace.projects)?.dir
-                                    existing ?: Workspace.newProjectDir(srcApk).also { ApkProject.decompile(srcApk, it, dev.apkforge.engine.DecompileOptions(), log) }
+                                    val existing = ApkProject.findProjectFor(src, Workspace.projects)?.dir
+                                    existing ?: Workspace.newProjectDir(src).also { ApkProject.decompile(src, it, dev.apkforge.engine.DecompileOptions(), log) }
                                 }
-                            }) { Text("Crear proyecto editable") }
+                            }) { Text("Crear proyecto editable") } }
                             Spacer(Modifier.size(8.dp))
                             TextButton(onClick = onProjects) { Text("Ir a Proyectos") }
                         }
