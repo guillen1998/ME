@@ -147,13 +147,69 @@ sealed class AgentMsg {
     data class Info(val text: String, val error: Boolean) : AgentMsg()
 }
 
-/** Conversación con el agente: sigue trabajando aunque salgas de la pantalla o de la app. */
-class AgentSession(val key: String, val title: String) {
+/**
+ * Conversación con el agente: sigue trabajando aunque salgas de la pantalla o de la app, y se
+ * GUARDA EN DISCO tras cada mensaje, así que sobrevive a cerrar la app o apagar el móvil.
+ */
+class AgentSession(val key: String, val title: String, val store: File? = null) {
     val messages: SnapshotStateList<AgentMsg> = mutableStateListOf()
     val running = mutableStateOf(false)
     val tokens = mutableStateOf("")
     var agent: AiAgent? = null
     internal var job: Job? = null
+
+    /** Conversación recuperada del disco: la IA aún no la recuerda hasta reanudar. */
+    val needsResume = mutableStateOf(false)
+    /** La app se cerró mientras la IA trabajaba. */
+    val interrupted = mutableStateOf(false)
+    /** Fecha de la conversación recuperada. */
+    var restoredAt = 0L; private set
+
+    init { store?.let { f -> dev.apkforge.engine.ChatHistory.load(f)?.let { loadChat(it) } } }
+
+    /** Carga una conversación guardada (la actual recuperada o una del historial). */
+    fun loadChat(c: dev.apkforge.engine.ChatHistory.Chat) {
+        messages.clear()
+        c.messages.forEach { m ->
+            messages += when (m.kind) {
+                "user" -> AgentMsg.User(m.text + if (m.images > 0) "\n[${m.images} imagen(es)]" else "")
+                "assistant" -> AgentMsg.Assistant(m.text)
+                "tool" -> AgentMsg.Tool(m.tool, m.summary, m.result, m.error)
+                else -> AgentMsg.Info(m.text, m.error)
+            }
+        }
+        needsResume.value = messages.isNotEmpty()
+        interrupted.value = c.running
+        restoredAt = c.updated
+    }
+
+    private fun toSaved(): List<dev.apkforge.engine.ChatHistory.Msg> = messages.map { m ->
+        when (m) {
+            is AgentMsg.User -> dev.apkforge.engine.ChatHistory.Msg("user", m.text, images = m.images.size)
+            is AgentMsg.Assistant -> dev.apkforge.engine.ChatHistory.Msg("assistant", m.text)
+            is AgentMsg.Tool -> dev.apkforge.engine.ChatHistory.Msg("tool", tool = m.tool, summary = m.summary, result = m.result, error = m.error)
+            is AgentMsg.Info -> dev.apkforge.engine.ChatHistory.Msg("info", m.text, error = m.error)
+        }
+    }
+
+    /** Guarda en disco (en segundo plano, escritura atómica). Llamar desde el hilo principal. */
+    @Volatile internal var dropped = false
+
+    fun persist() {
+        if (dropped) return
+        val f = store ?: return
+        val chat = dev.apkforge.engine.ChatHistory.Chat(title, running.value, System.currentTimeMillis(), toSaved())
+        saver.execute { dev.apkforge.engine.ChatHistory.save(f, chat) }
+    }
+
+    /** Botón "Reanudar sesión": la IA recibe el resumen de lo hablado y continúa. */
+    fun resume(project: File?) {
+        val ctx = dev.apkforge.engine.ChatHistory.resumeContext(toSaved(), interrupted.value)
+        needsResume.value = false
+        send(ctx, emptyList(), project, display = "🔄 Reanudar sesión")
+    }
+
+    companion object { internal val saver = java.util.concurrent.Executors.newSingleThreadExecutor() }
 
     val onEvent: (AgentEvent) -> Unit = { ev ->
         onMain {
@@ -168,6 +224,7 @@ class AgentSession(val key: String, val title: String) {
                 is AgentEvent.Done -> tokens.value = "entrada ${ev.inputTokens} · salida ${ev.outputTokens}" +
                     (if (ev.cachedTokens > 0) " · caché ${ev.cachedTokens}" else "")
             }
+            persist()
         }
     }
 
@@ -175,15 +232,20 @@ class AgentSession(val key: String, val title: String) {
      * Envía un mensaje. Antes, la APP prepara el trabajo: analiza las imágenes (visión) y busca en
      * el proyecto los archivos relacionados; todo eso se le entrega a la IA junto con tu mensaje.
      */
-    fun send(text: String, images: List<ByteArray> = emptyList(), project: File? = null) {
+    fun send(text: String, images: List<ByteArray> = emptyList(), project: File? = null, display: String? = null) {
         val a = agent ?: return
         if (running.value) return
-        messages += AgentMsg.User(text, images)
+        // Si la conversación se recuperó del disco y escribes sin pulsar "Reanudar", la IA recibe igual el contexto
+        val toAgent = if (needsResume.value && display == null)
+            dev.apkforge.engine.ChatHistory.resumeContext(toSaved(), false) + "\n\nNUEVO PEDIDO DEL USUARIO (atiéndelo ahora):\n" + text else text
+        needsResume.value = false; interrupted.value = false
+        messages += AgentMsg.User(display ?: text, images)
         running.value = true
+        persist()
         BackgroundService.ensureRunning()
         job = AppScope.scope.launch {
             try {
-                val prep = dev.apkforge.engine.MessagePreparer.prepare(project, text, images,
+                val prep = dev.apkforge.engine.MessagePreparer.prepare(project, toAgent, images,
                     dev.apkforge.engine.VisionAi.endpoints, ProgressListener { msg -> onMain { status.value = msg } })
                 onMain {
                     status.value = null
@@ -200,7 +262,7 @@ class AgentSession(val key: String, val title: String) {
                 if (project != null) runCatching { dev.apkforge.engine.MessagePreparer.learnFrom(project, text, t0) }.getOrNull()?.takeIf { it > 0 }?.let { n ->
                     onMain { messages += AgentMsg.Info("🧬 Motor neuronal: aprendió de $n archivo(s) editado(s) (${dev.apkforge.engine.NeuralEngine.shared.examples} ejemplos en total)", false) }
                 }
-            } finally { onMain { running.value = false; status.value = null } }
+            } finally { onMain { running.value = false; status.value = null; persist() } }
         }
     }
 
@@ -213,10 +275,29 @@ class AgentSession(val key: String, val title: String) {
 object AgentStore {
     private val sessions = LinkedHashMap<String, AgentSession>()
 
-    fun session(key: String, title: String, create: (AgentSession) -> AiAgent?): AgentSession =
-        sessions.getOrPut(key) { AgentSession(key, title) }.also { s -> if (s.agent == null) s.agent = create(s) }
+    /** Archivo del chat: clave = "ruta|preset|proveedor|n" → mismo archivo para la misma carpeta y perfil. */
+    fun chatFile(key: String): File? = runCatching {
+        val parts = key.split('|')
+        dev.apkforge.engine.ChatHistory.fileFor(File(parts[0]), parts[1], dev.apkforge.app.ApkForgeApp.instance.filesDir)
+    }.getOrNull()
 
-    fun drop(key: String) { sessions.remove(key)?.stop() }
+    fun session(key: String, title: String, create: (AgentSession) -> AiAgent?): AgentSession =
+        sessions.getOrPut(key) { AgentSession(key, title, chatFile(key)) }.also { s -> if (s.agent == null) s.agent = create(s) }
+
+    /** Perfil (preset) de la última conversación guardada de esa carpeta, para abrir justo esa al volver. */
+    fun lastPreset(target: File): dev.apkforge.engine.AgentPreset? = runCatching {
+        val dir = dev.apkforge.engine.ChatHistory.fileFor(target, "x", dev.apkforge.app.ApkForgeApp.instance.filesDir).parentFile
+        val names = dev.apkforge.engine.AgentPreset.entries.associateBy { it.name }
+        dir?.listFiles { f -> f.extension == "json" && f.nameWithoutExtension in names }?.maxByOrNull { it.lastModified() }
+            ?.let { names[it.nameWithoutExtension] }
+    }.getOrNull()
+
+    /** Nueva conversación: la actual pasa al historial (no se pierde). */
+    fun drop(key: String) {
+        sessions.remove(key)?.let { it.dropped = true; it.stop() }
+        // en el mismo hilo que guarda, y esperando: así no reaparece la conversación vieja
+        chatFile(key)?.let { f -> runCatching { AgentSession.saver.submit { dev.apkforge.engine.ChatHistory.archive(f) }.get(3, java.util.concurrent.TimeUnit.SECONDS) } }
+    }
 
     /** Carpetas sobre las que hay conversación con la IA (ruta -> ¿está trabajando ahora?). */
     fun activeTargets(): Map<String, Boolean> =

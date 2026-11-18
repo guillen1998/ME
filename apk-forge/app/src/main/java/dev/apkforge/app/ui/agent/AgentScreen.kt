@@ -28,6 +28,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Build
@@ -144,7 +148,8 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                       onSwitch: (File) -> Unit = {}, onBackups: (File) -> Unit = {}) {
     val prefs = ApkForgeApp.prefs
     var preset by rememberSaveable {
-        mutableStateOf(initialPreset ?: if (target.isFile && !target.extension.equals("apk", true)) AgentPreset.FILE_ANALYST else AgentPreset.EXPLAIN)
+        mutableStateOf(initialPreset ?: AgentStore.lastPreset(target)
+            ?: if (target.isFile && !target.extension.equals("apk", true)) AgentPreset.FILE_ANALYST else AgentPreset.EXPLAIN)
     }
     var input by remember { mutableStateOf("") }
     var showExport by remember { mutableStateOf(false) }
@@ -165,6 +170,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
         }
     }
     var resetCounter by remember { mutableIntStateOf(0) }
+    var showHistory by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val ready = prefs.aiReady()
     val provider = prefs.aiProvider
@@ -194,6 +200,13 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     ) { uris -> uris.forEach { u -> loadImage(appCtx, u)?.let { pendingImages += it } } }
     val isProject = dev.apkforge.engine.ApkProject.isProject(target)
 
+    if (showHistory) ChatHistoryDialog(AgentStore.chatFile(key), running, onDismiss = { showHistory = false }) { chat ->
+        showHistory = false
+        session.persist()
+        AgentStore.chatFile(key)?.let { f -> runCatching { dev.apkforge.app.core.AgentSession.saver.submit { dev.apkforge.engine.ChatHistory.archive(f) }.get(3, java.util.concurrent.TimeUnit.SECONDS) } }
+        session.loadChat(chat); session.persist()
+    }
+
     fun send() {
         val text = input.trim().ifEmpty { if (pendingImages.isNotEmpty()) "Analiza esta imagen." else defaultPrompt(preset) }
         input = ""
@@ -214,6 +227,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
                     IconButton(onClick = { showSide = !showSide }) { Icon(Icons.Default.ViewSidebar, if (showSide) "Ocultar proyectos" else "Mostrar proyectos") }
+                    IconButton(onClick = { showHistory = true }) { Icon(Icons.Default.History, "Historial de conversaciones") }
                     if (messages.isNotEmpty() && !running) IconButton(onClick = { AgentStore.drop(key); resetCounter++ }) {
                         Icon(Icons.Default.DeleteSweep, "Nueva conversación")
                     }
@@ -238,6 +252,22 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                         androidx.compose.material3.TextButton(onClick = { onOpenDir(target) }) { Text("Abrir") }
                         androidx.compose.material3.TextButton(onClick = { onBackups(target) }) { Text("Copias") }
                         androidx.compose.material3.Button(onClick = { showExport = true }) { Text("Exportar APK") }
+                    }
+                }
+            }
+            if (session.needsResume.value && !running) {
+                Surface(color = AccentWarm.copy(alpha = 0.16f), shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(if (session.interrupted.value) "⚠ La app se cerró mientras la IA trabajaba" else "📜 Conversación recuperada",
+                            fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text("Del " + java.text.SimpleDateFormat("dd/MM/yy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(session.restoredAt)) +
+                            ". Pulsa reanudar y la IA recibe todo lo hablado y los cambios hechos, y sigue donde quedó.",
+                            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        androidx.compose.material3.Button(onClick = { session.resume(if (isProject) target else null) },
+                            enabled = session.agent != null, modifier = Modifier.padding(top = 6.dp).fillMaxWidth()) {
+                            Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Reanudar sesión")
+                        }
                     }
                 }
             }
@@ -433,3 +463,34 @@ private fun Thumb(bytes: ByteArray, sizeDp: Int) {
 }
 
 private fun Modifier.androidx_clip() = this.then(Modifier.clip(RoundedCornerShape(8.dp)))
+
+
+/** Conversaciones anteriores de esta carpeta y perfil (la más reciente arriba). Abrir una la recupera para reanudarla. */
+@Composable
+private fun ChatHistoryDialog(current: File?, running: Boolean, onDismiss: () -> Unit, onOpen: (dev.apkforge.engine.ChatHistory.Chat) -> Unit) {
+    val list = remember(current) { current?.let { dev.apkforge.engine.ChatHistory.archives(it) }.orEmpty() }
+    val fmt = remember { java.text.SimpleDateFormat("dd/MM/yy HH:mm", java.util.Locale.getDefault()) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Historial de conversaciones") },
+        text = {
+            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+                if (list.isEmpty()) Text("No hay conversaciones anteriores. Al pulsar “Nueva conversación”, la actual se guarda aquí.", fontSize = 13.sp)
+                list.forEach { (f, c) ->
+                    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                        Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(fmt.format(java.util.Date(c.updated)) + " · ${c.messages.size} mensajes", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                Text(c.messages.firstOrNull { it.kind == "user" }?.text?.take(90) ?: "", fontSize = 11.sp, maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            androidx.compose.material3.TextButton(enabled = !running, onClick = { f.delete(); onOpen(c) }) { Text("Abrir") }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cerrar") } },
+    )
+}
