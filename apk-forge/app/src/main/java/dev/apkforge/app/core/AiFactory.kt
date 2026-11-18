@@ -17,6 +17,7 @@ object AiFactory {
     fun textClient(p: Prefs): AiTextClient? {
         if (!p.aiReady()) return null
         val pr = p.aiProvider
+        if (pr == AiProvider.BUILTIN) return OpenAiTextClient(dev.apkforge.engine.BuiltinAi.endpoints)
         return if (pr == AiProvider.CLAUDE) ClaudeTextClient(p.keyFor(pr), p.modelFor(pr), effort(p))
         else OpenAiTextClient(p.urlFor(pr), p.keyFor(pr), p.modelFor(pr))
     }

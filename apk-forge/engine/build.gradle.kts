@@ -45,4 +45,5 @@ tasks.register("printCp") {
 
 tasks.test {
     System.getProperty("apkforge.sampleApk")?.let { systemProperty("apkforge.sampleApk", it) }
+    System.getProperty("apkforge.live")?.let { systemProperty("apkforge.live", it) }
 }

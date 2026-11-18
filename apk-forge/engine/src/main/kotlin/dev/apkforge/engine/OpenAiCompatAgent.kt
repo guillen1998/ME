@@ -14,6 +14,21 @@ interface AiAgent {
     fun reset()
 }
 
+/** Un servicio compatible con OpenAI (URL + clave opcional + modelo). */
+data class AiEndpoint(val baseUrl: String, val apiKey: String, val model: String, val label: String)
+
+/**
+ * IA integrada de ApkForge: funciona SIN clave y sin configurar nada. Une varios servicios
+ * gratuitos que ofrecen acceso anónimo oficial, con modelos abiertos que saben usar herramientas;
+ * si uno se satura o falla, se pasa al siguiente automáticamente.
+ */
+object BuiltinAi {
+    val endpoints = listOf(
+        AiEndpoint("https://api.llm7.io/v1", "", "default", "LLM7 · Gemma 4 31B"),
+        AiEndpoint("https://text.pollinations.ai/openai", "", "openai", "Pollinations · GPT-OSS 20B"),
+    )
+}
+
 /** Proveedores de IA. Los compatibles con OpenAI dan acceso a modelos de código abierto. */
 enum class AiProvider(
     val title: String,
@@ -22,6 +37,8 @@ enum class AiProvider(
     val needsKey: Boolean,
     val help: String,
 ) {
+    BUILTIN("ApkForge IA · integrada, gratis, sin clave", "", "auto", false,
+        "Ya viene lista: une modelos abiertos gratuitos (Gemma 4 31B y GPT-OSS 20B) y cambia de uno a otro si alguno falla. No necesitas configurar nada."),
     CLAUDE("Claude (Anthropic)", "", "claude-opus-5-5", true,
         "Clave en console.anthropic.com. El más capaz."),
     OPENROUTER("OpenRouter · modelos abiertos gratis", "https://openrouter.ai/api/v1", "openrouter/free", true,
@@ -41,15 +58,20 @@ enum class AiProvider(
 class OpenAiCompatAgent(
     root: File,
     apk: File?,
-    private val baseUrl: String,
-    private val apiKey: String,
-    private val model: String,
+    private val endpoints: List<AiEndpoint>,
     preset: AgentPreset,
     allowEdits: Boolean,
     java: () -> JavaDecompiler?,
     private val onEvent: (AgentEvent) -> Unit,
     private val maxTurns: Int = 30,
 ) : AiAgent {
+    constructor(
+        root: File, apk: File?, baseUrl: String, apiKey: String, model: String, preset: AgentPreset,
+        allowEdits: Boolean, java: () -> JavaDecompiler?, onEvent: (AgentEvent) -> Unit, maxTurns: Int = 30,
+    ) : this(root, apk, listOf(AiEndpoint(baseUrl, apiKey, model, model)), preset, allowEdits, java, onEvent, maxTurns)
+
+    /** Servicio que está funcionando ahora (se mantiene mientras responda bien). */
+    @Volatile private var current = 0
     private val toolbox = AgentToolbox(root, apk, allowEdits, java)
     private val gson = Gson()
     private val messages = JsonArray().apply {
@@ -84,7 +106,6 @@ class OpenAiCompatAgent(
             for (turn in 0 until maxTurns) {
                 if (isCancelled()) { onEvent(AgentEvent.Error("Detenido")); break }
                 val body = JsonObject().apply {
-                    addProperty("model", model)
                     add("messages", messages)
                     add("tools", toolsJson)
                     addProperty("tool_choice", "auto")
@@ -115,7 +136,11 @@ class OpenAiCompatAgent(
                 for (c in calls) {
                     val call = c.asJsonObject
                     val fn = call.getAsJsonObject("function")
-                    val name = fn.get("name").asString
+                    // Algunos modelos abiertos (GPT-OSS) "ensucian" el nombre: "read_file<|channel|>commentary".
+                    val name = toolbox.specs.map { it.name }.let { known ->
+                        val raw = fn.get("name").asString.substringBefore("<|").substringBefore(" ").trim()
+                        known.firstOrNull { it == raw } ?: known.firstOrNull { raw.startsWith(it) || raw.endsWith(it) } ?: raw
+                    }
                     @Suppress("UNCHECKED_CAST")
                     val args: Map<String, Any?> = runCatching {
                         val raw = fn.get("arguments")
@@ -146,40 +171,29 @@ class OpenAiCompatAgent(
     /** Gson lee los números como Double; las herramientas esperan Number, así que vale tal cual. */
     private fun normalizeNumbers(m: Map<String, Any?>) = m
 
+    /**
+     * Envía con cambio automático de servicio: si uno falla (saturado, caído, sin red), prueba el
+     * siguiente; si todos están ocupados, espera (lo que pida el servicio, máx. 30 s) y reintenta.
+     */
     private fun post(body: JsonObject): JsonObject {
-        val url = URL(baseUrl.trimEnd('/') + "/chat/completions")
-        val conn = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            doOutput = true
-            connectTimeout = 30_000
-            readTimeout = 240_000
-            setRequestProperty("Content-Type", "application/json")
-            if (apiKey.isNotBlank()) setRequestProperty("Authorization", "Bearer $apiKey")
-            setRequestProperty("X-Title", "ApkForge")
-        }
-        try {
-            conn.outputStream.use { it.write(gson.toJson(body).toByteArray(Charsets.UTF_8)) }
-            val code = conn.responseCode
-            val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
-                ?.bufferedReader()?.use { it.readText() }.orEmpty()
-            if (code !in 200..299) {
-                val detail = runCatching {
-                    JsonParser.parseString(text).asJsonObject.getAsJsonObject("error")?.get("message")?.asString
-                }.getOrNull() ?: text.take(300)
-                throw EngineException(
-                    when (code) {
-                        401, 403 -> "Clave de API no válida o sin permiso ($code). Revísala en Ajustes."
-                        404 -> "Modelo no encontrado o sin soporte de herramientas: $detail"
-                        429 -> "Límite gratuito alcanzado; espera un poco o prueba otro modelo. ($detail)"
-                        else -> "Error $code del proveedor: $detail"
-                    }
-                )
+        val errors = LinkedHashMap<String, String>()
+        for (round in 0 until 4) {
+            for (attempt in endpoints.indices) {
+                val i = (current + attempt) % endpoints.size
+                val ep = endpoints[i]
+                try {
+                    val res = OpenAiHttp.chat(ep, body)
+                    if (i != current) { current = i; onEvent(AgentEvent.Text("↪ Sigo con ${ep.label}")) }
+                    return res
+                } catch (e: OpenAiHttp.RetryableException) {
+                    errors[ep.label] = e.message ?: "error"
+                }
             }
-            return JsonParser.parseString(text).asJsonObject
-        } catch (e: java.net.ConnectException) {
-            throw EngineException("No se pudo conectar a $baseUrl (¿servidor encendido? ¿misma red Wi-Fi?)", e)
-        } finally {
-            conn.disconnect()
+            if (round == 3) break
+            val wait = OpenAiHttp.waitSeconds(errors.values, round)
+            onEvent(AgentEvent.Text("⏳ Servicios de IA ocupados; reintento en $wait s…"))
+            Thread.sleep(wait * 1000L)
         }
+        throw EngineException("Ningún servicio de IA respondió:\n" + errors.entries.joinToString("\n") { "• ${it.value}" })
     }
 }

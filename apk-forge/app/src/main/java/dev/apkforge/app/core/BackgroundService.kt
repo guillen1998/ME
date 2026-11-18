@@ -126,6 +126,7 @@ class BackgroundService : Service() {
             AgentStore.busyInfo()?.let { return it }
             SearchStore.busyInfo()?.let { return it }
             ScanStore.busyInfo()?.let { return it }
+            JavaSearchStore.busyInfo()?.let { return it }
             return null
         }
 

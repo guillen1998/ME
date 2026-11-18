@@ -52,6 +52,6 @@ class OpenAiAgentTest {
             AgentPreset.CHAT, false, { null }, { events += it }).send("hola")
         val err = events.filterIsInstance<AgentEvent.Error>().firstOrNull()?.message.orEmpty()
         println("Mensaje de error: $err")
-        assertTrue(err.contains("No se pudo conectar"))
+        assertTrue(err.contains("sin conexión"))
     }
 }

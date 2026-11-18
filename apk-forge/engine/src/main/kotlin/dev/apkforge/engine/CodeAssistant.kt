@@ -14,8 +14,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
 /** Una llamada de texto a la IA (sin herramientas), para cualquier proveedor. */
 interface AiTextClient {
@@ -49,33 +47,32 @@ class ClaudeTextClient(
     }
 }
 
-/** Cualquier API compatible con OpenAI (OpenRouter, Groq, Ollama…). */
-class OpenAiTextClient(private val baseUrl: String, private val apiKey: String, private val model: String) : AiTextClient {
-    private val gson = Gson()
+/** Cualquier API compatible con OpenAI (IA integrada, OpenRouter, Groq…), con cambio automático de servicio. */
+class OpenAiTextClient(private val endpoints: List<AiEndpoint>) : AiTextClient {
+    constructor(baseUrl: String, apiKey: String, model: String) : this(listOf(AiEndpoint(baseUrl, apiKey, model, model)))
+    @Volatile private var current = 0
+
     override fun complete(system: String, user: String): String {
         val body = JsonObject().apply {
-            addProperty("model", model)
-            add("messages", gson.toJsonTree(listOf(mapOf("role" to "system", "content" to system), mapOf("role" to "user", "content" to user))))
+            add("messages", Gson().toJsonTree(listOf(mapOf("role" to "system", "content" to system), mapOf("role" to "user", "content" to user))))
             addProperty("max_tokens", 16000)
         }
-        val conn = (URL(baseUrl.trimEnd('/') + "/chat/completions").openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"; doOutput = true; connectTimeout = 30_000; readTimeout = 600_000
-            setRequestProperty("Content-Type", "application/json")
-            if (apiKey.isNotBlank()) setRequestProperty("Authorization", "Bearer $apiKey")
-            setRequestProperty("X-Title", "ApkForge")
+        val errors = LinkedHashMap<String, String>()
+        for (round in 0 until 4) {
+            for (attempt in endpoints.indices) {
+                val i = (current + attempt) % endpoints.size
+                try {
+                    val json = OpenAiHttp.chat(endpoints[i], body)
+                    current = i
+                    val msg = json.getAsJsonArray("choices")[0].asJsonObject.getAsJsonObject("message")
+                    val text = msg.get("content")?.takeIf { !it.isJsonNull }?.asString.orEmpty()
+                    if (text.isNotBlank()) return text
+                    errors[endpoints[i].label] = "${endpoints[i].label}: respuesta vacía"
+                } catch (e: OpenAiHttp.RetryableException) { errors[endpoints[i].label] = e.message ?: "error" }
+            }
+            if (round < 3) Thread.sleep(OpenAiHttp.waitSeconds(errors.values, round) * 1000L)
         }
-        try {
-            conn.outputStream.use { it.write(gson.toJson(body).toByteArray()) }
-            val code = conn.responseCode
-            val text = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty()
-            if (code !in 200..299) throw EngineException("Error $code del proveedor: " + text.take(300))
-            val choice = JsonParser.parseString(text).asJsonObject.getAsJsonArray("choices")[0].asJsonObject
-            return choice.getAsJsonObject("message").get("content")?.takeIf { !it.isJsonNull }?.asString.orEmpty()
-        } catch (e: java.net.ConnectException) {
-            throw EngineException("No se pudo conectar a $baseUrl", e)
-        } finally {
-            conn.disconnect()
-        }
+        throw EngineException("Ningún servicio de IA respondió:\n" + errors.values.joinToString("\n") { "• $it" })
     }
 }
 

@@ -8,6 +8,18 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import dev.apkforge.app.ui.SidePanelItem
+import androidx.compose.material.icons.filled.MenuOpen
+import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Construction
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -163,6 +175,7 @@ fun FileBrowserScreen(
     var hasAccess by remember { mutableStateOf(Storage.hasAllFilesAccess(ctx)) }
     var showHidden by remember { mutableStateOf(prefs.showHidden) }
     var menuOpen by remember { mutableStateOf(false) }
+    var showLeft by rememberSaveable { mutableStateOf(true) }
     var selected by remember { mutableStateOf<File?>(null) }
     var dialog by remember { mutableStateOf<String?>(null) } // "newFolder", "newFile", "rename", "delete"
     var clipboardCount by remember { mutableIntStateOf(FileClipboard.files.size) }
@@ -241,9 +254,7 @@ fun FileBrowserScreen(
                             }
                         }) { Icon(Icons.Default.ContentPaste, "Pegar") }
                     }
-                    IconButton(onClick = { onScan(projectRoot ?: dir) }) { Icon(Icons.Default.TravelExplore, "Analizar (URLs, secretos…)") }
-                    IconButton(onClick = { onSearch(projectRoot ?: dir) }) { Icon(Icons.Default.Search, "Buscar en archivos") }
-                    IconButton(onClick = onApps) { Icon(Icons.Default.Apps, "Apps instaladas") }
+                    IconButton(onClick = { showLeft = !showLeft }) { Icon(Icons.Default.MenuOpen, if (showLeft) "Ocultar opciones" else "Mostrar opciones") }
                     Box {
                         IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, "Más") }
                         DropdownMenu(menuOpen, { menuOpen = false }) {
@@ -265,20 +276,41 @@ fun FileBrowserScreen(
             )
         },
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-            // Accesos rápidos
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                AssistChip(onClick = { path = storageRoot }, label = { Text("Almacenamiento") })
-                AssistChip(onClick = { path = Workspace.downloads.absolutePath }, label = { Text("Descargas") })
-                AssistChip(onClick = { path = Workspace.root.also { Workspace.init() }.absolutePath }, label = { Text("ApkTools") })
-                AssistChip(onClick = { path = Workspace.projects.absolutePath }, label = { Text("Proyectos") })
-                AssistChip(onClick = { path = Workspace.builds.absolutePath }, label = { Text("Compilados") })
-                AssistChip(onClick = { path = Workspace.extracted.absolutePath }, label = { Text("Extraídos") })
+        Row(Modifier.padding(pad).fillMaxSize()) {
+            // ---------------- Panel IZQUIERDO: opciones ----------------
+            if (showLeft) {
+                val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
+                Column(
+                    Modifier.width(if (wide) 230.dp else 136.dp).fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                        .verticalScroll(rememberScrollState()).padding(vertical = 6.dp),
+                ) {
+                    fun at(f: File) = path == f.absolutePath
+                    SidePanelItem(Icons.Default.PhoneAndroid, "Almacenamiento", Color(0xFF8AB4F8), path == storageRoot) { path = storageRoot }
+                    SidePanelItem(Icons.Default.Download, "Descargas", Color(0xFF8AB4F8), at(Workspace.downloads)) { path = Workspace.downloads.absolutePath }
+                    SidePanelItem(Icons.Default.Construction, "ApkTools", Accent, at(Workspace.root)) { Workspace.init(); path = Workspace.root.absolutePath }
+                    SidePanelItem(Icons.Default.FolderSpecial, "Proyectos", Accent, at(Workspace.projects)) { path = Workspace.projects.absolutePath }
+                    SidePanelItem(Icons.Default.Inventory2, "Compilados", Ok, at(Workspace.builds)) { path = Workspace.builds.absolutePath }
+                    SidePanelItem(Icons.Default.Unarchive, "Extraídos", AccentWarm, at(Workspace.extracted)) { path = Workspace.extracted.absolutePath }
+                    HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                    SidePanelItem(Icons.Default.Apps, "Apps instaladas", Ok) { onApps() }
+                    SidePanelItem(Icons.Default.Search, "Buscar en archivos", Accent) { onSearch(projectRoot ?: dir) }
+                    SidePanelItem(Icons.Default.TravelExplore, "Analizar", Accent) { onScan(projectRoot ?: dir) }
+                    SidePanelItem(Icons.Default.AutoAwesome, "Agente IA", AccentWarm) { onAgent(projectRoot ?: dir) }
+                    projectRoot?.let { root ->
+                        HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                        Text("Proyecto", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp))
+                        SidePanelItem(Icons.Default.Build, "Exportar nuevo APK y firmar", Ok) { buildProject(root) }
+                        SidePanelItem(Icons.Default.Coffee, "Ver Java", AccentWarm) { onOpenJava(root) }
+                    }
+                    HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                    SidePanelItem(Icons.Default.Settings, "Ajustes", MaterialTheme.colorScheme.onSurfaceVariant) { onSettings() }
+                }
+                VerticalDivider()
             }
 
+            // ---------------- Panel DERECHO: archivos ----------------
+            Column(Modifier.weight(1f).fillMaxHeight()) {
             if (!hasAccess) {
                 Surface(
                     color = AccentWarm.copy(alpha = 0.12f), shape = RoundedCornerShape(12.dp),
@@ -365,6 +397,7 @@ fun FileBrowserScreen(
                         )
                     }
                 }
+            }
             }
         }
     }

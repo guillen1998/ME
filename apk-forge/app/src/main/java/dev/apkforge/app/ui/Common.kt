@@ -1,6 +1,7 @@
 package dev.apkforge.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +48,7 @@ import java.io.File
 
 /** Consola de la tarea en curso (decompilar, compilar, firmar…) con log en vivo. */
 @Composable
-fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit) {
+fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit, onOpenAgent: (File) -> Unit = {}) {
     val state by TaskRunner.state.collectAsState()
     val s = state ?: return
     val ctx = LocalContext.current
@@ -124,7 +125,10 @@ fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit) {
                             TextButton(onClick = { Installer.share(ctx, r) }) { Text("Compartir") }
                             TextButton(onClick = { Installer.install(ctx, r) }) { Text("Instalar") }
                         }
-                        ResultKind.DIRECTORY -> TextButton(onClick = { TaskRunner.dismiss(); onOpenDir(r) }) { Text("Abrir") }
+                        ResultKind.DIRECTORY -> {
+                            if (dev.apkforge.engine.ApkProject.isProject(r)) TextButton(onClick = { TaskRunner.dismiss(); onOpenAgent(r) }) { Text("Pedir a la IA") }
+                            TextButton(onClick = { TaskRunner.dismiss(); onOpenDir(r) }) { Text("Abrir") }
+                        }
                         ResultKind.FILE -> TextButton(onClick = { TaskRunner.dismiss(); onOpenFile(r) }) { Text("Abrir") }
                         ResultKind.NONE -> {}
                     }
@@ -225,4 +229,21 @@ fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, 
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
+}
+
+/** Elemento del panel lateral de opciones (estilo MT Manager). */
+@Composable
+fun SidePanelItem(icon: ImageVector, label: String, tint: Color, selected: Boolean = false, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth()
+            .background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f) else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.size(8.dp))
+        Text(label, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
+    }
 }

@@ -51,8 +51,10 @@ import java.io.File
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectSearchScreen(root: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit) {
-    val sameRoot = SearchStore.root == root
-    var query by rememberSaveable { mutableStateOf(if (sameRoot) SearchStore.query else "") }
+    // Siempre mostramos la última búsqueda (aunque abras el buscador desde otra carpeta).
+    val lastRoot = SearchStore.root
+    val sameRoot = lastRoot != null
+    var query by rememberSaveable { mutableStateOf(SearchStore.query) }
     var replacement by rememberSaveable { mutableStateOf("") }
     var regex by rememberSaveable { mutableStateOf(false) }
     var matchCase by rememberSaveable { mutableStateOf(false) }
@@ -69,7 +71,8 @@ fun ProjectSearchScreen(root: File, onBack: () -> Unit, onOpen: (File, Int) -> U
                 title = {
                     Column {
                         Text("Buscar en archivos", fontSize = 17.sp)
-                        Text(root.name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("En: " + root.name + (if (lastRoot != null && lastRoot != root) "  ·  resultados de ${lastRoot.name}" else ""),
+                            fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
@@ -117,7 +120,7 @@ fun ProjectSearchScreen(root: File, onBack: () -> Unit, onOpen: (File, Int) -> U
             LazyColumn(Modifier.fillMaxSize()) {
                 itemsIndexed(hits, key = { i, h -> "$i:${h.file.path}:${h.line}" }) { _, h ->
                     Column(Modifier.fillMaxWidth().clickable { onOpen(h.file, h.line) }.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                        Text(h.file.relativeTo(root).path + ":" + h.line, fontSize = 12.sp, fontFamily = Mono,
+                        Text(runCatching { h.file.relativeTo(lastRoot ?: root).path }.getOrDefault(h.file.name) + ":" + h.line, fontSize = 12.sp, fontFamily = Mono,
                             color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(h.text, fontSize = 12.sp, fontFamily = Mono, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }

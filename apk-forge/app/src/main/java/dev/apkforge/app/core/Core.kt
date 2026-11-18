@@ -126,8 +126,12 @@ class Prefs(ctx: Context) {
 
     /** Proveedor elegido: CLAUDE, OPENROUTER, GROQ, OLLAMA o CUSTOM. */
     var aiProvider: dev.apkforge.engine.AiProvider
-        get() = runCatching { dev.apkforge.engine.AiProvider.valueOf(p.getString("aiProvider", "CLAUDE")!!) }
-            .getOrDefault(dev.apkforge.engine.AiProvider.CLAUDE)
+        get() {
+            val stored = runCatching { dev.apkforge.engine.AiProvider.valueOf(p.getString("aiProvider", "BUILTIN")!!) }
+                .getOrDefault(dev.apkforge.engine.AiProvider.BUILTIN)
+            // Sin configurar (falta la clave) -> la IA integrada, que funciona sin nada.
+            return if (stored.needsKey && keyFor(stored).isBlank()) dev.apkforge.engine.AiProvider.BUILTIN else stored
+        }
         set(v) = p.edit().putString("aiProvider", v.name).apply()
 
     fun keyFor(pr: dev.apkforge.engine.AiProvider): String =
@@ -146,6 +150,7 @@ class Prefs(ctx: Context) {
     /** ¿Está el proveedor actual listo para usarse? */
     fun aiReady(): Boolean {
         val pr = aiProvider
+        if (pr == dev.apkforge.engine.AiProvider.BUILTIN) return true
         return (!pr.needsKey || keyFor(pr).isNotBlank()) &&
             (pr == dev.apkforge.engine.AiProvider.CLAUDE || urlFor(pr).isNotBlank()) && modelFor(pr).isNotBlank()
     }
@@ -153,7 +158,7 @@ class Prefs(ctx: Context) {
         get() = p.getString("agentEffort", "high")!!
         set(v) = p.edit().putString("agentEffort", v).apply()
     var agentAllowEdits: Boolean
-        get() = p.getBoolean("agentEdits", false)
+        get() = p.getBoolean("agentEdits", true)
         set(v) = p.edit().putBoolean("agentEdits", v).apply()
 
     fun signingConfig(): SigningConfig =

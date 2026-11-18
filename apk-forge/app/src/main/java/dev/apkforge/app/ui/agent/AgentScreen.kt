@@ -84,19 +84,11 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
     val listState = rememberLazyListState()
     val ready = prefs.aiReady()
     val provider = prefs.aiProvider
-    val key = "${target.absolutePath}|$preset|$provider|$resetCounter"
+    val key = dev.apkforge.app.core.AgentLauncher.key(target, preset, resetCounter)
 
     val session = remember(key, ready) {
         AgentStore.session(key, preset.title) { s ->
-            if (!ready) return@session null
-            val apkFile = if (target.isFile && target.extension.equals("apk", true)) target else null
-            val javaInput = if (target.isDirectory || apkFile != null) target else null
-            val java: () -> JavaDecompiler? = { javaInput?.let { runCatching { JavaSessions.get(it, prefs.javaOptions()) }.getOrNull() } }
-            if (provider == AiProvider.CLAUDE)
-                ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), prefs.agentAllowEdits),
-                    preset, java, s.onEvent)
-            else OpenAiCompatAgent(target, apkFile, prefs.urlFor(provider), prefs.keyFor(provider), prefs.modelFor(provider),
-                preset, prefs.agentAllowEdits, java, s.onEvent)
+            dev.apkforge.app.core.AgentLauncher.create(target, preset, s, prefs.agentAllowEdits)
         }
     }
     val messages = session.messages

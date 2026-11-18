@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -91,7 +92,8 @@ fun ScannerScreen(target: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit)
     val statusText by ScanStore.status
     val pct by ScanStore.percent
     val all = if (ScanStore.target == target) ScanStore.findings else emptyList()
-    var filter by remember { mutableStateOf<FindingKind?>(null) }
+    var filterName by rememberSaveable { mutableStateOf<String?>(null) }
+    val filter: FindingKind? = filterName?.let { FindingKind.valueOf(it) }
     val counts = all.groupingBy { it.kind }.eachCount()
     val shown = if (filter == null) all else all.filter { it.kind == filter }
 
@@ -125,9 +127,9 @@ fun ScannerScreen(target: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit)
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                FilterChip(filter == null, { filter = null }, label = { Text("Todo ${all.size}") })
+                FilterChip(filter == null, { filterName = null }, label = { Text("Todo ${all.size}") })
                 counts.entries.sortedByDescending { it.value }.forEach { (k, n) ->
-                    FilterChip(filter == k, { filter = if (filter == k) null else k }, label = { Text("${kindLabel(k)} $n") })
+                    FilterChip(filter == k, { filterName = if (filter == k) null else k.name }, label = { Text("${kindLabel(k)} $n") })
                 }
             }
             LazyColumn(Modifier.fillMaxSize()) {

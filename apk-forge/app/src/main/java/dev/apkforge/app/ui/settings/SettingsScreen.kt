@@ -116,21 +116,22 @@ fun SettingsScreen(onBack: () -> Unit) {
                 }
                 Text(provider.help, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.size(6.dp))
-                if (provider != dev.apkforge.engine.AiProvider.CLAUDE) {
+                val builtin = provider == dev.apkforge.engine.AiProvider.BUILTIN
+                if (!builtin && provider != dev.apkforge.engine.AiProvider.CLAUDE) {
                     OutlinedTextField(url, { url = it; p.setUrlFor(provider, it.trim()) },
                         label = { Text("URL base (…/v1)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
-                OutlinedTextField(key, { key = it; p.setKeyFor(provider, it.trim()) },
+                if (!builtin) OutlinedTextField(key, { key = it; p.setKeyFor(provider, it.trim()) },
                     label = { Text(if (provider.needsKey) "Clave de API" else "Clave de API (opcional)") }, singleLine = true,
                     visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(model, { model = it; p.setModelFor(provider, it.trim()) },
+                if (!builtin) OutlinedTextField(model, { model = it; p.setModelFor(provider, it.trim()) },
                     label = { Text("Modelo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 val suggestions = when (provider) {
                     dev.apkforge.engine.AiProvider.CLAUDE -> listOf("claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5")
                     dev.apkforge.engine.AiProvider.OPENROUTER -> listOf("openrouter/free", "qwen/qwen3-coder:free", "deepseek/deepseek-chat-v3.1:free", "meta-llama/llama-3.3-70b-instruct:free")
                     dev.apkforge.engine.AiProvider.GROQ -> listOf("llama-3.3-70b-versatile", "qwen/qwen3-32b", "openai/gpt-oss-120b")
                     dev.apkforge.engine.AiProvider.OLLAMA -> listOf("qwen2.5-coder:7b", "llama3.1:8b", "qwen3:8b")
-                    dev.apkforge.engine.AiProvider.CUSTOM -> emptyList()
+                    dev.apkforge.engine.AiProvider.CUSTOM, dev.apkforge.engine.AiProvider.BUILTIN -> emptyList()
                 }
                 if (suggestions.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState())) {
                     suggestions.forEach { m ->

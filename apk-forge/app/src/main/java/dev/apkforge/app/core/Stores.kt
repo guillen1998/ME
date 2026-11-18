@@ -202,3 +202,43 @@ object AgentStore {
         }, -1)
     }
 }
+
+// ---------------------------------------------------------------- Búsqueda en código Java
+
+/** Búsqueda de texto en el Java decompilado: resultados en vivo que se mantienen al abrir una clase y volver. */
+object JavaSearchStore {
+    val results: SnapshotStateList<Triple<String, Int, String>> = mutableStateListOf()
+    val status = mutableStateOf<String?>(null)
+    val running = mutableStateOf(false)
+    var source: File? = null; private set
+    var query = ""; private set
+    var pkg = ""; private set
+    private var job: Job? = null
+
+    fun busyInfo() = if (running.value) BusyInfo("Buscando en Java “$query”", "${results.size} resultados", -1) else null
+
+    fun start(source: File, session: dev.apkforge.engine.JavaDecompiler, query: String, pkg: String) {
+        job?.cancel()
+        this.source = source; this.query = query; this.pkg = pkg
+        results.clear(); running.value = true; status.value = "Buscando…"
+        val batcher = Batcher(results)
+        BackgroundService.ensureRunning()
+        job = AppScope.scope.launch {
+            try {
+                val found = session.searchCode(query, 500, pkg.ifBlank { null },
+                    ProgressListener { msg -> onMain { status.value = msg } }, { !isActive }) { batcher.add(it) }
+                onMain { batcher.flush(); status.value = "${found.size} resultado(s)" }
+            } finally {
+                onMain { batcher.flush(); running.value = false }
+            }
+        }
+    }
+
+    fun cancel() { job?.cancel(); running.value = false; status.value = "Detenida (${results.size} resultados)" }
+}
+
+/** Estado de la lista de clases (paquetes desplegados) por origen, para que no se pliegue al volver. */
+object JavaBrowserState {
+    val expanded = HashMap<String, androidx.compose.runtime.snapshots.SnapshotStateList<String>>()
+    fun expandedFor(source: File) = expanded.getOrPut(source.absolutePath) { mutableStateListOf() }
+}

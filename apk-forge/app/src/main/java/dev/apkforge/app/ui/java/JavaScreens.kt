@@ -119,7 +119,7 @@ fun JavaBrowserScreen(source: File, onBack: () -> Unit, onOpenClass: (String) ->
                         Tab(tab == 0, { tab = 0 }, text = { Text("Clases (${s.classes.size})") })
                         Tab(tab == 1, { tab = 1 }, text = { Text("Buscar en código") })
                     }
-                    if (tab == 0) ClassList(s, onOpenClass) else CodeSearch(s, onOpenClass)
+                    if (tab == 0) ClassList(source, s, onOpenClass) else CodeSearch(source, s, onOpenClass)
                 }
             }
         }
@@ -132,9 +132,9 @@ private sealed interface Node {
 }
 
 @Composable
-private fun ClassList(session: JavaDecompiler, onOpenClass: (String) -> Unit) {
+private fun ClassList(source: File, session: JavaDecompiler, onOpenClass: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val expanded = remember { mutableStateListOf<String>() }
+    val expanded = remember(source) { dev.apkforge.app.core.JavaBrowserState.expandedFor(source) }
     val byPackage = remember(session) { session.classes.groupBy { it.packageName.ifEmpty { "(sin paquete)" } }.toSortedMap() }
 
     val nodes: List<Node> = remember(query, expanded.toList(), byPackage) {
@@ -191,13 +191,14 @@ private fun ClassList(session: JavaDecompiler, onOpenClass: (String) -> Unit) {
 }
 
 @Composable
-private fun CodeSearch(session: JavaDecompiler, onOpenClass: (String) -> Unit) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var pkg by rememberSaveable { mutableStateOf("") }
-    var progress by remember { mutableStateOf<String?>(null) }
-    val results = remember { mutableStateListOf<Triple<String, Int, String>>() }
-    val scope = rememberCoroutineScope()
-    var job by remember { mutableStateOf<Job?>(null) }
+private fun CodeSearch(source: File, session: JavaDecompiler, onOpenClass: (String) -> Unit) {
+    val store = dev.apkforge.app.core.JavaSearchStore
+    val same = store.source == source
+    var query by rememberSaveable { mutableStateOf(if (same) store.query else "") }
+    var pkg by rememberSaveable { mutableStateOf(if (same) store.pkg else "") }
+    val running by store.running
+    val progress by store.status
+    val results = if (same) store.results else emptyList()
 
     Column {
         Column(Modifier.padding(12.dp)) {
@@ -208,31 +209,21 @@ private fun CodeSearch(session: JavaDecompiler, onOpenClass: (String) -> Unit) {
                 placeholder = { Text("Solo en paquete (opcional, p. ej. com.app)") })
             Spacer(Modifier.size(8.dp))
             Row {
-                Button(enabled = query.isNotBlank() && job?.isActive != true, onClick = {
-                    results.clear()
-                    job = scope.launch {
-                        val found = withContext(Workers.dispatcher) {
-                            session.searchCode(query, 300, pkg.ifBlank { null }, { progress = it }, { !isActive }) { hit ->
-                                android.os.Handler(android.os.Looper.getMainLooper()).post { results.add(hit) }
-                            }
-                        }
-                        progress = "${found.size} resultado(s)"
-                    }
-                }) { Text("Buscar") }
-                if (job?.isActive == true) TextButton(onClick = { job?.cancel(); progress = "Cancelado" }) { Text("Cancelar") }
+                Button(enabled = query.isNotBlank() && !running, onClick = { store.start(source, session, query, pkg) }) { Text("Buscar") }
+                if (running) TextButton(onClick = { store.cancel() }) { Text("Detener") }
             }
-            progress?.let {
+            if (same) progress?.let {
                 Spacer(Modifier.size(6.dp))
-                if (job?.isActive == true) LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (running) LinearProgressIndicator(Modifier.fillMaxWidth())
                 Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
-                "Decompila cada clase para buscar: en apps grandes puede tardar. Filtra por paquete para ir más rápido.",
+                "Los resultados salen mientras busca y se quedan al abrir una clase y volver. Filtra por paquete para ir más rápido.",
                 fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         LazyColumn(Modifier.fillMaxSize()) {
-            items(results) { (cls, line, text) ->
+            items(results.toList()) { (cls, line, text) ->
                 Column(Modifier.fillMaxWidth().clickable { onOpenClass(cls) }.padding(horizontal = 14.dp, vertical = 8.dp)) {
                     Text("$cls:$line", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontFamily = Mono)
                     Text(text, fontSize = 12.sp, fontFamily = Mono, maxLines = 2, overflow = TextOverflow.Ellipsis)
