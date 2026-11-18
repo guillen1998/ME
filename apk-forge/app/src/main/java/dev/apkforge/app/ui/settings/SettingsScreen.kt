@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -104,6 +105,8 @@ fun SettingsScreen(onBack: () -> Unit) {
                     "Una app recompilada lleva otra firma: para instalarla encima de la original, primero desinstala la original.",
                     fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Spacer(Modifier.size(8.dp))
+                SignatureFingerprint(p)
             }
 
             SectionCard("Agente IA") {
@@ -362,5 +365,49 @@ private fun ReasonerSection() {
             }
         }, modifier = Modifier.padding(top = 6.dp)) { Text(if (testing) "Razonando…" else "Probar razonamiento") }
         test?.let { Text(it, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp)) }
+    }
+}
+
+
+/** Muestra el SHA-256 de tu firma — el valor que tu servidor debe aceptar (si tu app valida la firma). */
+@Composable
+private fun SignatureFingerprint(p: dev.apkforge.app.core.Prefs) {
+    var info by remember { mutableStateOf<dev.apkforge.engine.ApkSigning.CertInfo?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val clip = androidx.compose.ui.platform.LocalClipboardManager.current
+    Text("Mantener la firma original", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+    Text("Una firma NO se puede “mantener” en un APK modificado: la firma sella el contenido exacto, así que al cambiar algo se invalida. " +
+        "La única forma de que sea la MISMA firma es volver a firmar con TU keystore original (el que usaste para publicar). " +
+        "Si no lo tienes, la firma será distinta y, si TU servidor la valida, registra la nueva huella (de abajo) en tu servidor.",
+        fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 4.dp))
+    OutlinedButton(enabled = !busy, onClick = {
+        busy = true; error = null
+        scope.launch {
+            val r = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { dev.apkforge.engine.ApkSigning.fingerprint(p.signingConfig()) } }
+            r.onSuccess { info = it }.onFailure { error = it.message }
+            busy = false
+        }
+    }) { Text(if (busy) "Calculando…" else "Ver huella de mi firma (SHA-256)", fontSize = 13.sp) }
+    error?.let { Text("✗ $it", fontSize = 12.sp, color = dev.apkforge.app.ui.Danger) }
+    info?.let { c ->
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+            Column(Modifier.padding(10.dp)) {
+                Text("Si TU app o TU servidor validan la firma, este es el valor que deben aceptar:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                androidx.compose.foundation.text.selection.SelectionContainer {
+                    Text(c.sha256Plain, fontFamily = dev.apkforge.app.ui.Mono, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp))
+                }
+                Text("Con dos puntos: ${c.sha256}", fontFamily = dev.apkforge.app.ui.Mono, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                Text("SHA-1: ${c.sha1}", fontFamily = dev.apkforge.app.ui.Mono, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text("Certificado: ${c.subject}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Row(Modifier.padding(top = 4.dp)) {
+                    TextButton(onClick = { clip.setText(androidx.compose.ui.text.AnnotatedString(c.sha256Plain)) }) { Text("Copiar SHA-256") }
+                }
+                Text("Nota: si firmas con tu keystore ORIGINAL, esta huella será la misma que la del APK publicado y tu servidor la aceptará sin cambios.",
+                    fontSize = 11.sp, color = dev.apkforge.app.ui.AccentWarm, modifier = Modifier.padding(top = 2.dp))
+            }
+        }
     }
 }

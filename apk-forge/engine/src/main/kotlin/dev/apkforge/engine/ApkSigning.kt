@@ -69,6 +69,29 @@ object ApkSigning {
         return output
     }
 
+    /** Huellas del certificado de firma: lo que apps/servidores comparan (p. ej. la cabecera X-App-Signature-SHA256). */
+    data class CertInfo(val sha256: String, val sha256Plain: String, val sha1: String, val md5: String, val subject: String, val validUntil: String)
+
+    private fun info(cert: X509Certificate): CertInfo {
+        fun digest(alg: String): String {
+            val d = java.security.MessageDigest.getInstance(alg).digest(cert.encoded)
+            return d.joinToString(":") { "%02X".format(it) }
+        }
+        val sha256 = digest("SHA-256")
+        return CertInfo(sha256, sha256.replace(":", "").lowercase(), digest("SHA-1"), digest("MD5"),
+            cert.subjectX500Principal.name, cert.notAfter.toString())
+    }
+
+    /** Huella de la firma con la que ApkForge exportará (keystore propio o clave de prueba). */
+    fun fingerprint(config: SigningConfig): CertInfo = info(load(config).second.first())
+
+    /** Huella de la firma de un APK YA firmado (para comparar el original con el modificado). */
+    fun fingerprintOf(apk: File): CertInfo? = runCatching {
+        val result = com.android.apksig.ApkVerifier.Builder(apk).build().verify()
+        val cert = result.signerCertificates.firstOrNull() ?: return null
+        info(cert)
+    }.getOrNull()
+
     private fun load(config: SigningConfig): Pair<PrivateKey, List<X509Certificate>> = when (config) {
         is SigningConfig.TestKey -> {
             fun res(n: String) = ApkSigning::class.java.getResourceAsStream("/dev/apkforge/engine/$n")
