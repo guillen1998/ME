@@ -141,7 +141,7 @@ object ScanStore {
 // ---------------------------------------------------------------- Agente IA
 
 sealed class AgentMsg {
-    data class User(val text: String, val images: List<ByteArray> = emptyList()) : AgentMsg()
+    data class User(val text: String, val images: List<ByteArray> = emptyList(), val files: List<String> = emptyList()) : AgentMsg()
     data class Assistant(val text: String) : AgentMsg()
     data class Tool(val tool: String, val summary: String, val result: String? = null, val error: Boolean = false) : AgentMsg()
     data class Info(val text: String, val error: Boolean) : AgentMsg()
@@ -232,25 +232,27 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
      * Envía un mensaje. Antes, la APP prepara el trabajo: analiza las imágenes (visión) y busca en
      * el proyecto los archivos relacionados; todo eso se le entrega a la IA junto con tu mensaje.
      */
-    fun send(text: String, images: List<ByteArray> = emptyList(), project: File? = null, display: String? = null) {
+    fun send(text: String, images: List<ByteArray> = emptyList(), project: File? = null, display: String? = null,
+             attachments: List<dev.apkforge.engine.FileAnalyst.Attachment> = emptyList()) {
         val a = agent ?: return
         if (running.value) return
         // Si la conversación se recuperó del disco y escribes sin pulsar "Reanudar", la IA recibe igual el contexto
         val toAgent = if (needsResume.value && display == null)
             dev.apkforge.engine.ChatHistory.resumeContext(toSaved(), false) + "\n\nNUEVO PEDIDO DEL USUARIO (atiéndelo ahora):\n" + text else text
         needsResume.value = false; interrupted.value = false
-        messages += AgentMsg.User(display ?: text, images)
+        messages += AgentMsg.User(display ?: text, images, attachments.map { it.name })
         running.value = true
         persist()
         BackgroundService.ensureRunning()
         job = AppScope.scope.launch {
             try {
                 val prep = dev.apkforge.engine.MessagePreparer.prepare(project, toAgent, images,
-                    dev.apkforge.engine.VisionAi.endpoints, ProgressListener { msg -> onMain { status.value = msg } })
+                    dev.apkforge.engine.VisionAi.endpoints, ProgressListener { msg -> onMain { status.value = msg } }, attachments)
                 onMain {
                     status.value = null
                     val parts = buildList {
                         if (prep.imageNotes != null) add("leí ${images.size} imagen(es)")
+                        if (attachments.isNotEmpty()) add("analicé ${attachments.size} archivo(s): " + attachments.joinToString { it.name }.take(80))
                         if (prep.related.isNotEmpty()) add("encontré ${prep.related.size} archivo(s) relacionado(s): " +
                             prep.related.map { it.path.substringAfterLast('/') }.distinct().take(4).joinToString(", "))
                         prep.thought?.let { t ->

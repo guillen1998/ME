@@ -28,6 +28,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.PlayArrow
@@ -198,6 +200,11 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     val picker = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(4)
     ) { uris -> uris.forEach { u -> loadImage(appCtx, u)?.let { pendingImages += it } } }
+    // Archivos (de cualquier tipo) para que la app los analice y se los dé a la IA
+    val pendingFiles = remember { androidx.compose.runtime.mutableStateListOf<dev.apkforge.engine.FileAnalyst.Attachment>() }
+    val filePicker = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris -> uris.take(5).forEach { u -> loadFile(appCtx, u)?.let { if (pendingFiles.none { f -> f.name == it.name }) pendingFiles += it } } }
     val isProject = dev.apkforge.engine.ApkProject.isProject(target)
 
     if (showHistory) ChatHistoryDialog(AgentStore.chatFile(key), running, onDismiss = { showHistory = false }) { chat ->
@@ -208,10 +215,11 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     }
 
     fun send() {
-        val text = input.trim().ifEmpty { if (pendingImages.isNotEmpty()) "Analiza esta imagen." else defaultPrompt(preset) }
+        val text = input.trim().ifEmpty {
+            if (pendingImages.isNotEmpty()) "Analiza esta imagen." else if (pendingFiles.isNotEmpty()) "Analiza este archivo y dime qué es y qué contiene." else defaultPrompt(preset) }
         input = ""
-        session.send(text, pendingImages.toList(), if (isProject) target else null)
-        pendingImages.clear()
+        session.send(text, pendingImages.toList(), if (isProject) target else null, attachments = pendingFiles.toList())
+        pendingImages.clear(); pendingFiles.clear()
     }
 
     Scaffold(
@@ -325,10 +333,20 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                     }
                 }
             }
+            if (pendingFiles.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                pendingFiles.forEachIndexed { i, f ->
+                    AssistChip(onClick = { pendingFiles.removeAt(i) },
+                        leadingIcon = { Icon(Icons.Default.InsertDriveFile, null, Modifier.size(16.dp)) },
+                        label = { Text(f.name + "  ×", fontSize = 12.sp, maxLines = 1) })
+                }
+            }
             Row(Modifier.padding(8.dp).fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                 IconButton(onClick = {
                     picker.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }, enabled = ready && !running) { Icon(Icons.Default.AddPhotoAlternate, "Adjuntar imagen", tint = AccentWarm) }
+                IconButton(onClick = { runCatching { filePicker.launch(arrayOf("*/*")) } },
+                    enabled = ready && !running) { Icon(Icons.Default.AttachFile, "Adjuntar archivo", tint = Accent) }
                 OutlinedTextField(input, { input = it }, modifier = Modifier.weight(1f), enabled = ready, maxLines = 4,
                     placeholder = { Text(if (preset == AgentPreset.CHAT) "Pregunta algo…" else "Escribe o pulsa enviar para empezar") })
                 Spacer(Modifier.size(6.dp))
@@ -410,6 +428,9 @@ private fun MessageBubble(m: AgentMsg) {
         is AgentMsg.User -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth(0.85f)) {
                 Column(Modifier.padding(12.dp)) {
+                    if (m.files.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 4.dp).horizontalScroll(rememberScrollState())) {
+                        m.files.take(6).forEach { AssistChip(onClick = {}, leadingIcon = { Icon(Icons.Default.InsertDriveFile, null, Modifier.size(14.dp)) }, label = { Text(it, fontSize = 11.sp, maxLines = 1) }) }
+                    }
                     if (m.images.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
                         m.images.take(4).forEach { Thumb(it, 72) }
                     }
@@ -448,6 +469,18 @@ private val quickTasks = listOf(
 )
 
 /** Lee una imagen elegida y la reduce (máx. 1280 px, JPEG) para enviarla rápido. */
+/** Lee un archivo subido (máx. 20 MB) para que la app lo analice y se lo prepare a la IA. */
+private fun loadFile(ctx: android.content.Context, uri: android.net.Uri): dev.apkforge.engine.FileAnalyst.Attachment? = runCatching {
+    val name = runCatching {
+        ctx.contentResolver.query(uri, null, null, null, null)?.use { c ->
+            val idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (idx >= 0 && c.moveToFirst()) c.getString(idx) else null
+        }
+    }.getOrNull() ?: uri.lastPathSegment?.substringAfterLast('/') ?: "archivo"
+    val bytes = ctx.contentResolver.openInputStream(uri)!!.use { it.readNBytes(20 * 1024 * 1024) }
+    dev.apkforge.engine.FileAnalyst.Attachment(name, bytes)
+}.getOrNull()
+
 private fun loadImage(ctx: android.content.Context, uri: android.net.Uri): ByteArray? = runCatching {
     val raw = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
     val bmp = android.graphics.BitmapFactory.decodeByteArray(raw, 0, raw.size) ?: return@runCatching raw

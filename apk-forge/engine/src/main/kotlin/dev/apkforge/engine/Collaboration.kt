@@ -293,8 +293,14 @@ object MessagePreparer {
     fun prepare(
         project: File?, userText: String, images: List<ByteArray>,
         visionEndpoints: List<AiEndpoint> = VisionAi.endpoints, listener: ProgressListener = ProgressListener.NONE,
+        attachments: List<FileAnalyst.Attachment> = emptyList(),
     ): Prepared {
         var notes: String? = null
+        // Archivos subidos (no imágenes): la app los analiza y le da a la IA el texto o un resumen
+        val fileNotes = if (attachments.isNotEmpty()) {
+            listener.onProgress("La app analiza ${attachments.size} archivo(s) adjunto(s)…")
+            runCatching { FileAnalyst.analyzeAll(attachments) }.getOrNull()
+        } else null
         if (images.isNotEmpty()) {
             listener.onProgress("La app analiza ${images.size} imagen(es)…")
             notes = runCatching { VisionAi.describe(images, userText, visionEndpoints) }.getOrElse { "(No se pudo analizar la imagen: ${it.message})" }
@@ -335,6 +341,7 @@ object MessagePreparer {
         val text = buildString {
             append(userText)
             notes?.let { appendLine(); appendLine(); appendLine("IMÁGENES ADJUNTAS (analizadas por la app):"); appendLine(it) }
+            fileNotes?.let { appendLine(); appendLine(); append(it) }
             if (related.isNotEmpty()) { appendLine(); appendLine(); append(ContextFinder.format(related)) }
             thought?.format()?.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }
             deobfCtx.takeIf { it.isNotBlank() }?.let { appendLine(); appendLine(); append(it) }

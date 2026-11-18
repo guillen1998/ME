@@ -77,10 +77,14 @@ object BinaryTools {
      * como `strings -a`. [minLen] es el largo mínimo.
      */
     fun strings(file: File, minLen: Int = 4, limit: Int = 200_000): List<String> {
-        val out = ArrayList<String>(4096)
         val bytes = if (file.length() <= 64L * 1024 * 1024) file.readBytes()
         else file.inputStream().use { it.readNBytes(64 * 1024 * 1024) }
+        return stringsBytes(bytes, minLen, limit)
+    }
 
+    /** Cadenas legibles (ASCII + UTF-16LE) de unos bytes en memoria. */
+    fun stringsBytes(bytes: ByteArray, minLen: Int = 4, limit: Int = 200_000): List<String> {
+        val out = ArrayList<String>(4096)
         // ASCII
         val sb = StringBuilder()
         for (b in bytes) {
@@ -109,6 +113,29 @@ object BinaryTools {
         val dex = DexBackedDexFile(Opcodes.getDefault(), file.readBytes())
         dex.stringReferences.map { it.string }
     }.getOrElse { strings(file) }
+
+    fun dexStringsBytes(bytes: ByteArray): List<String> = runCatching {
+        DexBackedDexFile(Opcodes.getDefault(), bytes).stringReferences.map { it.string }
+    }.getOrElse { stringsBytes(bytes) }
+
+    /** Vuelco hex de unos bytes en memoria. */
+    fun hexDumpBytes(bytes: ByteArray, offset: Int = 0, length: Int = 64 * 1024): String {
+        val sb = StringBuilder()
+        val end = minOf(bytes.size, offset + length)
+        var i = offset
+        while (i < end) {
+            sb.append("%08X  ".format(i))
+            val row = minOf(16, end - i)
+            for (j in 0 until 16) {
+                if (j < row) sb.append("%02X ".format(bytes[i + j])) else sb.append("   ")
+                if (j == 7) sb.append(' ')
+            }
+            sb.append(" |")
+            for (j in 0 until row) { val c = bytes[i + j].toInt() and 0xFF; sb.append(if (c in 0x20..0x7E) c.toChar() else '.') }
+            sb.append("|\n"); i += 16
+        }
+        return sb.toString()
+    }
 
     /** Vuelco hexadecimal clásico: offset | 16 bytes hex | ASCII. */
     fun hexDump(file: File, offset: Long = 0, length: Int = 64 * 1024): String {
