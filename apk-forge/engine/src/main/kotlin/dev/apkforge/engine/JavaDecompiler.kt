@@ -76,7 +76,10 @@ class JavaDecompiler private constructor(
         val list = jadx.classes.filter { packageFilter == null || it.fullName.startsWith(packageFilter) }
         for ((i, cls) in list.withIndex()) {
             if (isCancelled() || out.size >= limit) break
-            if (i % 50 == 0) listener.onProgress("Buscando… ${i}/${list.size}")
+            if (i % 50 == 0) {
+                listener.onProgress("Buscando… ${i}/${list.size}")
+                listener.onPercent((i * 100L / list.size.coerceAtLeast(1)).toInt())
+            }
             val code = runCatching { cls.code }.getOrNull() ?: continue
             code.lineSequence().forEachIndexed { n, line ->
                 if (out.size < limit && line.contains(text, ignoreCase = true)) out += Triple(cls.fullName, n + 1, line.trim())
@@ -86,16 +89,41 @@ class JavaDecompiler private constructor(
         return out
     }
 
-    /** Exporta todo el código fuente Java a una carpeta. */
+    /** Exporta todo el código fuente Java a una carpeta (solo código; los recursos van por ARSCLib). */
     fun exportAll(outDir: File, listener: ProgressListener = ProgressListener.NONE) {
-        jadx.args.outDir = outDir
-        jadx.args.setOutDirSrc(File(outDir, "sources"))
-        jadx.args.setOutDirRes(File(outDir, "resources"))
-        // Los recursos los decodifica ARSCLib; el decodificador 9-patch de jadx usa AWT (no existe en Android).
-        jadx.args.setSkipResources(true)
-        jadx.save(500) { done, total -> listener.onProgress("Exportando Java… $done/$total") }
+        exportSourcesTo(File(outDir, "sources"), File(outDir, "resources"), listener)
         listener.onProgress("✔ Exportado en ${outDir.absolutePath}")
     }
+
+    /** Escribe las fuentes Java en [srcDir]. Solo código: el 9-patch de jadx usa AWT (no hay en Android). */
+    fun exportSourcesTo(srcDir: File, resDir: File = File(srcDir.parentFile, "res"), listener: ProgressListener = ProgressListener.NONE) {
+        jadx.args.outDir = srcDir.parentFile
+        jadx.args.setOutDirSrc(srcDir)
+        jadx.args.setOutDirRes(resDir)
+        jadx.args.setSkipResources(true)
+        jadx.save(400) { done, total ->
+            listener.onProgress("Exportando Java… $done/$total")
+            if (total > 0) listener.onPercent(10 + (done * 90L / total).toInt())
+        }
+    }
+
+    /** Firma legible de cada método: `tipo nombre(argumentos)`. */
+    fun methods(fullName: String): List<String> = runCatching {
+        find(fullName).methods.map { m ->
+            val args = m.arguments.joinToString(", ") { it.toString().substringAfterLast('.') }
+            "${m.returnType.toString().substringAfterLast('.')} ${m.name}($args)"
+        }
+    }.getOrDefault(emptyList())
+
+    /** Referencias cruzadas: en qué otras clases se usa esta clase (quién depende de ella). */
+    fun usedIn(fullName: String): List<String> = runCatching {
+        find(fullName).useIn.map { it.fullName }.distinct().sorted()
+    }.getOrDefault(emptyList())
+
+    /** De qué otras clases depende esta (a qué código llama). */
+    fun dependencies(fullName: String): List<String> = runCatching {
+        find(fullName).dependencies.map { it.fullName }.distinct().sorted()
+    }.getOrDefault(emptyList())
 
     override fun close() = jadx.close()
 
@@ -145,13 +173,15 @@ class JavaDecompiler private constructor(
                 )
                 threadsCount = options.threads
                 setSkipFilesSave(false)
+                // Parser XML compatible con Android (el de jadx revienta en el móvil).
+                security = AndroidJadxSecurity()
             }
             val jadx = JadxDecompiler(args)
             try {
                 jadx.load()
             } catch (e: Throwable) {
                 runCatching { jadx.close() }
-                throw EngineException("No se pudo cargar para Java: ${e.message}", e)
+                throw EngineException("No se pudo cargar para Java: ${describe(e)}", e)
             }
             listener.onProgress("✔ ${jadx.classes.size} clases cargadas")
             return JavaDecompiler(jadx, options.hideKotlinMetadata)

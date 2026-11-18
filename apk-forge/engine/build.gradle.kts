@@ -25,6 +25,8 @@ dependencies {
     // Decompilador a Java legible
     api("io.github.skylot:jadx-core:1.5.3")
     api("io.github.skylot:jadx-dex-input:1.5.3")
+    // SDK oficial de Claude (agentes de IA)
+    api("com.anthropic:anthropic-java:3.9.0")
 
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")

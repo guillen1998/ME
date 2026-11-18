@@ -6,6 +6,9 @@ import java.io.File
 fun interface ProgressListener {
     fun onProgress(message: String)
 
+    /** Avance total de la operación, 0..100 (opcional). */
+    fun onPercent(percent: Int) {}
+
     companion object {
         val NONE = ProgressListener { }
     }
@@ -36,4 +39,21 @@ internal fun fingerprint(dir: File): String {
         if (it.lastModified() > newest) newest = it.lastModified()
     }
     return "$count:$size:$newest"
+}
+
+/** Mensaje útil aunque la excepción no traiga texto (p. ej. NoClassDefFoundError → muestra la causa raíz). */
+fun describe(t: Throwable): String {
+    var root: Throwable = t
+    while (root.cause != null && root.cause !== root) root = root.cause!!
+    val head = t.message?.takeIf { it.isNotBlank() } ?: t.javaClass.simpleName
+    return if (root === t) head else "$head ← ${root.javaClass.simpleName}: ${root.message ?: ""}".trimEnd(' ', ':')
+}
+
+/** Reparte un rango de porcentaje [from, to] entre sub-pasos. */
+internal class PercentRange(private val l: ProgressListener, private val from: Int, private val to: Int) {
+    private var last = -1
+    fun at(fraction: Double) {
+        val p = (from + (to - from) * fraction.coerceIn(0.0, 1.0)).toInt()
+        if (p != last) { last = p; l.onPercent(p) }
+    }
 }

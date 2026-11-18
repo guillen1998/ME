@@ -64,6 +64,7 @@ object ApkSigning {
                 tmp.copyTo(output, overwrite = true); tmp.delete()
             }
         }
+        listener.onPercent(100)
         listener.onProgress("✔ Firmado: ${output.name}")
         return output
     }
