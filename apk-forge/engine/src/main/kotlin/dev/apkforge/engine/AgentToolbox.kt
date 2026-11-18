@@ -453,13 +453,17 @@ class AgentToolbox(
         }
         "replace_in_file" -> {
             if (!allowEdits) throw EngineException("Edición desactivada")
-            val f = resolve(a["path"] as String)
+            val f = fileArg(a["path"] as? String)
             val text = f.readText()
             val old = a["old"] as String
-            val count = Regex(Regex.escape(old)).findAll(text).count()
-            if (count != 1) throw EngineException("El fragmento aparece $count veces; debe aparecer exactamente una")
+            val new = a["new"] as String
+            val exact = Regex(Regex.escape(old)).findAll(text).count()
+            val after = when {
+                exact == 1 -> text.replace(old, new)                               // coincidencia exacta
+                exact > 1 -> throw EngineException("El fragmento aparece $exact veces; debe aparecer exactamente una. Incluye más líneas alrededor para que sea único.")
+                else -> replaceByLines(text, old, new) ?: throw EngineException(noMatchHelp(text, old))
+            }
             backup(f)
-            val after = text.replace(old, a["new"] as String)
             f.writeText(after)
             ChangeLog.record(f, text, after, "IA", "replace_in_file")
             "Reemplazado en ${f.name}" + xmlWarn(f)
@@ -489,6 +493,32 @@ class AgentToolbox(
         f.parentFile?.mkdirs()
         f.writeBytes(bytes)
         return "Guardado en ${f.name} (${bytes.size} bytes)\n"
+    }
+
+    /** Reemplazo tolerante a espacios: compara por líneas ignorando espacios finales/indentación extra. */
+    private fun replaceByLines(text: String, old: String, new: String): String? {
+        fun norm(l: String) = l.trim()
+        val tl = text.split("\n"); val ol = old.trim('\n').split("\n")
+        if (ol.isEmpty() || ol.all { it.isBlank() }) return null
+        val tn = tl.map { norm(it) }; val on = ol.map { norm(it) }
+        val starts = (0..tl.size - ol.size).filter { i -> (on.indices).all { tn[i + it] == on[it] } }
+        if (starts.size != 1) return null
+        val i = starts[0]
+        // conserva la indentación real de la primera línea original para las nuevas líneas
+        val indent = tl[i].takeWhile { it == ' ' || it == '\t' }
+        val newLines = new.trim('\n').split("\n").mapIndexed { k, l -> if (k == 0 || l.isBlank()) l else if (l.startsWith(" ") || l.startsWith("\t")) l else indent + l }
+        return (tl.subList(0, i) + newLines + tl.subList(i + ol.size, tl.size)).joinToString("\n")
+    }
+
+    /** Mensaje de ayuda cuando no se encuentra el fragmento: muestra la línea más parecida. */
+    private fun noMatchHelp(text: String, old: String): String {
+        val first = old.trim('\n').lineSequence().firstOrNull { it.isNotBlank() }?.trim() ?: ""
+        val lines = text.split("\n")
+        val near = lines.withIndex().filter { (_, l) -> first.length > 4 && l.contains(first.take(20)) }.take(3)
+        return "El fragmento no aparece en el archivo (ni ignorando espacios). " +
+            (if (near.isNotEmpty()) "¿Querías alguna de estas líneas?\n" + near.joinToString("\n") { "  ${it.index + 1}: ${it.value.trim()}" } +
+                "\nUsa read_file para copiar el texto EXACTO antes de reemplazar."
+             else "Usa read_file para ver el contenido actual y copiar el texto exacto.")
     }
 
     private fun backup(f: File) {

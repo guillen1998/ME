@@ -244,9 +244,13 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
         running.value = true
         persist()
         BackgroundService.ensureRunning()
+        // "sigue", "continúa", "ok"… = continuar la MISMA tarea: no repetir todo el análisis (ahorra recursos)
+        val isContinuation = images.isEmpty() && attachments.isEmpty() && display == null &&
+            text.trim().length <= 24 && Regex("(?i)^(sigue|continu[ae]r?|dale|ok|okay|listo|s[ií]|perfecto|bien|adelante|prosigue|vale)[.! ]*$").matches(text.trim())
         job = AppScope.scope.launch {
             try {
-                val prep = dev.apkforge.engine.MessagePreparer.prepare(project, toAgent, images,
+                val prep = if (isContinuation) dev.apkforge.engine.MessagePreparer.Prepared(toAgent, null, emptyList())
+                    else dev.apkforge.engine.MessagePreparer.prepare(project, toAgent, images,
                     dev.apkforge.engine.VisionAi.endpoints, ProgressListener { msg -> onMain { status.value = msg } }, attachments)
                 onMain {
                     status.value = null

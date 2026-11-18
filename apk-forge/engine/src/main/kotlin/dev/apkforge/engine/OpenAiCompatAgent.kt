@@ -128,17 +128,50 @@ class OpenAiCompatAgent(
         while (messages.size() > 1) messages.remove(messages.size() - 1)
     }
 
+    /**
+     * VENTANA DE CONTEXTO: la IA recuerda la tarea, pero no reenviamos millones de tokens cada vez.
+     * Los resultados de herramientas ANTIGUOS (volcados de archivos, búsquedas) se recortan a un
+     * resumen; así continúa donde quedó sin gastar recursos ni repetir trabajo. El system y los
+     * mensajes recientes se mantienen completos.
+     */
+    private fun trimContext(budgetChars: Int = 220_000, keepRecent: Int = 8) {
+        fun len(o: JsonObject) = o.get("content")?.takeIf { it.isJsonPrimitive }?.asString?.length ?: 0
+        // 1) recorta resultados de herramientas que ya no son recientes
+        val lastIdx = messages.size() - 1
+        for (i in 1..lastIdx) {
+            val m = messages[i].asJsonObject
+            if (m.get("role")?.asString == "tool" && i < lastIdx - keepRecent) {
+                val c = m.get("content")?.asString ?: continue
+                if (c.length > 1200) m.addProperty("content", c.take(600) + "\n…[resultado recortado para ahorrar contexto: ${c.length} car.]…\n" + c.takeLast(300))
+            }
+        }
+        // 2) si aún es enorme, elimina los mensajes más antiguos (menos el system), por pares
+        var total = (0 until messages.size()).sumOf { len(messages[it].asJsonObject) }
+        while (total > budgetChars && messages.size() > keepRecent + 2) {
+            // no dejar un 'tool' huérfano sin su 'assistant' con tool_calls: quita desde el índice 1
+            val removed = messages[1].asJsonObject
+            total -= len(removed)
+            messages.remove(1)
+            // si el siguiente es un 'tool' colgado, quítalo también
+            while (messages.size() > 2 && messages[1].asJsonObject.get("role")?.asString == "tool") {
+                total -= len(messages[1].asJsonObject); messages.remove(1)
+            }
+        }
+    }
+
     override fun send(userText: String, isCancelled: () -> Boolean) {
         messages.add(JsonObject().apply { addProperty("role", "user"); addProperty("content", userText) })
         var inTok = 0L; var outTok = 0L
+        var continues = 0
         try {
             for (turn in 0 until maxTurns) {
                 if (isCancelled()) { onEvent(AgentEvent.Error("Detenido")); break }
+                trimContext()
                 val body = JsonObject().apply {
                     add("messages", messages)
                     add("tools", toolsJson)
                     addProperty("tool_choice", "auto")
-                    addProperty("max_tokens", 8000)
+                    addProperty("max_tokens", 16000)
                 }
                 val resp = post(body)
                 resp.getAsJsonObject("usage")?.let {
@@ -159,7 +192,13 @@ class OpenAiCompatAgent(
                     if (calls != null && calls.size() > 0) add("tool_calls", calls)
                 })
                 if (calls == null || calls.size() == 0) {
-                    if (choice.get("finish_reason")?.asString == "length") onEvent(AgentEvent.Error("Respuesta cortada por longitud. Pide que continúe."))
+                    // Si el modelo se cortó por longitud, el agente le pide que siga solo (hasta 4 veces)
+                    if (choice.get("finish_reason")?.asString == "length" && continues < 4) {
+                        continues++
+                        onEvent(AgentEvent.Text("… (continúa)"))
+                        messages.add(JsonObject().apply { addProperty("role", "user"); addProperty("content", "Continúa exactamente desde donde te cortaste, sin repetir lo ya escrito.") })
+                        continue
+                    }
                     break
                 }
                 for (c in calls) {
