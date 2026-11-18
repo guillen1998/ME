@@ -177,6 +177,15 @@ object ApkProject {
                 unsigned.delete()
             }
         }
+        // Informe de cambios junto al APK, para saber qué entró en esta versión.
+        runCatching {
+            val pending = ChangeLog.sinceLastExport(projectDir).size
+            val all = ChangeLog.all(projectDir)
+            File(outApk.parentFile, outApk.nameWithoutExtension + "_cambios.txt").writeText(ChangeLog.report(projectDir, all))
+            ChangeLog.markExported(projectDir)
+            listener.onProgress(if (all.isEmpty()) "⚠ Sin cambios registrados: el APK es igual al original (solo re-firmado)"
+                else "Incluye ${all.size} cambio(s) (${pending} nuevo(s) desde la última exportación) · informe: ${outApk.nameWithoutExtension}_cambios.txt")
+        }
         listener.onPercent(100)
         listener.onProgress("✔ APK generado: ${outApk.absolutePath} (${outApk.length() / 1024} KB)")
         return outApk

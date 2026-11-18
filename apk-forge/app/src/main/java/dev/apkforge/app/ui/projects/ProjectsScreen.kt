@@ -1,6 +1,9 @@
 package dev.apkforge.app.ui.projects
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,6 +89,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
     var refresh by remember { mutableIntStateOf(0) }
     var exportFor by remember { mutableStateOf<ProjectInfo?>(null) }
     var deleteFor by remember { mutableStateOf<ProjectInfo?>(null) }
+    var reportFor by remember { mutableStateOf<ProjectInfo?>(null) }
     val projects by produceState<List<ProjectInfo>?>(null, refresh) {
         value = withContext(Workers.dispatcher) { runCatching { ApkProject.listProjects(Workspace.projects) }.getOrDefault(emptyList()) }
     }
@@ -129,6 +133,7 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
                         onOpen = { nav.openDir(p.dir) },
                         onSearch = { nav.search(p.dir) },
                         onJava = { nav.java(p.dir) },
+                        onReport = { reportFor = p },
                         onDelete = { deleteFor = p })
                 }
                 if (studio.isNotEmpty()) {
@@ -157,11 +162,25 @@ fun ProjectsScreen(onBack: () -> Unit, nav: ProjectsNav) {
             defaultName = Workspace.exportName(p.packageName ?: p.dir.name),
             detail = "Compila “${p.dir.name}” con todos los cambios (tuyos y de la IA) y lo firma, listo para instalar y probar.",
             onDismiss = { exportFor = null },
+            project = p.dir,
         ) { out ->
             TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log ->
                 ApkProject.build(p.dir, out, BuildOptions(signing = prefs.signingConfig()), log)
             }
         }
+    }
+    reportFor?.let { p ->
+        AlertDialog(
+            onDismissRequest = { reportFor = null },
+            title = { Text("Informe de cambios") },
+            text = {
+                androidx.compose.foundation.text.selection.SelectionContainer {
+                    Text(dev.apkforge.engine.ChangeLog.report(p.dir), fontFamily = Mono, fontSize = 11.sp,
+                        modifier = Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()))
+                }
+            },
+            confirmButton = { TextButton(onClick = { reportFor = null }) { Text("Cerrar") } },
+        )
     }
     deleteFor?.let { p ->
         AlertDialog(
@@ -179,8 +198,9 @@ private val dateFmt = SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault())
 @Composable
 private fun ProjectCard(
     p: ProjectInfo, onAgent: () -> Unit, onExport: () -> Unit, onOpen: () -> Unit,
-    onSearch: () -> Unit, onJava: () -> Unit, onDelete: () -> Unit,
+    onSearch: () -> Unit, onJava: () -> Unit, onReport: () -> Unit, onDelete: () -> Unit,
 ) {
+    val changes = remember(p.dir) { dev.apkforge.engine.ChangeLog.all(p.dir) }
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.fillMaxWidth().padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -207,6 +227,10 @@ private fun ProjectCard(
                 OutlinedButton(onClick = onOpen, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Folder, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Archivos", fontSize = 12.sp) }
                 OutlinedButton(onClick = onSearch, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Search, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Buscar", fontSize = 12.sp) }
                 OutlinedButton(onClick = onJava, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Coffee, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text("Java", fontSize = 12.sp) }
+            }
+            androidx.compose.material3.TextButton(onClick = onReport) {
+                Text(if (changes.isEmpty()) "Sin cambios todavía" else "Cambios: ${changes.size} en ${changes.map { it.file }.distinct().size} archivo(s) — ver informe",
+                    fontSize = 12.sp, color = if (changes.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else AccentWarm)
             }
         }
     }

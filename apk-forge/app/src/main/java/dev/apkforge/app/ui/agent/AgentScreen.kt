@@ -87,6 +87,18 @@ import java.io.File
 fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
                 initialPreset: AgentPreset? = null, initialPrompt: String? = null, onOpenDir: (File) -> Unit = {},
                 onSwitch: (File) -> Unit = {}) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    // Carpeta dentro de un proyecto -> la raíz del proyecto. Carpeta antigua de Android Studio -> su APK original.
+    val resolved = remember(target) {
+        when {
+            target.isDirectory && dev.apkforge.engine.ApkProject.isProject(target) -> target
+            target.isDirectory -> generateSequence(target) { it.parentFile }.firstOrNull { dev.apkforge.engine.ApkProject.isProject(it) }
+                ?: dev.apkforge.engine.ApkProject.studioSource(target)?.let { m -> dev.apkforge.app.core.Workspace.findSourceApkForStudio(ctx, target, m) }
+                ?: target
+            else -> target
+        }
+    }
+    if (resolved != target) { AgentScreen(resolved, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch); return }
     val isApk = target.isFile && target.extension.equals("apk", true)
     if (!isApk) { AgentChat(target, onBack, onOpenSettings, initialPreset, initialPrompt, onOpenDir, onSwitch); return }
 
@@ -142,6 +154,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
             defaultName = dev.apkforge.app.core.Workspace.exportName(info?.packageName ?: dir.name),
             detail = "Compila “${dir.name}” con los cambios (tuyos y de la IA) y lo firma, listo para instalar y probar.",
             onDismiss = { showExport = false; exportDir = null },
+            project = dir,
         ) { out ->
             dev.apkforge.app.core.TaskRunner.run("Exportando ${out.name}", dev.apkforge.app.core.ResultKind.APK) { log ->
                 dev.apkforge.engine.ApkProject.build(dir, out, dev.apkforge.engine.BuildOptions(signing = prefs.signingConfig()), log)

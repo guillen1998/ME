@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,6 +116,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     }
                 }
                 Text(provider.help, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (provider == dev.apkforge.engine.AiProvider.BUILTIN) BuiltinModelsEditor(p)
                 Spacer(Modifier.size(6.dp))
                 val builtin = provider == dev.apkforge.engine.AiProvider.BUILTIN
                 if (!builtin && provider != dev.apkforge.engine.AiProvider.CLAUDE) {
@@ -186,5 +188,60 @@ fun SettingsScreen(onBack: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+
+/** Lista de modelos de la IA integrada: activar/desactivar cada uno y añadir los tuyos. */
+@Composable
+private fun BuiltinModelsEditor(p: dev.apkforge.app.core.Prefs) {
+    var disabled by remember { mutableStateOf(p.disabledModels) }
+    var custom by remember { mutableStateOf(p.customModels) }
+    var adding by remember { mutableStateOf(false) }
+    Spacer(Modifier.size(6.dp))
+    Text("Modelos que trabajan en conjunto (si uno está ocupado, sigue el siguiente):", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+    (custom + dev.apkforge.engine.BuiltinAi.endpoints).forEach { ep ->
+        val isCustom = ep in custom
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Checkbox(ep.label !in disabled, { on ->
+                disabled = if (on) disabled - ep.label else disabled + ep.label; p.disabledModels = disabled
+            })
+            Column(Modifier.weight(1f)) {
+                Text(ep.label, fontSize = 13.sp)
+                Text(ep.baseUrl.removePrefix("https://").substringBefore('/') + (if (isCustom) " · tuyo" else ""),
+                    fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (isCustom) androidx.compose.material3.TextButton(onClick = { custom = custom - ep; p.customModels = custom }) { Text("Quitar") }
+        }
+    }
+    androidx.compose.material3.OutlinedButton(onClick = { adding = true }) { Text("+ Añadir modelo") }
+
+    if (adding) {
+        var name by remember { mutableStateOf("") }
+        var url by remember { mutableStateOf("https://") }
+        var model by remember { mutableStateOf("") }
+        var key by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { adding = false },
+            title = { Text("Añadir modelo") },
+            text = {
+                Column {
+                    Text("Cualquier API compatible con OpenAI (/v1/chat/completions) que admita herramientas.", fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(url, { url = it.trim() }, label = { Text("URL base (…/v1)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(model, { model = it.trim() }, label = { Text("Modelo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(key, { key = it.trim() }, label = { Text("Clave (opcional)") }, singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(enabled = url.length > 10 && model.isNotBlank(), onClick = {
+                    custom = custom + dev.apkforge.engine.AiEndpoint(url, key, model, name.ifBlank { model })
+                    p.customModels = custom; adding = false
+                }) { Text("Añadir") }
+            },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { adding = false }) { Text("Cancelar") } },
+        )
     }
 }

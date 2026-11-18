@@ -177,6 +177,24 @@ class Prefs(ctx: Context) {
     fun urlFor(pr: dev.apkforge.engine.AiProvider): String = p.getString("url_${pr.name}", pr.baseUrl)!!
     fun setUrlFor(pr: dev.apkforge.engine.AiProvider, v: String) = p.edit().putString("url_${pr.name}", v).apply()
 
+    // ---- Modelos de la IA integrada (activar/desactivar y añadir los tuyos) ----
+    var disabledModels: Set<String>
+        get() = p.getStringSet("disabledModels", emptySet())!!.toSet()
+        set(v) = p.edit().putStringSet("disabledModels", v).apply()
+
+    var customModels: List<dev.apkforge.engine.AiEndpoint>
+        get() = runCatching {
+            com.google.gson.Gson().fromJson(p.getString("customModels", "[]"), Array<dev.apkforge.engine.AiEndpoint>::class.java).toList()
+        }.getOrDefault(emptyList())
+        set(v) = p.edit().putString("customModels", com.google.gson.Gson().toJson(v)).apply()
+
+    /** Cadena final de la IA integrada: tus modelos añadidos primero + los integrados activos. */
+    fun builtinEndpoints(): List<dev.apkforge.engine.AiEndpoint> {
+        val list = customModels.filter { it.label !in disabledModels } +
+            dev.apkforge.engine.BuiltinAi.endpoints.filter { it.label !in disabledModels }
+        return list.ifEmpty { dev.apkforge.engine.BuiltinAi.endpoints }
+    }
+
     /** ¿Está el proveedor actual listo para usarse? */
     fun aiReady(): Boolean {
         val pr = aiProvider

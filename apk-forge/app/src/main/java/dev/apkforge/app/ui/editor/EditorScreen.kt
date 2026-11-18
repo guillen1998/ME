@@ -71,6 +71,7 @@ fun EditorScreen(file: File, initialLine: Int, onBack: () -> Unit, onShowText: (
     val scope = rememberCoroutineScope()
     val controller = remember { CodeController() }
     var aiMode by remember { mutableStateOf(ApkForgeApp.prefs.editorAiMode) }
+    var aiTouched by remember { mutableStateOf(false) }
 
     var text by remember { mutableStateOf<String?>(null) }
     var loadError by remember { mutableStateOf<String?>(null) }
@@ -96,7 +97,15 @@ fun EditorScreen(file: File, initialLine: Int, onBack: () -> Unit, onShowText: (
     fun save(then: (() -> Unit)? = null) {
         val content = controller.text()
         scope.launch {
-            val ok = withContext(Workers.dispatcher) { runCatching { file.writeText(content) }.isSuccess }
+            val who = if (aiTouched) "IA (modo IA)" else "Manual"
+            val ok = withContext(Workers.dispatcher) {
+                runCatching {
+                    val before = if (file.isFile) file.readText() else null
+                    file.writeText(content)
+                    dev.apkforge.engine.ChangeLog.record(file, before, content, who)
+                }.isSuccess
+            }
+            if (ok) aiTouched = false
             if (ok) { modified = false; Toast.makeText(ctx, "Guardado", Toast.LENGTH_SHORT).show(); then?.invoke() }
             else Toast.makeText(ctx, "No se pudo guardar", Toast.LENGTH_LONG).show()
         }
@@ -170,7 +179,7 @@ fun EditorScreen(file: File, initialLine: Int, onBack: () -> Unit, onShowText: (
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().imePadding()) {
             EditorModeSwitch(aiMode) { aiMode = it; ApkForgeApp.prefs.editorAiMode = it }
-            if (aiMode) AiEditBar(file.absolutePath, file.name, controller, onOpenSettings) { modified = true }
+            if (aiMode) AiEditBar(file.absolutePath, file.name, controller, onOpenSettings) { modified = true; aiTouched = true }
             if (searchOpen) SearchBarPanel(controller) { searchOpen = false; controller.stopSearch() }
             val t = text
             when {

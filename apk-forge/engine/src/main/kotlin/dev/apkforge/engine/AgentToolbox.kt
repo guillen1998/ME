@@ -33,6 +33,8 @@ class AgentToolbox(
         - Basa todo en lo que veas con las herramientas; no inventes clases ni archivos. Cita rutas y nombres.
         - Para leer lógica prefiere java_class (Java legible) y usa smali solo cuando haga falta editar.
         - Sé eficiente: busca primero (search_text, find_classes, scan_findings) y lee solo lo necesario.
+        - Si es un proyecto con cambios previos, consulta list_changes para saber qué se editó antes.
+        - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
         - Trabaja solo en apps propias, de código abierto o con permiso; no ayudes a saltarse pagos, licencias o DRM de apps comerciales de terceros.
         - Responde en español, claro y organizado.
@@ -57,6 +59,8 @@ class AgentToolbox(
             mapOf("path" to str("Ruta relativa del binario"), "filter" to str("Solo cadenas que contengan esto ('' = todas)")), listOf("path")))
         add(tool("analyze_file", "Análisis completo de UN archivo: tipo real por contenido, tamaño, hashes, entropía (detecta cifrado/compresión), cadenas destacadas y hex inicial. Úsalo primero con cualquier archivo desconocido.",
             mapOf("path" to str("Ruta relativa del archivo")), listOf("path")))
+        add(tool("list_changes", "Informe de TODO lo que se ha editado en este proyecto (por la IA y a mano): archivos, quién, cuándo y las líneas cambiadas. Consúltalo antes de seguir editando para no repetir ni deshacer cambios.",
+            mapOf("only_pending" to bool("true = solo lo cambiado desde la última exportación")), listOf()))
         add(tool("decrypt", "Descifra o decodifica datos automáticamente. Úsalo cuando encuentres AES/DES/RC4/XOR/Base64/gzip en el código: lee la clave e IV del smali y descífralo tú.",
             mapOf(
                 "algorithm" to str("aes | aes-ecb | aes-gcm | aes-ctr | des | 3des | rc4 | xor | base64 | hex | gzip | zlib | deflate"),
@@ -140,6 +144,12 @@ class AgentToolbox(
                 append(BinaryTools.hexDump(f, 0, 256))
             }
         }
+        "list_changes" -> {
+            val proj = (if (root.isDirectory) root else root.parentFile).let { d -> if (ApkProject.isProject(d)) d else ChangeLog.projectOf(File(d, "x")) }
+                ?: throw EngineException("No es un proyecto: no hay informe de cambios")
+            val entries = if (a["only_pending"] == true) ChangeLog.sinceLastExport(proj) else ChangeLog.all(proj)
+            ChangeLog.report(proj, entries)
+        }
         "decrypt" -> {
             val algo = a["algorithm"] as String
             val path = a["path"] as? String
@@ -216,9 +226,11 @@ class AgentToolbox(
         "write_file" -> {
             if (!allowEdits) throw EngineException("Edición desactivada")
             val f = resolve(a["path"] as String)
+            val before = if (f.isFile) f.readText() else null
             backup(f)
             f.parentFile?.mkdirs()
             f.writeText(a["content"] as String)
+            ChangeLog.record(f, before, a["content"] as String, "IA", "write_file")
             "Escrito ${f.name} (${f.length()} B)"
         }
         "replace_in_file" -> {
@@ -229,7 +241,9 @@ class AgentToolbox(
             val count = Regex(Regex.escape(old)).findAll(text).count()
             if (count != 1) throw EngineException("El fragmento aparece $count veces; debe aparecer exactamente una")
             backup(f)
-            f.writeText(text.replace(old, a["new"] as String))
+            val after = text.replace(old, a["new"] as String)
+            f.writeText(after)
+            ChangeLog.record(f, text, after, "IA", "replace_in_file")
             "Reemplazado en ${f.name}"
         }
         else -> throw EngineException("Herramienta desconocida: $name")
@@ -271,6 +285,7 @@ class AgentToolbox(
 
     fun summarize(name: String, a: Map<String, Any?>) = when (name) {
         "read_file", "list_files", "binary_strings", "write_file", "replace_in_file", "analyze_file" -> "${a["path"] ?: "/"}"
+        "list_changes" -> if (a["only_pending"] == true) "pendientes" else "todos"
         "search_text" -> "“${a["query"]}”" + ((a["extension"] as? String)?.takeIf { it.isNotEmpty() }?.let { " en .$it" } ?: "")
         "java_class", "class_xref" -> "${a["class_name"]}"
         "find_classes" -> "“${a["query"]}”"

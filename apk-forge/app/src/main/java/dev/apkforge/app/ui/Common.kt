@@ -201,7 +201,7 @@ fun ActionTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, 
  * El APK se guarda en ApkTools/Compilados sin sobrescribir los anteriores.
  */
 @Composable
-fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, onExport: (File) -> Unit) {
+fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, project: File? = null, onExport: (File) -> Unit) {
     val prefs = dev.apkforge.app.ApkForgeApp.prefs
     var name by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(defaultName) }
     val signing = if (prefs.signMode == "keystore" && prefs.keystorePath.isNotBlank())
@@ -212,12 +212,23 @@ fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, 
         text = {
             Column {
                 Text(detail, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                project?.let { pd ->
+                    val all = androidx.compose.runtime.remember(pd) { dev.apkforge.engine.ChangeLog.all(pd) }
+                    val pending = androidx.compose.runtime.remember(pd) { dev.apkforge.engine.ChangeLog.sinceLastExport(pd) }
+                    Spacer(Modifier.size(6.dp))
+                    if (all.isEmpty()) Text("⚠ Este proyecto no tiene cambios registrados: el APK saldrá igual que el original.",
+                        fontSize = 12.sp, color = AccentWarm)
+                    else Text("Incluye ${all.size} cambio(s) en ${all.map { it.file }.distinct().size} archivo(s)" +
+                        (if (pending.isNotEmpty()) " · ${pending.size} nuevo(s) desde la última exportación" else ""),
+                        fontSize = 12.sp, color = Ok)
+                }
                 Spacer(Modifier.size(10.dp))
                 androidx.compose.material3.OutlinedTextField(name, { name = it.replace("/", "_") }, singleLine = true,
                     label = { Text("Nombre") }, suffix = { Text(".apk") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.size(8.dp))
                 Text("Firma: $signing", fontSize = 12.sp)
-                Text("Se guardará en ApkTools/Compilados", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Se guardará en ApkTools/Compilados" + (if (project != null) " junto con el informe de cambios" else ""),
+                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {

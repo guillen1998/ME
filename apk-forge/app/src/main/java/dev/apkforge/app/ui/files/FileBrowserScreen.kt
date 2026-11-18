@@ -220,6 +220,7 @@ fun FileBrowserScreen(
             defaultName = Workspace.exportName(info?.packageName ?: root.name),
             detail = "Compila el proyecto “${root.name}” (solo re-ensambla los dex que cambiaste).",
             onDismiss = { exportFor = null },
+            project = root,
         ) { out ->
             TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log ->
                 ApkProject.build(root, out, BuildOptions(signing = prefs.signingConfig()), log)

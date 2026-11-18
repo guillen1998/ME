@@ -23,9 +23,22 @@ data class AiEndpoint(val baseUrl: String, val apiKey: String, val model: String
  * si uno se satura o falla, se pasa al siguiente automáticamente.
  */
 object BuiltinAi {
+    private const val OVH = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+
+    /**
+     * Probados sin clave y con herramientas. Ordenados por potencia y velocidad para código.
+     * Cada servicio limita peticiones por modelo, así que la cadena reparte el trabajo entre todos.
+     */
     val endpoints = listOf(
-        AiEndpoint("https://api.llm7.io/v1", "", "default", "LLM7 · Gemma 4 31B"),
-        AiEndpoint("https://text.pollinations.ai/openai", "", "openai", "Pollinations · GPT-OSS 20B"),
+        AiEndpoint(OVH, "", "DeepSeek-V4.1-Flash-1017", "DeepSeek V4.1 Flash (OVH)"),
+        AiEndpoint(OVH, "", "Qwen3.5-397B-A17B", "Qwen 3.5 397B (OVH)"),
+        AiEndpoint(OVH, "", "gpt-oss-120b", "GPT-OSS 120B (OVH)"),
+        AiEndpoint(OVH, "", "qwen3.6-35b-a3b", "Qwen 3.6 35B (OVH)"),
+        AiEndpoint("https://api.kilo.ai/api/openrouter", "", "kilo-auto/free", "Kilo Auto (gratis)"),
+        AiEndpoint("https://api.llm7.io/v1", "", "default", "Gemma 4 31B (LLM7)"),
+        AiEndpoint(OVH, "", "Qwen3.8-27B", "Qwen 3.8 27B (OVH)"),
+        AiEndpoint(OVH, "", "Meta-Llama-3_3-70B-Instruct", "Llama 3.3 70B (OVH)"),
+        AiEndpoint("https://text.pollinations.ai/openai", "", "openai", "GPT-OSS 20B (Pollinations)"),
     )
 }
 
@@ -38,7 +51,7 @@ enum class AiProvider(
     val help: String,
 ) {
     BUILTIN("ApkForge IA · integrada, gratis, sin clave", "", "auto", false,
-        "Ya viene lista: une modelos abiertos gratuitos (Gemma 4 31B y GPT-OSS 20B) y cambia de uno a otro si alguno falla. No necesitas configurar nada."),
+        "Ya viene lista: une 9 modelos abiertos gratuitos (DeepSeek, Qwen 397B, GPT-OSS 120B, Gemma, Llama…) que trabajan en conjunto: si uno está ocupado, sigue otro. No necesitas configurar nada."),
     CLAUDE("Claude (Anthropic)", "", "claude-opus-5-5", true,
         "Clave en console.anthropic.com. El más capaz."),
     OPENROUTER("OpenRouter · modelos abiertos gratis", "https://openrouter.ai/api/v1", "openrouter/free", true,

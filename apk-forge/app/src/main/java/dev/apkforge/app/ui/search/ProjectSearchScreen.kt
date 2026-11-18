@@ -106,7 +106,11 @@ fun ProjectSearchScreen(root: File, onBack: () -> Unit, onOpen: (File, Int) -> U
                                 targets.count { f ->
                                     val old = f.readText()
                                     val new = old.replace(r, if (regex) replacement else Regex.escapeReplacement(replacement))
-                                    if (new != old) { f.writeText(new); true } else false
+                                    if (new != old) {
+                                        f.writeText(new)
+                                        dev.apkforge.engine.ChangeLog.record(f, old, new, "Buscar y reemplazar", "“$query” → “$replacement”")
+                                        true
+                                    } else false
                                 }
                             }
                             SearchStore.status.value = "Reemplazado en $n archivo(s)"

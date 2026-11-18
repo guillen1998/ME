@@ -27,7 +27,7 @@ object AgentLauncher {
         val apkFile = if (target.isFile && target.extension.equals("apk", true)) target else null
         val javaInput = if (target.isDirectory || apkFile != null) target else null
         val java: () -> JavaDecompiler? = { javaInput?.let { runCatching { JavaSessions.get(it, prefs.javaOptions()) }.getOrNull() } }
-        if (provider == AiProvider.BUILTIN) return OpenAiCompatAgent(target, apkFile, dev.apkforge.engine.BuiltinAi.endpoints,
+        if (provider == AiProvider.BUILTIN) return OpenAiCompatAgent(target, apkFile, prefs.builtinEndpoints(),
             preset, allowEdits, java, session.onEvent)
         return if (provider == AiProvider.CLAUDE)
             ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), allowEdits),
