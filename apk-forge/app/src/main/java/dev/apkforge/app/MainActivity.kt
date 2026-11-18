@@ -47,6 +47,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         if (savedInstanceState == null) handleIntent(intent)
+        // Notificaciones (Android 13+) para ver el progreso de los trabajos en segundo plano.
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7)
+        dev.apkforge.app.core.BackgroundService.createChannels(this)
         setContent {
             ApkForgeTheme {
                 val nav = rememberNavController()
@@ -164,10 +169,11 @@ private fun AppNav(nav: NavHostController) {
             "entry?path={path}&entry={entry}",
             arguments = listOf(pathArg, navArgument("entry") { type = NavType.StringType; defaultValue = "" }),
         ) { e ->
-            EntryEditorScreen(File(e.arguments?.getString("path")!!), e.arguments?.getString("entry")!!, onBack = { nav.back() })
+            EntryEditorScreen(File(e.arguments?.getString("path")!!), e.arguments?.getString("entry")!!, onBack = { nav.back() },
+                onOpenSettings = { nav.navigate(Routes.SETTINGS) })
         }
         composable("dexedit?path={path}", arguments = listOf(pathArg)) { e ->
-            DexEditorScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() })
+            DexEditorScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onOpenSettings = { nav.navigate(Routes.SETTINGS) })
         }
         composable("scan?path={path}", arguments = listOf(pathArg)) { e ->
             ScannerScreen(
@@ -196,6 +202,7 @@ private fun AppNav(nav: NavHostController) {
                 file = File(e.arguments?.getString("path")!!),
                 initialLine = e.arguments?.getInt("line") ?: 0,
                 onBack = { nav.back() },
+                onOpenSettings = { nav.navigate(Routes.SETTINGS) },
                 onShowText = { title, text, fileName ->
                     TextViewerHolder.title = title; TextViewerHolder.text = text; TextViewerHolder.fileName = fileName
                     nav.navigate(Routes.VIEWER)

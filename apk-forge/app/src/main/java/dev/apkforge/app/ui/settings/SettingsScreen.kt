@@ -170,10 +170,10 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
 
             SectionCard("Carpetas") {
-                Text("Proyectos: ${Workspace.root.absolutePath}/projects", fontSize = 13.sp)
-                Text("APKs compilados: ${Workspace.root.absolutePath}/builds", fontSize = 13.sp)
-                Text("APKs extraídos: ${Workspace.root.absolutePath}/extracted", fontSize = 13.sp)
-                Text("Java exportado: ${Workspace.root.absolutePath}/java", fontSize = 13.sp)
+                Text("Proyectos (lo que editas): ${Workspace.root.absolutePath}/Proyectos", fontSize = 13.sp)
+                Text("Compilados (APKs exportados y firmados): ${Workspace.root.absolutePath}/Compilados", fontSize = 13.sp)
+                Text("Extraídos: ${Workspace.root.absolutePath}/Extraidos", fontSize = 13.sp)
+                Text("Java exportado: ${Workspace.root.absolutePath}/Java", fontSize = 13.sp)
             }
 
             SectionCard("Acerca de") {

@@ -22,13 +22,25 @@ object Workers {
     }.asCoroutineDispatcher()
 }
 
-/** Carpetas de trabajo en /sdcard/ApkForge. */
+/**
+ * Carpetas de trabajo en /sdcard/ApkTools:
+ *  - Proyectos:  APKs decompilados (y proyectos de Android Studio) que estás editando
+ *  - Compilados: APKs nuevos ya editados, exportados y firmados
+ *  - Extraidos:  APKs sacados de apps instaladas y archivos extraídos de un APK
+ *  - Java:       código Java exportado
+ */
 object Workspace {
-    val root: File get() = File(Environment.getExternalStorageDirectory(), "ApkForge")
-    val projects get() = File(root, "projects").also { it.mkdirs() }
-    val builds get() = File(root, "builds").also { it.mkdirs() }
-    val extracted get() = File(root, "extracted").also { it.mkdirs() }
-    val java get() = File(root, "java").also { it.mkdirs() }
+    val root: File get() = File(Environment.getExternalStorageDirectory(), "ApkTools")
+    val projects get() = File(root, "Proyectos").also { it.mkdirs() }
+    val builds get() = File(root, "Compilados").also { it.mkdirs() }
+    val extracted get() = File(root, "Extraidos").also { it.mkdirs() }
+    val java get() = File(root, "Java").also { it.mkdirs() }
+
+    /** Crea la estructura al iniciar la app (si hay permiso). */
+    fun init() = runCatching { projects; builds; extracted; java }
+
+    /** Nombre sugerido para un APK exportado: app_v1.2_mod (sin repetir). */
+    fun exportName(base: String) = safeName(base.removeSuffix(".apk").removeSuffix("-firmado").removeSuffix("-mod")) + "_mod"
     val storage: File get() = Environment.getExternalStorageDirectory()
     val downloads: File get() = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
@@ -97,6 +109,9 @@ class Prefs(ctx: Context) {
     var lastDir: String
         get() = p.getString("lastDir", "")!!
         set(v) = p.edit().putString("lastDir", v).apply()
+    var editorAiMode: Boolean
+        get() = p.getBoolean("editorAi", false)
+        set(v) = p.edit().putBoolean("editorAi", v).apply()
     var showHidden: Boolean
         get() = p.getBoolean("hidden", false)
         set(v) = p.edit().putBoolean("hidden", v).apply()

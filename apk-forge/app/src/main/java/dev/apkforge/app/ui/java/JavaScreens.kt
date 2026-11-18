@@ -212,9 +212,10 @@ private fun CodeSearch(session: JavaDecompiler, onOpenClass: (String) -> Unit) {
                     results.clear()
                     job = scope.launch {
                         val found = withContext(Workers.dispatcher) {
-                            session.searchCode(query, 300, pkg.ifBlank { null }, { progress = it }, { !isActive })
+                            session.searchCode(query, 300, pkg.ifBlank { null }, { progress = it }, { !isActive }) { hit ->
+                                android.os.Handler(android.os.Looper.getMainLooper()).post { results.add(hit) }
+                            }
                         }
-                        results.addAll(found)
                         progress = "${found.size} resultado(s)"
                     }
                 }) { Text("Buscar") }

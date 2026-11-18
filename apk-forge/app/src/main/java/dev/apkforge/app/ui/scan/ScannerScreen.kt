@@ -46,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.apkforge.app.core.ScanStore
 import dev.apkforge.app.core.Workers
 import dev.apkforge.app.ui.Accent
 import dev.apkforge.app.ui.AccentWarm
@@ -84,25 +85,13 @@ private fun kindColor(k: FindingKind) = when (k) {
 @Composable
 fun ScannerScreen(target: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit) {
     val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val all = remember { mutableStateListOf<Finding>() }
-    var status by remember { mutableStateOf<String?>(null) }
-    var job by remember { mutableStateOf<Job?>(null) }
+    // El análisis vive en ScanStore: sigue aunque abras un resultado o salgas de la app.
+    LaunchedEffect(target) { ScanStore.start(target) }
+    val running by ScanStore.running
+    val statusText by ScanStore.status
+    val pct by ScanStore.percent
+    val all = if (ScanStore.target == target) ScanStore.findings else emptyList()
     var filter by remember { mutableStateOf<FindingKind?>(null) }
-    var started by remember { mutableStateOf(false) }
-
-    fun run() {
-        all.clear(); started = true
-        job = scope.launch {
-            val found = withContext(Workers.dispatcher) {
-                ProjectScanner.scan(target, ScanOptions(), { status = it }, { !isActive })
-            }
-            all.addAll(found)
-            status = "${found.size} hallazgos"
-        }
-    }
-    LaunchedEffect(target) { run() }
-
     val counts = all.groupingBy { it.kind }.eachCount()
     val shown = if (filter == null) all else all.filter { it.kind == filter }
 
@@ -117,15 +106,18 @@ fun ScannerScreen(target: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit)
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
-                    if (job?.isActive == true) TextButton(onClick = { job?.cancel(); status = "Cancelado" }) { Text("Parar") }
-                    else IconButton(onClick = { run() }) { Icon(Icons.Default.PlayArrow, "Volver a analizar") }
+                    if (running) TextButton(onClick = { ScanStore.cancel() }) { Text("Parar") }
+                    else IconButton(onClick = { ScanStore.start(target, force = true) }) { Icon(Icons.Default.PlayArrow, "Volver a analizar") }
                 },
             )
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            if (job?.isActive == true) LinearProgressIndicator(Modifier.fillMaxWidth())
-            status?.let {
+            if (running) {
+                if (pct in 0..100) LinearProgressIndicator(progress = { pct / 100f }, modifier = Modifier.fillMaxWidth())
+                else LinearProgressIndicator(Modifier.fillMaxWidth())
+            }
+            statusText?.let {
                 Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp))
             }
@@ -139,7 +131,7 @@ fun ScannerScreen(target: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit)
                 }
             }
             LazyColumn(Modifier.fillMaxSize()) {
-                items(shown, key = { it.kind.name + it.value + it.source }) { f ->
+                items(shown.toList(), key = { it.kind.name + it.value + it.source }) { f ->
                     FindingRow(f, onClick = {
                         if (f.line > 0 && f.file.isFile && f.file.canRead()) onOpen(f.file, f.line)
                         else {
@@ -149,7 +141,7 @@ fun ScannerScreen(target: File, onBack: () -> Unit, onOpen: (File, Int) -> Unit)
                         }
                     })
                 }
-                if (started && job?.isActive != true && all.isEmpty()) item {
+                if (!running && all.isEmpty()) item {
                     Text("Sin hallazgos.", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

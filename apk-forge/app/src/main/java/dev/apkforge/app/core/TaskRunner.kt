@@ -43,6 +43,7 @@ object TaskRunner {
     ) {
         if (isBusy) return
         _state.value = TaskState(title)
+        BackgroundService.ensureRunning() // sigue aunque salgas de la app, con progreso en la notificación
         val listener = object : ProgressListener {
             override fun onProgress(message: String) { _state.update { it?.copy(logs = (it.logs + message).takeLast(400)) } }
             override fun onPercent(percent: Int) { _state.update { it?.copy(percent = percent) } }

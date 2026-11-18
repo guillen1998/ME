@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -189,4 +190,39 @@ fun ActionTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, 
             Text(label, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
+}
+
+/**
+ * Diálogo único "Exportar nuevo APK y firmar": nombre del archivo y con qué clave se firma.
+ * El APK se guarda en ApkTools/Compilados sin sobrescribir los anteriores.
+ */
+@Composable
+fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, onExport: (File) -> Unit) {
+    val prefs = dev.apkforge.app.ApkForgeApp.prefs
+    var name by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(defaultName) }
+    val signing = if (prefs.signMode == "keystore" && prefs.keystorePath.isNotBlank())
+        "Tu keystore: " + File(prefs.keystorePath).name else "Clave de prueba de ApkForge (cámbiala en Ajustes)"
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Exportar nuevo APK y firmar") },
+        text = {
+            Column {
+                Text(detail, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.size(10.dp))
+                androidx.compose.material3.OutlinedTextField(name, { name = it.replace("/", "_") }, singleLine = true,
+                    label = { Text("Nombre") }, suffix = { Text(".apk") }, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.size(8.dp))
+                Text("Firma: $signing", fontSize = 12.sp)
+                Text("Se guardará en ApkTools/Compilados", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.Button(enabled = name.isNotBlank(), onClick = {
+                onDismiss()
+                onExport(dev.apkforge.app.core.Workspace.unique(dev.apkforge.app.core.Workspace.builds,
+                    dev.apkforge.app.core.Workspace.safeName(name), ".apk"))
+            }) { Text("Exportar y firmar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
 }

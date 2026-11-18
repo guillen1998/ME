@@ -18,6 +18,26 @@ class CodeController {
         internal set
 
     fun text(): String = editor?.text?.toString().orEmpty()
+
+    /** Selección actual (posiciones + texto) o null si no hay nada seleccionado. */
+    data class Selection(val leftLine: Int, val leftCol: Int, val rightLine: Int, val rightCol: Int, val text: String)
+
+    fun selection(): Selection? {
+        val e = editor ?: return null
+        val c = e.cursor
+        if (!c.isSelected) return null
+        return Selection(c.leftLine, c.leftColumn, c.rightLine, c.rightColumn, e.text.subSequence(c.left, c.right).toString())
+    }
+
+    /** Reemplaza un fragmento (o todo el texto si [sel] es null). Se puede deshacer. */
+    fun replace(sel: Selection?, newText: String) {
+        val e = editor ?: return
+        e.post {
+            val t = e.text
+            if (sel != null) t.replace(sel.leftLine, sel.leftCol, sel.rightLine, sel.rightCol, newText)
+            else { val last = t.lineCount - 1; t.replace(0, 0, last, t.getColumnCount(last), newText) }
+        }
+    }
     fun undo() = editor?.undo()
     fun redo() = editor?.redo()
 

@@ -64,11 +64,13 @@ import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditorScreen(file: File, initialLine: Int, onBack: () -> Unit, onShowText: (title: String, text: String, fileName: String) -> Unit) {
+fun EditorScreen(file: File, initialLine: Int, onBack: () -> Unit, onShowText: (title: String, text: String, fileName: String) -> Unit,
+                 onOpenSettings: () -> Unit = {}) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
     val scope = rememberCoroutineScope()
     val controller = remember { CodeController() }
+    var aiMode by remember { mutableStateOf(ApkForgeApp.prefs.editorAiMode) }
 
     var text by remember { mutableStateOf<String?>(null) }
     var loadError by remember { mutableStateOf<String?>(null) }
@@ -167,6 +169,8 @@ fun EditorScreen(file: File, initialLine: Int, onBack: () -> Unit, onShowText: (
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().imePadding()) {
+            EditorModeSwitch(aiMode) { aiMode = it; ApkForgeApp.prefs.editorAiMode = it }
+            if (aiMode) AiEditBar(file.absolutePath, file.name, controller, onOpenSettings) { modified = true }
             if (searchOpen) SearchBarPanel(controller) { searchOpen = false; controller.stopSearch() }
             val t = text
             when {

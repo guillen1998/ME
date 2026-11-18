@@ -31,7 +31,15 @@ apk-forge/
 └── app/      App Android (Jetpack Compose + Sora Editor)
 ```
 
-Carpetas en el móvil: `/sdcard/ApkForge/{projects,builds,extracted,java}`.
+Carpetas en el móvil: `/sdcard/ApkTools/` con **Proyectos** (lo que editas), **Compilados** (APKs exportados y firmados), **Extraidos** y **Java**.
+
+## Novedades
+
+- **Modo IA / Modo manual** en todos los editores: la IA reemplaza, parchea, quita o crea código sobre la selección o el archivo, muestra el diff antes de aplicar y, en smali, lo ensambla y revisa los registros; si falla, se corrige sola.
+- **Pantalla doble estilo MT Manager**: opciones a la izquierda, interior del APK a la derecha; edición de XML binario dentro del APK sin decompilar.
+- **Segundo plano**: servicio con progreso en la notificación; búsquedas, escáner, agente y ediciones IA siguen aunque salgas.
+- **Agente IA** con Claude o modelos abiertos (OpenRouter, Groq, Ollama) y perfil de analista de archivos.
+- **Exportar nuevo APK y firmar** desde proyectos, el interior del APK y el editor dex.
 
 ## Compilar
 

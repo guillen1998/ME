@@ -176,6 +176,7 @@ fun FileBrowserScreen(
     LaunchedEffect(Unit) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             hasAccess = Storage.hasAllFilesAccess(ctx); refresh++
+            if (hasAccess) Workspace.init()
         }
     }
     LaunchedEffect(path) { prefs.lastDir = path }
@@ -194,10 +195,18 @@ fun FileBrowserScreen(
         path = dir.parentFile!!.absolutePath
     }
 
-    fun buildProject(root: File) {
-        val out = File(Workspace.builds, root.name + "-firmado.apk")
-        TaskRunner.run("Compilando ${root.name}", ResultKind.APK) { log ->
-            ApkProject.build(root, out, BuildOptions(signing = prefs.signingConfig()), log)
+    var exportFor by remember { mutableStateOf<File?>(null) }
+    fun buildProject(root: File) { exportFor = root }
+    exportFor?.let { root ->
+        val info = remember(root) { runCatching { ApkProject.readInfo(root) }.getOrNull() }
+        dev.apkforge.app.ui.ExportApkDialog(
+            defaultName = Workspace.exportName(info?.packageName ?: root.name),
+            detail = "Compila el proyecto “${root.name}” (solo re-ensambla los dex que cambiaste).",
+            onDismiss = { exportFor = null },
+        ) { out ->
+            TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log ->
+                ApkProject.build(root, out, BuildOptions(signing = prefs.signingConfig()), log)
+            }
         }
     }
 
@@ -264,6 +273,7 @@ fun FileBrowserScreen(
             ) {
                 AssistChip(onClick = { path = storageRoot }, label = { Text("Almacenamiento") })
                 AssistChip(onClick = { path = Workspace.downloads.absolutePath }, label = { Text("Descargas") })
+                AssistChip(onClick = { path = Workspace.root.also { Workspace.init() }.absolutePath }, label = { Text("ApkTools") })
                 AssistChip(onClick = { path = Workspace.projects.absolutePath }, label = { Text("Proyectos") })
                 AssistChip(onClick = { path = Workspace.builds.absolutePath }, label = { Text("Compilados") })
                 AssistChip(onClick = { path = Workspace.extracted.absolutePath }, label = { Text("Extraídos") })
@@ -297,6 +307,19 @@ fun FileBrowserScreen(
                 }
             }
 
+            var batteryOk by remember { mutableStateOf(dev.apkforge.app.core.BackgroundService.isIgnoringBattery(ctx)) }
+            LaunchedEffect(refresh) { batteryOk = dev.apkforge.app.core.BackgroundService.isIgnoringBattery(ctx) }
+            if (hasAccess && !batteryOk) {
+                Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f), shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth()) {
+                    Row(Modifier.padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Para que decompilar, compilar y la IA sigan en segundo plano, quita la optimización de batería.",
+                            fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { dev.apkforge.app.core.BackgroundService.requestIgnoreBattery(ctx) }) { Text("Permitir") }
+                    }
+                }
+            }
+
             projectRoot?.let { root ->
                 val info = remember(root) { runCatching { ApkProject.readInfo(root) }.getOrNull() }
                 Surface(
@@ -314,7 +337,7 @@ fun FileBrowserScreen(
                         IconButton(onClick = { onAgent(root) }) { Icon(Icons.Default.AutoAwesome, "Agente IA") }
                         IconButton(onClick = { onOpenJava(root) }) { Icon(Icons.Default.Coffee, "Ver Java") }
                         Button(onClick = { buildProject(root) }) {
-                            Icon(Icons.Default.Build, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Compilar")
+                            Icon(Icons.Default.Build, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Exportar APK")
                         }
                     }
                 }
@@ -488,7 +511,7 @@ private fun FileActionsDialog(file: File, onDismiss: () -> Unit, onAction: (Stri
     val actions = buildList {
         if (isApk) { add("apk" to "Abrir herramientas APK"); add("java" to "Ver código Java"); add("sign" to "Firmar") }
         if (isDex) add("java" to "Ver código Java")
-        if (isProject) { add("build" to "Compilar y firmar"); add("java" to "Ver código Java") }
+        if (isProject) { add("build" to "Exportar nuevo APK y firmar"); add("java" to "Ver código Java") }
         if (file.isFile) add("edit" to "Abrir en el editor de texto")
         if (file.isFile) add("binary" to "Abrir como binario (hex / strings / descifrar)")
         add("ai" to "Analizar con IA")

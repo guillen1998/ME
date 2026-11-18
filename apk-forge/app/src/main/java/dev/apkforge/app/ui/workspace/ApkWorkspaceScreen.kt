@@ -136,6 +136,7 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
     var preview by remember { mutableStateOf<Pair<String, ByteArray>?>(null) }
     var replaceTarget by remember { mutableStateOf<String?>(null) }
     val version by ArchiveSessions.version.collectAsState()
+    var showExport by remember { mutableStateOf(false) }
 
     val archive by produceState<Result<ApkArchive>?>(null, apk) {
         value = withContext(Workers.dispatcher) { runCatching { ArchiveSessions.archive(apk) } }
@@ -209,13 +210,9 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("$pending cambio(s) sin guardar", modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
                     TextButton(onClick = { archive?.getOrNull()?.discard(); ArchiveSessions.changed() }) { Text("Descartar") }
-                    Button(onClick = {
-                        val a = archive?.getOrNull() ?: return@Button
-                        val out = File(Workspace.builds, apk.nameWithoutExtension + "-mod.apk")
-                        TaskRunner.run("Guardando APK modificado", ResultKind.APK) { log ->
-                            a.save(out, prefs.signingConfig(), log).also { a.discard(); ArchiveSessions.changed() }
-                        }
-                    }) { Icon(Icons.Default.Save, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Guardar") }
+                    Button(onClick = { showExport = true }) {
+                        Icon(Icons.Default.Save, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Exportar y firmar")
+                    }
                 }
             }
         },
@@ -229,6 +226,7 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
                         .verticalScroll(rememberScrollState())
                         .padding(vertical = 6.dp),
                 ) {
+                    SideItem(Icons.Default.Save, "Exportar nuevo APK y firmar", Ok) { showExport = true }
                     SideItem(Icons.Default.Info, "Información", Accent) { nav.info(apk) }
                     SideItem(Icons.Default.Unarchive, "Decompilar", Accent) {
                         val out = Workspace.unique(Workspace.projects, Workspace.safeName(apk.nameWithoutExtension))
@@ -286,6 +284,21 @@ fun ApkWorkspaceScreen(apk: File, onBack: () -> Unit, nav: WorkspaceNav) {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    if (showExport) {
+        val a = archive?.getOrNull()
+        val n = a?.pendingCount ?: 0
+        dev.apkforge.app.ui.ExportApkDialog(
+            defaultName = Workspace.exportName(apk.nameWithoutExtension),
+            detail = if (n > 0) "Aplica tus $n cambio(s) dentro del APK, lo alinea y lo firma." else "Sin cambios: crea una copia alineada y firmada con tu clave.",
+            onDismiss = { showExport = false },
+        ) { out ->
+            TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log ->
+                if (a != null && a.pendingCount > 0) a.save(out, prefs.signingConfig(), log).also { a.discard(); ArchiveSessions.changed() }
+                else ApkSigning.sign(apk, out, prefs.signingConfig(), log)
             }
         }
     }

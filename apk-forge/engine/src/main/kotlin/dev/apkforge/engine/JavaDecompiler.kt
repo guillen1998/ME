@@ -71,6 +71,8 @@ class JavaDecompiler private constructor(
         packageFilter: String? = null,
         listener: ProgressListener = ProgressListener.NONE,
         isCancelled: () -> Boolean = { false },
+        /** Cada coincidencia en cuanto aparece (resultados en vivo). */
+        onHit: ((Triple<String, Int, String>) -> Unit)? = null,
     ): List<Triple<String, Int, String>> {
         val out = mutableListOf<Triple<String, Int, String>>()
         val list = jadx.classes.filter { packageFilter == null || it.fullName.startsWith(packageFilter) }
@@ -82,7 +84,10 @@ class JavaDecompiler private constructor(
             }
             val code = runCatching { cls.code }.getOrNull() ?: continue
             code.lineSequence().forEachIndexed { n, line ->
-                if (out.size < limit && line.contains(text, ignoreCase = true)) out += Triple(cls.fullName, n + 1, line.trim())
+                if (out.size < limit && line.contains(text, ignoreCase = true)) {
+                    val hit = Triple(cls.fullName, n + 1, line.trim())
+                    out += hit; onHit?.invoke(hit)
+                }
             }
             cls.unload()
         }

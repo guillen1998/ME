@@ -77,6 +77,8 @@ object ProjectScanner {
         options: ScanOptions = ScanOptions(),
         listener: ProgressListener = ProgressListener.NONE,
         isCancelled: () -> Boolean = { false },
+        /** Se llama con cada hallazgo nuevo en cuanto aparece (resultados en vivo). */
+        onFinding: ((Finding) -> Unit)? = null,
     ): List<Finding> {
         val active = rules.filter {
             when (it.kind) {
@@ -98,7 +100,12 @@ object ProjectScanner {
             if (v.length < 4) return
             val c = counts.merge(rule, 1, Int::plus)!!
             if (c > options.maxPerRule) return
-            found.putIfAbsent("$kind|$v|$source", Finding(kind, rule, v, source, file, line))
+            val k = "$kind|$v|$source"
+            if (!found.containsKey(k)) {
+                val f = Finding(kind, rule, v, source, file, line)
+                found[k] = f
+                onFinding?.invoke(f)
+            }
         }
 
         fun scanText(text: String, source: String, file: File, withLines: Boolean) {
@@ -120,7 +127,10 @@ object ProjectScanner {
                     .filter { it.isFile }.toList()
                 files.forEachIndexed { idx, f ->
                     if (isCancelled()) return found.values.toList()
-                    if (idx % 200 == 0) listener.onProgress("Analizando… $idx/${files.size}  (${found.size} hallazgos)")
+                    if (idx % 200 == 0) {
+                        listener.onProgress("Analizando… $idx/${files.size}  (${found.size} hallazgos)")
+                        listener.onPercent((idx * 100L / files.size.coerceAtLeast(1)).toInt())
+                    }
                     scanFile(f, target, options, ::scanText, ::emit)
                 }
             }
@@ -190,7 +200,10 @@ object ProjectScanner {
                 val entries = zip.entries().toList().filter { !it.isDirectory }
                 entries.forEachIndexed { idx, e ->
                     if (isCancelled()) return
-                    if (idx % 50 == 0) listener.onProgress("Analizando ${apk.name}… $idx/${entries.size}")
+                    if (idx % 50 == 0) {
+                        listener.onProgress("Analizando ${apk.name}… $idx/${entries.size}")
+                        listener.onPercent((idx * 100L / entries.size.coerceAtLeast(1)).toInt())
+                    }
                     val ext = e.name.substringAfterLast('.', "").lowercase()
                     val interesting = ext in TEXT_EXT || ext == "dex" || ext == "so" || ext == "bin" || ext == "arsc" ||
                         e.name == "AndroidManifest.xml" || ext == ""

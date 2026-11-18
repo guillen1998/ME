@@ -58,7 +58,9 @@ import dev.apkforge.app.ui.AccentWarm
 import dev.apkforge.app.ui.Danger
 import dev.apkforge.app.ui.Mono
 import dev.apkforge.app.ui.Pill
+import dev.apkforge.app.ui.editor.AiEditBar
 import dev.apkforge.app.ui.editor.CodeController
+import dev.apkforge.app.ui.editor.EditorModeSwitch
 import dev.apkforge.app.ui.editor.CodeView
 import dev.apkforge.app.ui.editor.SearchBarPanel
 import dev.apkforge.engine.DexEditor
@@ -72,13 +74,14 @@ import java.io.File
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DexEditorScreen(apk: File, onBack: () -> Unit) {
+fun DexEditorScreen(apk: File, onBack: () -> Unit, onOpenSettings: () -> Unit = {}) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
     val scope = rememberCoroutineScope()
     var query by rememberSaveable { mutableStateOf("") }
     var openType by rememberSaveable { mutableStateOf<String?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
+    var showExport by remember { mutableStateOf(false) }
 
     val editor by produceState<Result<DexEditor>?>(null, apk) {
         value = withContext(Workers.dispatcher) { runCatching { ArchiveSessions.dexEditor(apk) } }
@@ -86,9 +89,17 @@ fun DexEditorScreen(apk: File, onBack: () -> Unit) {
 
     BackHandler(enabled = openType != null) { openType = null }
 
+    if (showExport) editor?.getOrNull()?.let { ed ->
+        dev.apkforge.app.ui.ExportApkDialog(
+            defaultName = Workspace.exportName(apk.nameWithoutExtension),
+            detail = "Reinyecta ${ed.modifiedCount} clase(s) editada(s) en su dex, alinea y firma.",
+            onDismiss = { showExport = false },
+        ) { out -> TaskRunner.run("Exportando ${out.name}", ResultKind.APK) { log -> ed.save(out, prefs.signingConfig(), log) } }
+    }
+
     val e = editor?.getOrNull()
     if (openType != null && e != null) {
-        ClassSmaliEditor(e, openType!!, onClose = { openType = null; refresh++ })
+        ClassSmaliEditor(e, openType!!, onClose = { openType = null; refresh++ }, onOpenSettings = onOpenSettings)
         return
     }
 
@@ -110,10 +121,9 @@ fun DexEditorScreen(apk: File, onBack: () -> Unit) {
             if (n > 0) Surface(color = AccentWarm.copy(alpha = 0.15f)) {
                 Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("$n clase(s) modificada(s)", Modifier.weight(1f))
-                    Button(onClick = {
-                        val out = File(Workspace.builds, apk.nameWithoutExtension + "-dex.apk")
-                        TaskRunner.run("Guardando APK con dex editado", ResultKind.APK) { log -> e!!.save(out, prefs.signingConfig(), log) }
-                    }) { Icon(Icons.Default.Save, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Guardar APK") }
+                    Button(onClick = { showExport = true }) {
+                        Icon(Icons.Default.Save, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Exportar y firmar")
+                    }
                 }
             }
         },
@@ -149,11 +159,12 @@ fun DexEditorScreen(apk: File, onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ClassSmaliEditor(editor: DexEditor, type: String, onClose: () -> Unit) {
+private fun ClassSmaliEditor(editor: DexEditor, type: String, onClose: () -> Unit, onOpenSettings: () -> Unit = {}) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
     val scope = rememberCoroutineScope()
     val controller = remember { CodeController() }
+    var aiMode by remember { mutableStateOf(ApkForgeApp.prefs.editorAiMode) }
     var text by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var modified by remember { mutableStateOf(false) }
@@ -189,6 +200,8 @@ private fun ClassSmaliEditor(editor: DexEditor, type: String, onClose: () -> Uni
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().imePadding()) {
+            EditorModeSwitch(aiMode) { aiMode = it; ApkForgeApp.prefs.editorAiMode = it }
+            if (aiMode) AiEditBar("dex:" + type, "Clase.smali", controller, onOpenSettings) { modified = true }
             error?.let { Text(it, color = Danger, fontFamily = Mono, fontSize = 12.sp, modifier = Modifier.padding(10.dp)) }
             if (searchOpen) SearchBarPanel(controller) { searchOpen = false; controller.stopSearch() }
             val t = text

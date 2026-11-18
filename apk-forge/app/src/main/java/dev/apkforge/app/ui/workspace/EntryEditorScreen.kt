@@ -40,7 +40,9 @@ import dev.apkforge.app.ApkForgeApp
 import dev.apkforge.app.core.ArchiveSessions
 import dev.apkforge.app.core.Workers
 import dev.apkforge.app.ui.Danger
+import dev.apkforge.app.ui.editor.AiEditBar
 import dev.apkforge.app.ui.editor.CodeController
+import dev.apkforge.app.ui.editor.EditorModeSwitch
 import dev.apkforge.app.ui.editor.CodeView
 import dev.apkforge.app.ui.editor.SearchBarPanel
 import kotlinx.coroutines.launch
@@ -53,11 +55,12 @@ import java.io.File
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntryEditorScreen(apk: File, entry: String, onBack: () -> Unit) {
+fun EntryEditorScreen(apk: File, entry: String, onBack: () -> Unit, onOpenSettings: () -> Unit = {}) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
     val scope = rememberCoroutineScope()
     val controller = remember { CodeController() }
+    var aiMode by remember { mutableStateOf(ApkForgeApp.prefs.editorAiMode) }
     var text by remember { mutableStateOf<String?>(null) }
     var binaryXml by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -116,6 +119,8 @@ fun EntryEditorScreen(apk: File, entry: String, onBack: () -> Unit) {
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().imePadding()) {
+            EditorModeSwitch(aiMode) { aiMode = it; ApkForgeApp.prefs.editorAiMode = it }
+            if (aiMode) AiEditBar(apk.absolutePath + "!" + entry, entry.substringAfterLast('/'), controller, onOpenSettings) { modified = true }
             error?.let { Text(it, color = Danger, fontSize = 13.sp, modifier = Modifier.padding(12.dp)) }
             if (searchOpen) SearchBarPanel(controller) { searchOpen = false; controller.stopSearch() }
             val t = text

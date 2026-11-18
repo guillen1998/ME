@@ -29,6 +29,8 @@ dependencies {
     api("com.anthropic:anthropic-java:3.9.0")
     // JSON para el cliente compatible con OpenAI (OpenRouter, Groq, Ollama…)
     api("com.google.code.gson:gson:2.13.1")
+    // Diferencias línea a línea para mostrar qué cambió la IA
+    api("io.github.java-diff-utils:java-diff-utils:4.12")
 
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
