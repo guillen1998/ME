@@ -22,6 +22,16 @@ class AgentToolbox(
 ) {
     private var findingsCache: List<Finding>? = null
 
+    private fun projectDir(): File? = (if (root.isDirectory) root else root.parentFile).let { d ->
+        if (ApkProject.isProject(d)) d else ChangeLog.projectOf(File(d, "x"))
+    }
+
+    /** Mapa del proyecto que la app prepara para la IA (vacío si no es un proyecto). */
+    fun projectMap(): String = projectDir()?.let { runCatching { ProjectIndex.build(it) }.getOrDefault("") }.orEmpty()
+
+    private fun xmlWarn(f: File): String =
+        if (f.extension == "xml") XmlCheck.error(f.readText())?.let { "\n⚠ $it — corrígelo antes de seguir." } ?: "" else ""
+
     fun systemPrompt(preset: AgentPreset): String = """
         Eres un experto en ingeniería inversa de Android integrado en ApkForge, una app móvil.
         Trabajas sobre ${if (root.isDirectory) "el proyecto decompilado en '${root.name}'" else "el archivo '${root.name}'"}${apk?.let { " (APK original: ${it.name})" } ?: ""}.
@@ -29,11 +39,14 @@ class AgentToolbox(
 
         Tu tarea en esta sesión: ${preset.goal}
 
+        ${projectMap()}
+
         Reglas:
         - Basa todo en lo que veas con las herramientas; no inventes clases ni archivos. Cita rutas y nombres.
         - Para leer lógica prefiere java_class (Java legible) y usa smali solo cuando haga falta editar.
         - Sé eficiente: busca primero (search_text, find_classes, scan_findings) y lee solo lo necesario.
         - Si es un proyecto con cambios previos, consulta list_changes para saber qué se editó antes.
+        - La app trabaja contigo: arriba tienes el MAPA DEL PROYECTO, y en los mensajes del usuario la app añade lo que se ve en sus capturas y los ARCHIVOS RELACIONADOS que encontró. Úsalos primero; si falta algo, usa find_related.
         - Puedes editar CUALQUIER cosa del proyecto: smali, XML, recursos, manifest, assets, imágenes y binarios (.so/.dex/.bin con hex_read + hex_patch, manteniendo el tamaño). No digas que algo no se puede editar: busca la forma con las herramientas.
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
@@ -65,6 +78,10 @@ class AgentToolbox(
         add(tool("hex_read", "Lee bytes de un archivo binario en hexadecimal (offset y longitud), o busca dónde aparece un texto/bytes. Úsalo antes de parchear .so/.dex/.bin.",
             mapOf("path" to str("Ruta relativa"), "offset" to int("Offset inicial (por defecto 0)"), "length" to int("Bytes a leer (máx. 4096)"),
                 "find_text" to str("Opcional: texto a buscar (devuelve offsets)"), "find_hex" to str("Opcional: bytes en hex a buscar")), listOf("path")))
+        add(tool("project_map", "Mapa del proyecto preparado por la app: paquete, nombre, icono, actividades, layouts propios, idiomas, colores, paquetes de código propio, assets.",
+            mapOf("refresh" to bool("true para recalcular")), listOf()))
+        add(tool("find_related", "La app busca qué archivos tienen que ver con un texto o descripción (textos visibles, nombres de layouts/ids, smali que los usa). Úsalo para localizar rápido qué editar.",
+            mapOf("text" to str("Texto visible, nombre de pantalla o descripción de lo que buscas")), listOf("text")))
         add(tool("decrypt", "Descifra o decodifica datos automáticamente. Úsalo cuando encuentres AES/DES/RC4/XOR/Base64/gzip en el código: lee la clave e IV del smali y descífralo tú.",
             mapOf(
                 "algorithm" to str("aes | aes-ecb | aes-gcm | aes-ctr | des | 3des | rc4 | xor | base64 | hex | gzip | zlib | deflate"),
@@ -159,6 +176,15 @@ class AgentToolbox(
                 appendLine("\nHex inicial:")
                 append(BinaryTools.hexDump(f, 0, 256))
             }
+        }
+        "project_map" -> {
+            val d = projectDir() ?: throw EngineException("No es un proyecto")
+            if (a["refresh"] == true) File(d, ".apkforge/index.md").delete()
+            ProjectIndex.build(d)
+        }
+        "find_related" -> {
+            val d = projectDir() ?: throw EngineException("No es un proyecto")
+            ContextFinder.format(ContextFinder.find(d, a["text"] as String, 40)).ifBlank { "No encontré archivos relacionados con eso." }
         }
         "list_changes" -> {
             val proj = (if (root.isDirectory) root else root.parentFile).let { d -> if (ApkProject.isProject(d)) d else ChangeLog.projectOf(File(d, "x")) }
@@ -315,7 +341,7 @@ class AgentToolbox(
             f.parentFile?.mkdirs()
             f.writeText(a["content"] as String)
             ChangeLog.record(f, before, a["content"] as String, "IA", "write_file")
-            "Escrito ${f.name} (${f.length()} B)"
+            "Escrito ${f.name} (${f.length()} B)" + xmlWarn(f)
         }
         "replace_in_file" -> {
             if (!allowEdits) throw EngineException("Edición desactivada")
@@ -328,7 +354,7 @@ class AgentToolbox(
             val after = text.replace(old, a["new"] as String)
             f.writeText(after)
             ChangeLog.record(f, text, after, "IA", "replace_in_file")
-            "Reemplazado en ${f.name}"
+            "Reemplazado en ${f.name}" + xmlWarn(f)
         }
         else -> throw EngineException("Herramienta desconocida: $name")
     }
@@ -370,6 +396,8 @@ class AgentToolbox(
     fun summarize(name: String, a: Map<String, Any?>) = when (name) {
         "read_file", "list_files", "binary_strings", "write_file", "replace_in_file", "analyze_file" -> "${a["path"] ?: "/"}"
         "list_changes" -> if (a["only_pending"] == true) "pendientes" else "todos"
+        "find_related" -> "“${a["text"]}”"
+        "project_map" -> ""
         "hex_read", "hex_patch", "delete_file" -> "${a["path"]}"
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"

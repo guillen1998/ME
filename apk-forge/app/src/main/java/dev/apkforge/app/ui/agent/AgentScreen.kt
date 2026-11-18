@@ -1,6 +1,9 @@
 package dev.apkforge.app.ui.agent
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.FolderSpecial
 import androidx.compose.material.icons.filled.ViewSidebar
@@ -179,13 +182,23 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     LaunchedEffect(messages.size) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1) }
     // "Analizar con IA" desde un archivo: arranca solo.
     LaunchedEffect(session) {
-        if (initialPrompt != null && messages.isEmpty() && session.agent != null && !running) session.send(initialPrompt)
+        if (initialPrompt != null && messages.isEmpty() && session.agent != null && !running)
+            session.send(initialPrompt, emptyList(), if (dev.apkforge.engine.ApkProject.isProject(target)) target else null)
     }
 
+    // Imágenes para mostrarle a la IA (capturas de la app, iconos nuevos, fotos…)
+    val pendingImages = remember { androidx.compose.runtime.mutableStateListOf<ByteArray>() }
+    val appCtx = androidx.compose.ui.platform.LocalContext.current
+    val picker = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(4)
+    ) { uris -> uris.forEach { u -> loadImage(appCtx, u)?.let { pendingImages += it } } }
+    val isProject = dev.apkforge.engine.ApkProject.isProject(target)
+
     fun send() {
-        val text = input.trim().ifEmpty { defaultPrompt(preset) }
+        val text = input.trim().ifEmpty { if (pendingImages.isNotEmpty()) "Analiza esta imagen." else defaultPrompt(preset) }
         input = ""
-        session.send(text)
+        session.send(text, pendingImages.toList(), if (isProject) target else null)
+        pendingImages.clear()
     }
 
     Scaffold(
@@ -259,13 +272,32 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                 if (running) item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.size(8.dp)); Text("Trabajando…", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.size(8.dp)); Text(session.status.value ?: "La IA trabaja…", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
             if (tokens.isNotEmpty()) Text(tokens, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 14.dp))
 
+            if (isProject && !running) Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                quickTasks.forEach { (label, prompt) ->
+                    androidx.compose.material3.SuggestionChip(onClick = { input = prompt }, label = { Text(label, fontSize = 11.sp) })
+                }
+            }
+            if (pendingImages.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                pendingImages.forEachIndexed { i, img ->
+                    androidx.compose.foundation.layout.Box {
+                        Thumb(img, 64)
+                        androidx.compose.material3.SmallFloatingActionButton(onClick = { pendingImages.removeAt(i) },
+                            modifier = Modifier.size(22.dp).align(Alignment.TopEnd)) { Text("×", fontSize = 12.sp) }
+                    }
+                }
+            }
             Row(Modifier.padding(8.dp).fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                IconButton(onClick = {
+                    picker.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }, enabled = ready && !running) { Icon(Icons.Default.AddPhotoAlternate, "Adjuntar imagen", tint = AccentWarm) }
                 OutlinedTextField(input, { input = it }, modifier = Modifier.weight(1f), enabled = ready, maxLines = 4,
                     placeholder = { Text(if (preset == AgentPreset.CHAT) "Pregunta algo…" else "Escribe o pulsa enviar para empezar") })
                 Spacer(Modifier.size(6.dp))
@@ -346,7 +378,12 @@ private fun MessageBubble(m: AgentMsg) {
     when (m) {
         is AgentMsg.User -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth(0.85f)) {
-                Text(m.text, Modifier.padding(12.dp), fontSize = 14.sp)
+                Column(Modifier.padding(12.dp)) {
+                    if (m.images.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+                        m.images.take(4).forEach { Thumb(it, 72) }
+                    }
+                    Text(m.text, fontSize = 14.sp)
+                }
             }
         }
         is AgentMsg.Assistant -> SelectionContainer { Text(m.text, fontSize = 14.sp, lineHeight = 20.sp) }
@@ -365,3 +402,33 @@ private fun MessageBubble(m: AgentMsg) {
         is AgentMsg.Info -> Text(m.text, fontSize = 12.sp, color = if (m.error) Danger else MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+
+/** Tareas guiadas: la app prepara la instrucción; tú completas el detalle. */
+private val quickTasks = listOf(
+    "Cambiar nombre de la app" to "Cambia el nombre visible de la app a \"\"",
+    "Cambiar icono" to "Cambia el icono de la app por la imagen que adjunto (impórtala y úsala en todos los mipmap).",
+    "Traducir al español" to "Traduce al español todos los textos visibles de la app que estén en otro idioma (strings.xml base).",
+    "Cambiar colores" to "Cambia los colores principales del tema a: ",
+    "Explicar esta pantalla" to "Te adjunto una captura: dime qué layout y qué clases forman esta pantalla y cómo se podría cambiar.",
+    "Cambiar un texto" to "Cambia el texto \"\" por \"\" en toda la app.",
+    "Cambiar diseño de lista" to "En la pantalla de la captura, haz que los elementos de la lista se muestren en cuadrícula de 3 columnas.",
+)
+
+/** Lee una imagen elegida y la reduce (máx. 1280 px, JPEG) para enviarla rápido. */
+private fun loadImage(ctx: android.content.Context, uri: android.net.Uri): ByteArray? = runCatching {
+    val raw = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
+    val bmp = android.graphics.BitmapFactory.decodeByteArray(raw, 0, raw.size) ?: return@runCatching raw
+    val scale = minOf(1f, 1280f / maxOf(bmp.width, bmp.height))
+    val out = if (scale < 1f) android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scale).toInt(), (bmp.height * scale).toInt(), true) else bmp
+    java.io.ByteArrayOutputStream().also { out.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray()
+}.getOrNull()
+
+@Composable
+private fun Thumb(bytes: ByteArray, sizeDp: Int) {
+    val bmp = remember(bytes) { runCatching { android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap() }.getOrNull() }
+    if (bmp != null) androidx.compose.foundation.Image(bmp, null, Modifier.size(sizeDp.dp).androidx_clip(),
+        contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+}
+
+private fun Modifier.androidx_clip() = this.then(Modifier.clip(RoundedCornerShape(8.dp)))

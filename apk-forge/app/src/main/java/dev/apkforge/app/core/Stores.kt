@@ -141,7 +141,7 @@ object ScanStore {
 // ---------------------------------------------------------------- Agente IA
 
 sealed class AgentMsg {
-    data class User(val text: String) : AgentMsg()
+    data class User(val text: String, val images: List<ByteArray> = emptyList()) : AgentMsg()
     data class Assistant(val text: String) : AgentMsg()
     data class Tool(val tool: String, val summary: String, val result: String? = null, val error: Boolean = false) : AgentMsg()
     data class Info(val text: String, val error: Boolean) : AgentMsg()
@@ -171,16 +171,36 @@ class AgentSession(val key: String, val title: String) {
         }
     }
 
-    fun send(text: String) {
+    /**
+     * Envía un mensaje. Antes, la APP prepara el trabajo: analiza las imágenes (visión) y busca en
+     * el proyecto los archivos relacionados; todo eso se le entrega a la IA junto con tu mensaje.
+     */
+    fun send(text: String, images: List<ByteArray> = emptyList(), project: File? = null) {
         val a = agent ?: return
         if (running.value) return
-        messages += AgentMsg.User(text)
+        messages += AgentMsg.User(text, images)
         running.value = true
         BackgroundService.ensureRunning()
         job = AppScope.scope.launch {
-            try { a.send(text) { !isActive } } finally { onMain { running.value = false } }
+            try {
+                val prep = dev.apkforge.engine.MessagePreparer.prepare(project, text, images,
+                    dev.apkforge.engine.VisionAi.endpoints, ProgressListener { msg -> onMain { status.value = msg } })
+                onMain {
+                    status.value = null
+                    val parts = buildList {
+                        if (prep.imageNotes != null) add("leí ${images.size} imagen(es)")
+                        if (prep.related.isNotEmpty()) add("encontré ${prep.related.size} archivo(s) relacionado(s): " +
+                            prep.related.map { it.path.substringAfterLast('/') }.distinct().take(4).joinToString(", "))
+                    }
+                    if (parts.isNotEmpty()) messages += AgentMsg.Info("🧩 La app: " + parts.joinToString(" · "), false)
+                }
+                a.send(prep.text) { !isActive }
+            } finally { onMain { running.value = false; status.value = null } }
         }
     }
+
+    /** Qué está haciendo la app antes de pasarle el trabajo a la IA. */
+    val status = mutableStateOf<String?>(null)
 
     fun stop() { job?.cancel(); running.value = false }
 }
