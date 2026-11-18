@@ -101,6 +101,20 @@ class Prefs(ctx: Context) {
         get() = p.getBoolean("hidden", false)
         set(v) = p.edit().putBoolean("hidden", v).apply()
 
+    // ---- Agente IA (Claude) ----
+    var apiKey: String
+        get() = p.getString("apiKey", "")!!
+        set(v) = p.edit().putString("apiKey", v).apply()
+    var agentModel: String
+        get() = p.getString("agentModel", "claude-opus-4-8")!!
+        set(v) = p.edit().putString("agentModel", v).apply()
+    var agentEffort: String
+        get() = p.getString("agentEffort", "high")!!
+        set(v) = p.edit().putString("agentEffort", v).apply()
+    var agentAllowEdits: Boolean
+        get() = p.getBoolean("agentEdits", false)
+        set(v) = p.edit().putBoolean("agentEdits", v).apply()
+
     fun signingConfig(): SigningConfig =
         if (signMode == "keystore" && keystorePath.isNotBlank()) SigningConfig.Keystore(
             file = File(keystorePath),

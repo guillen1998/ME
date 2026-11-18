@@ -21,7 +21,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.ExpandLess
@@ -81,7 +84,8 @@ private data class Loaded(val info: ApkInfo?, val error: String?, val icon: Draw
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun ApkInfoScreen(apk: File, onBack: () -> Unit, onOpenDir: (File) -> Unit, onOpenJava: (File) -> Unit) {
+fun ApkInfoScreen(apk: File, onBack: () -> Unit, onOpenDir: (File) -> Unit, onOpenJava: (File) -> Unit,
+                  onScan: (File) -> Unit = {}, onAgent: (File) -> Unit = {}) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
     var showDecompile by remember { mutableStateOf(false) }
@@ -155,14 +159,14 @@ fun ApkInfoScreen(apk: File, onBack: () -> Unit, onOpenDir: (File) -> Unit, onOp
                     }
                 }
                 ActionTile(Icons.Default.InstallMobile, "Instalar", m) { Installer.install(ctx, apk) }
-                ActionTile(Icons.Default.Build, "Exportar Java", m, tint = AccentWarm) {
-                    val out = Workspace.unique(Workspace.java, Workspace.safeName(info?.packageName ?: apk.nameWithoutExtension))
-                    TaskRunner.run("Exportando código Java", ResultKind.DIRECTORY) { log ->
-                        dev.apkforge.engine.JavaDecompiler.open(apk, prefs.javaOptions(), log).use { it.exportAll(out, log) }
-                        out
+                ActionTile(Icons.Default.Science, "Proyecto Android", m, tint = Ok) {
+                    val out = Workspace.unique(Workspace.projects, Workspace.safeName((info?.packageName ?: apk.nameWithoutExtension) + "_studio"))
+                    TaskRunner.run("Reconstruyendo proyecto Android Studio", ResultKind.DIRECTORY) { log ->
+                        dev.apkforge.engine.ApkProject.exportStudioProject(apk, out, prefs.javaOptions(), log)
                     }
                 }
-                Spacer(m)
+                ActionTile(Icons.Default.TravelExplore, "Analizar", m) { onScan(apk) }
+                ActionTile(Icons.Default.AutoAwesome, "Agente IA", m, tint = AccentWarm) { onAgent(apk) }
             }
 
             if (info != null) {

@@ -65,6 +65,14 @@ fun TaskConsole(onOpenDir: (File) -> Unit, onOpenFile: (File) -> Unit) {
         title = { Text(s.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
         text = {
             Column {
+                if (s.running && s.percent in 0..100) {
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { s.percent / 100f },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text("${s.percent}%", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(vertical = 4.dp))
+                }
                 Surface(
                     color = Color(0xFF0A0C10),
                     shape = RoundedCornerShape(10.dp),

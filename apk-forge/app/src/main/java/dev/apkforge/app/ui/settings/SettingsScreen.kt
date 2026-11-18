@@ -98,6 +98,39 @@ fun SettingsScreen(onBack: () -> Unit) {
                 )
             }
 
+            SectionCard("Agente IA (Claude)") {
+                var apiKey by remember { mutableStateOf(p.apiKey) }
+                var model by remember { mutableStateOf(p.agentModel) }
+                var effort by remember { mutableStateOf(p.agentEffort) }
+                var allowEdits by remember { mutableStateOf(p.agentAllowEdits) }
+                OutlinedTextField(apiKey, { apiKey = it; p.apiKey = it.trim() },
+                    label = { Text("Clave de API (sk-ant-…)") }, singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                Text("Se guarda solo en este dispositivo. Consíguela en console.anthropic.com.",
+                    fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.size(6.dp))
+                Text("Modelo", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row {
+                    listOf("claude-opus-4-8" to "Opus (mejor)", "claude-sonnet-5-5" to "Sonnet (rápido)", "claude-haiku-5-5" to "Haiku (barato)").forEach { (id, label) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(model == id, { model = id; p.agentModel = id })
+                            Text(label, fontSize = 12.sp)
+                        }
+                    }
+                }
+                Text("Esfuerzo", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row {
+                    listOf("low", "medium", "high", "xhigh").forEach { e ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(effort == e, { effort = e; p.agentEffort = e }); Text(e, fontSize = 12.sp)
+                        }
+                    }
+                }
+                CheckRow("Permitir que el agente edite archivos", "Hace cambios en smali/XML (guarda copia de seguridad). Si no, solo propone.", allowEdits) {
+                    allowEdits = it; p.agentAllowEdits = it
+                }
+            }
+
             SectionCard("Decompilador Java (jadx)") {
                 CheckRow("Mostrar código aunque sea inconsistente", "Muestra lo que se pudo reconstruir en vez de “dump skipped”", inconsistent) {
                     inconsistent = it; p.showInconsistent = it; JavaSessions.close()

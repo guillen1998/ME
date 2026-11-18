@@ -29,6 +29,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentPaste
@@ -141,8 +143,11 @@ fun FileBrowserScreen(
     startPath: String?,
     onOpenApk: (File) -> Unit,
     onOpenEditor: (File) -> Unit,
+    onOpenBinary: (File) -> Unit,
     onOpenJava: (File) -> Unit,
     onSearch: (File) -> Unit,
+    onScan: (File) -> Unit,
+    onAgent: (File) -> Unit,
     onApps: () -> Unit,
     onSettings: () -> Unit,
 ) {
@@ -227,6 +232,7 @@ fun FileBrowserScreen(
                             }
                         }) { Icon(Icons.Default.ContentPaste, "Pegar") }
                     }
+                    IconButton(onClick = { onScan(projectRoot ?: dir) }) { Icon(Icons.Default.TravelExplore, "Analizar (URLs, secretos…)") }
                     IconButton(onClick = { onSearch(projectRoot ?: dir) }) { Icon(Icons.Default.Search, "Buscar en archivos") }
                     IconButton(onClick = onApps) { Icon(Icons.Default.Apps, "Apps instaladas") }
                     Box {
@@ -305,6 +311,7 @@ fun FileBrowserScreen(
                             Text("Proyecto: ${root.name}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(info?.packageName ?: "", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+                        IconButton(onClick = { onAgent(root) }) { Icon(Icons.Default.AutoAwesome, "Agente IA") }
                         IconButton(onClick = { onOpenJava(root) }) { Icon(Icons.Default.Coffee, "Ver Java") }
                         Button(onClick = { buildProject(root) }) {
                             Icon(Icons.Default.Build, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Compilar")
@@ -328,7 +335,7 @@ fun FileBrowserScreen(
                                     f.isDirectory -> path = f.absolutePath
                                     f.extension.equals("apk", true) -> onOpenApk(f)
                                     isTextFile(f) -> onOpenEditor(f)
-                                    else -> runCatching { Installer.share(ctx, f) }
+                                    else -> onOpenBinary(f)
                                 }
                             },
                             onLongClick = { selected = f },
@@ -348,6 +355,7 @@ fun FileBrowserScreen(
                 onAction = { action ->
                     when (action) {
                         "edit" -> { selected = null; onOpenEditor(f) }
+                        "binary" -> { selected = null; onOpenBinary(f) }
                         "apk" -> { selected = null; onOpenApk(f) }
                         "java" -> { selected = null; onOpenJava(f) }
                         "build" -> { selected = null; buildProject(f) }
@@ -481,6 +489,7 @@ private fun FileActionsDialog(file: File, onDismiss: () -> Unit, onAction: (Stri
         if (isDex) add("java" to "Ver código Java")
         if (isProject) { add("build" to "Compilar y firmar"); add("java" to "Ver código Java") }
         if (file.isFile) add("edit" to "Abrir en el editor de texto")
+        if (file.isFile) add("binary" to "Abrir como binario (hex / strings / descifrar)")
         add("copy" to "Copiar"); add("cut" to "Cortar"); add("rename" to "Renombrar")
         add("path" to "Copiar ruta")
         if (file.isFile) add("share" to "Compartir / abrir con…")

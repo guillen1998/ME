@@ -127,6 +127,25 @@ class ForgeAgent(
             mapOf("class_name" to str("Nombre completo de la clase")), listOf("class_name")))
         add(tool("binary_strings", "Extrae las cadenas legibles de un archivo binario (.so, .dex, .bin…), filtrando opcionalmente.",
             mapOf("path" to str("Ruta relativa del binario"), "filter" to str("Solo cadenas que contengan esto ('' = todas)")), listOf("path")))
+        add(tool("decrypt", "Descifra o decodifica datos automáticamente. Úsalo cuando encuentres AES/DES/RC4/XOR/Base64/gzip en el código: lee la clave e IV del smali y descífralo tú.",
+            mapOf(
+                "algorithm" to str("aes | aes-ecb | aes-gcm | aes-ctr | des | 3des | rc4 | xor | base64 | hex | gzip | zlib | deflate"),
+                "input" to str("Dato a descifrar como texto (base64 o hex). Usa esto o 'path', no ambos"),
+                "path" to str("Ruta relativa de un archivo a descifrar en vez de 'input'"),
+                "key" to str("Clave: texto, hex o base64 (se detecta sola)"),
+                "iv" to str("IV/nonce opcional: texto, hex o base64"),
+                "key_encoding" to str("auto (por defecto) | raw | hex | base64 — cómo interpretar la clave"),
+                "iv_encoding" to str("auto | raw | hex | base64"),
+                "save_to" to str("Si se da, guarda el resultado descifrado en esta ruta relativa"),
+            ), listOf("algorithm")))
+        add(tool("auto_aes", "Prueba los modos AES habituales (CBC/ECB/GCM/CTR, IV=0 o al principio) con una clave y devuelve los resultados que parecen reales (texto, dex, zip, JSON…). Para cuando no sabes el modo exacto.",
+            mapOf(
+                "key" to str("Clave: texto, hex o base64"),
+                "input" to str("Dato cifrado como base64/hex, o usa 'path'"),
+                "path" to str("Ruta relativa del archivo cifrado"),
+                "iv" to str("IV opcional"),
+                "save_to" to str("Ruta relativa donde guardar el primer resultado plausible (opcional)"),
+            ), listOf("key")))
         if (config.allowEdits) {
             add(tool("write_file", "Crea o reemplaza un archivo de texto completo (guarda copia de seguridad).",
                 mapOf("path" to str("Ruta relativa"), "content" to str("Contenido completo")), listOf("path", "content")))
@@ -237,11 +256,47 @@ class ForgeAgent(
         }
         "read_file" -> {
             val f = resolve(a["path"] as String)
-            val start = ((a["start_line"] as? Number)?.toInt() ?: 1).coerceAtLeast(1)
-            val max = ((a["max_lines"] as? Number)?.toInt() ?: 400).coerceIn(1, 2000)
-            val lines = f.readLines()
-            lines.drop(start - 1).take(max).mapIndexed { i, l -> "${start + i}: $l" }.joinToString("\n") +
-                "\n[líneas $start-${minOf(start + max - 1, lines.size)} de ${lines.size}]"
+            if (!f.isFile) throw EngineException("No existe: ${a["path"]}")
+            // Robusto: si es binario, en vez de fallar muestra cadenas + un vistazo hex.
+            if (!looksTextFile(f)) {
+                "[${BinaryTools.identify(f)}; no es texto — uso cadenas + hex]\n\nCadenas:\n" +
+                    (if (f.extension == "dex") BinaryTools.dexStrings(f) else BinaryTools.strings(f)).take(200).joinToString("\n") +
+                    "\n\nHex (inicio):\n" + BinaryTools.hexDump(f, 0, 512)
+            } else {
+                val start = ((a["start_line"] as? Number)?.toInt() ?: 1).coerceAtLeast(1)
+                val max = ((a["max_lines"] as? Number)?.toInt() ?: 400).coerceIn(1, 2000)
+                val lines = f.readText().split('\n')
+                lines.drop(start - 1).take(max).mapIndexed { i, l -> "${start + i}: $l" }.joinToString("\n") +
+                    "\n[líneas $start-${minOf(start + max - 1, lines.size)} de ${lines.size}]"
+            }
+        }
+        "decrypt" -> {
+            val algo = a["algorithm"] as String
+            val path = a["path"] as? String
+            val data = path?.let { resolve(it).readBytes() }
+            val r = CryptoTools.decode(algo, input = a["input"] as? String, dataBytes = data,
+                key = a["key"] as? String, iv = a["iv"] as? String,
+                keyEncoding = (a["key_encoding"] as? String) ?: "auto",
+                ivEncoding = (a["iv_encoding"] as? String) ?: "auto")
+            saveIfAsked(a["save_to"] as? String, r.bytes) +
+                "Descifrado (${algo}, ${r.bytes.size} bytes). " +
+                (if (r.looksText) "Texto:\n" + r.text.take(6000) else "Binario (${BinaryTools.identifyBytes(r.bytes)}). Hex:\n" + r.preview)
+        }
+        "auto_aes" -> {
+            val key = CryptoTools.material(a["key"] as String, (a["key_encoding"] as? String) ?: "auto", setOf(16, 24, 32))
+            val path = a["path"] as? String
+            val data = path?.let { resolve(it).readBytes() }
+                ?: (a["input"] as? String)?.let { CryptoTools.base64(it) ?: CryptoTools.hex(it) ?: it.toByteArray() }
+                ?: throw EngineException("Falta 'input' o 'path'")
+            val iv = (a["iv"] as? String)?.let { CryptoTools.material(it) }
+            val results = CryptoTools.autoAes(data, key, iv)
+            if (results.isEmpty()) "Ningún modo AES dio un resultado reconocible con esa clave."
+            else {
+                val best = results.first()
+                saveIfAsked(a["save_to"] as? String, best.bytes) +
+                    "Modos que funcionan: ${results.joinToString { it.label }}\n\n" +
+                    results.take(3).joinToString("\n\n") { "== ${it.label} ==\n" + (if (it.looksText) it.text.take(2000) else it.preview) }
+            }
         }
         "search_text" -> {
             val q = a["query"] as String
@@ -308,6 +363,22 @@ class ForgeAgent(
             "Reemplazado en ${f.name}"
         }
         else -> throw EngineException("Herramienta desconocida: $name")
+    }
+
+    private fun looksTextFile(f: File): Boolean = runCatching {
+        val buf = ByteArray(2048)
+        val n = f.inputStream().use { it.read(buf) }
+        n <= 0 || (0 until n).none { buf[it].toInt() == 0 }
+    }.getOrDefault(false)
+
+    private fun saveIfAsked(savePath: String?, bytes: ByteArray): String {
+        if (savePath.isNullOrBlank()) return ""
+        if (!config.allowEdits) return "[No guardado: activa la edición en Ajustes para escribir archivos]\n"
+        val f = resolve(savePath)
+        backup(f)
+        f.parentFile?.mkdirs()
+        f.writeBytes(bytes)
+        return "Guardado en ${f.name} (${bytes.size} bytes)\n"
     }
 
     private fun backup(f: File) {

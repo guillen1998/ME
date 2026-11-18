@@ -19,6 +19,7 @@ data class TaskState(
     val error: String? = null,
     val result: File? = null,
     val resultKind: ResultKind = ResultKind.NONE,
+    val percent: Int = -1,
     val startedAt: Long = System.currentTimeMillis(),
     val finishedAt: Long? = null,
 )
@@ -42,7 +43,10 @@ object TaskRunner {
     ) {
         if (isBusy) return
         _state.value = TaskState(title)
-        val listener = ProgressListener { msg -> _state.update { it?.copy(logs = (it.logs + msg).takeLast(400)) } }
+        val listener = object : ProgressListener {
+            override fun onProgress(message: String) { _state.update { it?.copy(logs = (it.logs + message).takeLast(400)) } }
+            override fun onPercent(percent: Int) { _state.update { it?.copy(percent = percent) } }
+        }
         job = scope.launch {
             try {
                 val result = block(listener)

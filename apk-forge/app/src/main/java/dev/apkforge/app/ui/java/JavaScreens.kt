@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.ContentCopy
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import dev.apkforge.app.ApkForgeApp
 import dev.apkforge.app.core.JavaSessions
 import dev.apkforge.app.core.Workers
+import dev.apkforge.app.ui.Accent
 import dev.apkforge.app.ui.AccentWarm
 import dev.apkforge.app.ui.Mono
 import dev.apkforge.app.ui.editor.CodeController
@@ -241,13 +243,16 @@ private fun CodeSearch(session: JavaDecompiler, onOpenClass: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JavaClassScreen(source: File, className: String, onBack: () -> Unit) {
+fun JavaClassScreen(source: File, className: String, onBack: () -> Unit, onOpenClass: (String) -> Unit = {}) {
     val ctx = LocalContext.current
     val prefs = ApkForgeApp.prefs
     var smali by rememberSaveable { mutableStateOf(false) }
     var code by remember { mutableStateOf<String?>(null) }
     var searchOpen by remember { mutableStateOf(false) }
+    var showRefs by remember { mutableStateOf(false) }
     val controller = remember(smali) { CodeController() }
+
+    if (showRefs) XrefDialog(source, className, onDismiss = { showRefs = false }, onOpen = { showRefs = false; onOpenClass(it) })
 
     LaunchedEffect(smali) {
         code = null
@@ -271,6 +276,7 @@ fun JavaClassScreen(source: File, className: String, onBack: () -> Unit) {
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
                     TextButton(onClick = { smali = !smali }) { Text(if (smali) "Java" else "Smali") }
+                    IconButton(onClick = { showRefs = true }) { Icon(Icons.Default.AccountTree, "Referencias") }
                     IconButton(onClick = { searchOpen = !searchOpen }) { Icon(Icons.Default.Search, "Buscar") }
                     IconButton(onClick = {
                         (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
@@ -325,4 +331,36 @@ fun TextViewerScreen(onBack: () -> Unit) {
             )
         }
     }
+}
+
+@Composable
+private fun XrefDialog(source: File, className: String, onDismiss: () -> Unit, onOpen: (String) -> Unit) {
+    val prefs = ApkForgeApp.prefs
+    data class Xref(val methods: List<String>, val usedIn: List<String>, val deps: List<String>)
+    val xref by androidx.compose.runtime.produceState<Xref?>(null, className) {
+        value = withContext(Workers.dispatcher) {
+            runCatching {
+                val s = JavaSessions.get(source, prefs.javaOptions())
+                Xref(s.methods(className), s.usedIn(className), s.dependencies(className))
+            }.getOrNull()
+        }
+    }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Referencias", fontSize = 17.sp) },
+        text = {
+            val x = xref
+            if (x == null) androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().padding(20.dp), androidx.compose.ui.Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator()
+            } else LazyColumn(Modifier.fillMaxWidth()) {
+                item { Text("Métodos (${x.methods.size})", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary) }
+                items(x.methods) { Text(it, fontFamily = Mono, fontSize = 12.sp, modifier = Modifier.padding(vertical = 1.dp)) }
+                item { Spacer(Modifier.size(10.dp)); Text("Usada en (${x.usedIn.size}) — toca para abrir", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary) }
+                items(x.usedIn) { Text(it, fontFamily = Mono, fontSize = 12.sp, color = Accent, modifier = Modifier.fillMaxWidth().clickable { onOpen(it) }.padding(vertical = 3.dp)) }
+                item { Spacer(Modifier.size(10.dp)); Text("Depende de (${x.deps.size})", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary) }
+                items(x.deps) { Text(it, fontFamily = Mono, fontSize = 12.sp, color = Accent, modifier = Modifier.fillMaxWidth().clickable { onOpen(it) }.padding(vertical = 3.dp)) }
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cerrar") } },
+    )
 }

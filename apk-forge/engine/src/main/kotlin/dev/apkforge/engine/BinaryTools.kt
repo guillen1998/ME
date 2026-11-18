@@ -18,10 +18,20 @@ object BinaryTools {
         val h = ByteArray(16)
         val n = file.inputStream().use { it.read(h) }
         if (n <= 0) return "vacío"
+        return identifyHeader(h, n) { elfArch(file) }
+    }
+
+    /** Igual que [identify] pero sobre bytes en memoria (p. ej. un resultado descifrado). */
+    fun identifyBytes(data: ByteArray): String {
+        if (data.isEmpty()) return "vacío"
+        return identifyHeader(data, minOf(16, data.size)) { "arch?" }
+    }
+
+    private fun identifyHeader(h: ByteArray, n: Int, arch: () -> String): String {
         fun starts(vararg b: Int) = n >= b.size && b.indices.all { h[it].toInt() and 0xFF == b[it] }
         fun ascii(s: String) = n >= s.length && String(h, 0, s.length, Charsets.ISO_8859_1) == s
         return when {
-            starts(0x7F, 0x45, 0x4C, 0x46) -> "ELF — librería/ejecutable nativo (${elfBits(h)}, ${elfArch(file)})"
+            starts(0x7F, 0x45, 0x4C, 0x46) -> "ELF — librería/ejecutable nativo (${elfBits(h)}, ${arch()})"
             ascii("dex\n") || starts(0x64, 0x65, 0x78, 0x0A) -> "DEX — bytecode Dalvik"
             ascii("cdex") -> "CDEX — dex comprimido (ART)"
             starts(0x50, 0x4B, 0x03, 0x04) || starts(0x50, 0x4B, 0x05, 0x06) -> "ZIP/APK/JAR"
@@ -36,7 +46,10 @@ object BinaryTools {
             starts(0x1F, 0x8B) -> "GZIP"
             ascii("SQLite") -> "SQLite (base de datos)"
             ascii("\u0000asm") -> "WebAssembly"
-            else -> if (looksText(file)) "Texto" else "Binario desconocido"
+            else -> {
+                val sample = minOf(n, 512)
+                if ((0 until sample).none { h[it].toInt() == 0 }) "Texto" else "Binario desconocido"
+            }
         }
     }
 

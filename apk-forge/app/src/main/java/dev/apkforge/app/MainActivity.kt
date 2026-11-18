@@ -28,6 +28,9 @@ import dev.apkforge.app.ui.java.JavaBrowserScreen
 import dev.apkforge.app.ui.java.JavaClassScreen
 import dev.apkforge.app.ui.java.TextViewerHolder
 import dev.apkforge.app.ui.java.TextViewerScreen
+import dev.apkforge.app.ui.agent.AgentScreen
+import dev.apkforge.app.ui.binary.BinaryViewerScreen
+import dev.apkforge.app.ui.scan.ScannerScreen
 import dev.apkforge.app.ui.search.ProjectSearchScreen
 import dev.apkforge.app.ui.settings.SettingsScreen
 import java.io.File
@@ -92,6 +95,9 @@ object Routes {
     fun java(f: File) = "java?path=${enc(f)}"
     fun javaClass(f: File, cls: String) = "javaclass?path=${enc(f)}&cls=${Uri.encode(cls)}"
     fun search(root: File) = "search?path=${enc(root)}"
+    fun scan(target: File) = "scan?path=${enc(target)}"
+    fun binary(f: File) = "binary?path=${enc(f)}"
+    fun agent(target: File) = "agent?path=${enc(target)}"
     const val APPS = "apps"
     const val SETTINGS = "settings"
     const val VIEWER = "viewer"
@@ -108,8 +114,11 @@ private fun AppNav(nav: NavHostController) {
                 startPath = e.arguments?.getString("path"),
                 onOpenApk = { nav.navigate(Routes.apk(it)) },
                 onOpenEditor = { nav.navigate(Routes.editor(it)) },
+                onOpenBinary = { nav.navigate(Routes.binary(it)) },
                 onOpenJava = { nav.navigate(Routes.java(it)) },
                 onSearch = { nav.navigate(Routes.search(it)) },
+                onScan = { nav.navigate(Routes.scan(it)) },
+                onAgent = { nav.navigate(Routes.agent(it)) },
                 onApps = { nav.navigate(Routes.APPS) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
             )
@@ -120,7 +129,22 @@ private fun AppNav(nav: NavHostController) {
                 onBack = { nav.back() },
                 onOpenDir = { nav.navigate(Routes.files(it)) },
                 onOpenJava = { nav.navigate(Routes.java(it)) },
+                onScan = { nav.navigate(Routes.scan(it)) },
+                onAgent = { nav.navigate(Routes.agent(it)) },
             )
+        }
+        composable("scan?path={path}", arguments = listOf(pathArg)) { e ->
+            ScannerScreen(
+                target = File(e.arguments?.getString("path")!!),
+                onBack = { nav.back() },
+                onOpen = { f, line -> nav.navigate(Routes.editor(f, line)) },
+            )
+        }
+        composable("binary?path={path}", arguments = listOf(pathArg)) { e ->
+            BinaryViewerScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() })
+        }
+        composable("agent?path={path}", arguments = listOf(pathArg)) { e ->
+            AgentScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onOpenSettings = { nav.navigate(Routes.SETTINGS) })
         }
         composable(
             "editor?path={path}&line={line}",
@@ -144,7 +168,8 @@ private fun AppNav(nav: NavHostController) {
             "javaclass?path={path}&cls={cls}",
             arguments = listOf(pathArg, navArgument("cls") { type = NavType.StringType; defaultValue = "" }),
         ) { e ->
-            JavaClassScreen(File(e.arguments?.getString("path")!!), e.arguments?.getString("cls")!!, onBack = { nav.back() })
+            val jsrc = File(e.arguments?.getString("path")!!)
+            JavaClassScreen(jsrc, e.arguments?.getString("cls")!!, onBack = { nav.back() }, onOpenClass = { nav.navigate(Routes.javaClass(jsrc, it)) })
         }
         composable("search?path={path}", arguments = listOf(pathArg)) { e ->
             ProjectSearchScreen(
