@@ -97,7 +97,11 @@ object Routes {
     fun search(root: File) = "search?path=${enc(root)}"
     fun scan(target: File) = "scan?path=${enc(target)}"
     fun binary(f: File) = "binary?path=${enc(f)}"
-    fun agent(target: File) = "agent?path=${enc(target)}"
+    fun agent(target: File, prompt: String? = null): String {
+        val auto = prompt ?: if (target.isFile && !target.extension.equals("apk", true))
+            "Analiza el archivo '${target.name}': qué es, qué contiene, si está cifrado (y si lo está, busca la clave y descífralo) y para qué lo usa la app." else null
+        return "agent?path=${enc(target)}" + (auto?.let { "&prompt=${Uri.encode(it)}" } ?: "")
+    }
     const val APPS = "apps"
     const val SETTINGS = "settings"
     const val VIEWER = "viewer"
@@ -141,10 +145,16 @@ private fun AppNav(nav: NavHostController) {
             )
         }
         composable("binary?path={path}", arguments = listOf(pathArg)) { e ->
-            BinaryViewerScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() })
+            BinaryViewerScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onAnalyzeAi = { nav.navigate(Routes.agent(it)) })
         }
-        composable("agent?path={path}", arguments = listOf(pathArg)) { e ->
-            AgentScreen(File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onOpenSettings = { nav.navigate(Routes.SETTINGS) })
+        composable(
+            "agent?path={path}&prompt={prompt}",
+            arguments = listOf(pathArg, navArgument("prompt") { type = NavType.StringType; nullable = true; defaultValue = null }),
+        ) { e ->
+            AgentScreen(
+                File(e.arguments?.getString("path")!!), onBack = { nav.back() }, onOpenSettings = { nav.navigate(Routes.SETTINGS) },
+                initialPrompt = e.arguments?.getString("prompt"),
+            )
         }
         composable(
             "editor?path={path}&line={line}",

@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,7 +63,7 @@ import java.io.File
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BinaryViewerScreen(file: File, onBack: () -> Unit) {
+fun BinaryViewerScreen(file: File, onBack: () -> Unit, onAnalyzeAi: (File) -> Unit = {}) {
     var tab by remember { mutableIntStateOf(0) }
     var showDecrypt by remember { mutableStateOf(false) }
     val tabs = remember(file) {
@@ -82,7 +83,10 @@ fun BinaryViewerScreen(file: File, onBack: () -> Unit) {
                     }
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
-                actions = { IconButton(onClick = { showDecrypt = true }) { Icon(Icons.Default.LockOpen, "Descifrar") } },
+                actions = {
+                    IconButton(onClick = { onAnalyzeAi(file) }) { Icon(Icons.Default.AutoAwesome, "Analizar con IA") }
+                    IconButton(onClick = { showDecrypt = true }) { Icon(Icons.Default.LockOpen, "Descifrar") }
+                },
             )
         },
     ) { pad ->

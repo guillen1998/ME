@@ -27,6 +27,8 @@ dependencies {
     api("io.github.skylot:jadx-dex-input:1.5.3")
     // SDK oficial de Claude (agentes de IA)
     api("com.anthropic:anthropic-java:3.9.0")
+    // JSON para el cliente compatible con OpenAI (OpenRouter, Groq, Ollama…)
+    api("com.google.code.gson:gson:2.13.1")
 
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")

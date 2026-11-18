@@ -1,5 +1,6 @@
 package dev.apkforge.app.ui.settings
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -98,34 +99,56 @@ fun SettingsScreen(onBack: () -> Unit) {
                 )
             }
 
-            SectionCard("Agente IA (Claude)") {
-                var apiKey by remember { mutableStateOf(p.apiKey) }
-                var model by remember { mutableStateOf(p.agentModel) }
+            SectionCard("Agente IA") {
+                var provider by remember { mutableStateOf(p.aiProvider) }
+                var key by remember(provider) { mutableStateOf(p.keyFor(provider)) }
+                var model by remember(provider) { mutableStateOf(p.modelFor(provider)) }
+                var url by remember(provider) { mutableStateOf(p.urlFor(provider)) }
                 var effort by remember { mutableStateOf(p.agentEffort) }
                 var allowEdits by remember { mutableStateOf(p.agentAllowEdits) }
-                OutlinedTextField(apiKey, { apiKey = it; p.apiKey = it.trim() },
-                    label = { Text("Clave de API (sk-ant-…)") }, singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
-                Text("Se guarda solo en este dispositivo. Consíguela en console.anthropic.com.",
-                    fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Text("Proveedor", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                dev.apkforge.engine.AiProvider.entries.forEach { pr ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(provider == pr, { provider = pr; p.aiProvider = pr })
+                        Text(pr.title, fontSize = 14.sp)
+                    }
+                }
+                Text(provider.help, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.size(6.dp))
-                Text("Modelo", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row {
-                    listOf("claude-opus-4-8" to "Opus (mejor)", "claude-sonnet-5-5" to "Sonnet (rápido)", "claude-haiku-5-5" to "Haiku (barato)").forEach { (id, label) ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(model == id, { model = id; p.agentModel = id })
-                            Text(label, fontSize = 12.sp)
+                if (provider != dev.apkforge.engine.AiProvider.CLAUDE) {
+                    OutlinedTextField(url, { url = it; p.setUrlFor(provider, it.trim()) },
+                        label = { Text("URL base (…/v1)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                }
+                OutlinedTextField(key, { key = it; p.setKeyFor(provider, it.trim()) },
+                    label = { Text(if (provider.needsKey) "Clave de API" else "Clave de API (opcional)") }, singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(model, { model = it; p.setModelFor(provider, it.trim()) },
+                    label = { Text("Modelo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                val suggestions = when (provider) {
+                    dev.apkforge.engine.AiProvider.CLAUDE -> listOf("claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5")
+                    dev.apkforge.engine.AiProvider.OPENROUTER -> listOf("openrouter/free", "qwen/qwen3-coder:free", "deepseek/deepseek-chat-v3.1:free", "meta-llama/llama-3.3-70b-instruct:free")
+                    dev.apkforge.engine.AiProvider.GROQ -> listOf("llama-3.3-70b-versatile", "qwen/qwen3-32b", "openai/gpt-oss-120b")
+                    dev.apkforge.engine.AiProvider.OLLAMA -> listOf("qwen2.5-coder:7b", "llama3.1:8b", "qwen3:8b")
+                    dev.apkforge.engine.AiProvider.CUSTOM -> emptyList()
+                }
+                if (suggestions.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState())) {
+                    suggestions.forEach { m ->
+                        androidx.compose.material3.AssistChip(onClick = { model = m; p.setModelFor(provider, m) }, label = { Text(m, fontSize = 11.sp) },
+                            modifier = Modifier.padding(end = 6.dp))
+                    }
+                }
+                if (provider == dev.apkforge.engine.AiProvider.CLAUDE) {
+                    Text("Esfuerzo", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row {
+                        listOf("low", "medium", "high", "xhigh").forEach { e ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(effort == e, { effort = e; p.agentEffort = e }); Text(e, fontSize = 12.sp)
+                            }
                         }
                     }
                 }
-                Text("Esfuerzo", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row {
-                    listOf("low", "medium", "high", "xhigh").forEach { e ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(effort == e, { effort = e; p.agentEffort = e }); Text(e, fontSize = 12.sp)
-                        }
-                    }
-                }
+                Text("Las claves se guardan solo en este dispositivo.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 CheckRow("Permitir que el agente edite archivos", "Hace cambios en smali/XML (guarda copia de seguridad). Si no, solo propone.", allowEdits) {
                     allowEdits = it; p.agentAllowEdits = it
                 }

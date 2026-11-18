@@ -356,6 +356,7 @@ fun FileBrowserScreen(
                     when (action) {
                         "edit" -> { selected = null; onOpenEditor(f) }
                         "binary" -> { selected = null; onOpenBinary(f) }
+                        "ai" -> { selected = null; onAgent(f) }
                         "apk" -> { selected = null; onOpenApk(f) }
                         "java" -> { selected = null; onOpenJava(f) }
                         "build" -> { selected = null; buildProject(f) }
@@ -490,6 +491,7 @@ private fun FileActionsDialog(file: File, onDismiss: () -> Unit, onAction: (Stri
         if (isProject) { add("build" to "Compilar y firmar"); add("java" to "Ver código Java") }
         if (file.isFile) add("edit" to "Abrir en el editor de texto")
         if (file.isFile) add("binary" to "Abrir como binario (hex / strings / descifrar)")
+        add("ai" to "Analizar con IA")
         add("copy" to "Copiar"); add("cut" to "Cortar"); add("rename" to "Renombrar")
         add("path" to "Copiar ruta")
         if (file.isFile) add("share" to "Compartir / abrir con…")

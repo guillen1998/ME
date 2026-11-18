@@ -60,6 +60,9 @@ import com.anthropic.models.beta.messages.BetaOutputConfig
 import dev.apkforge.engine.AgentConfig
 import dev.apkforge.engine.AgentEvent
 import dev.apkforge.engine.AgentPreset
+import dev.apkforge.engine.AiAgent
+import dev.apkforge.engine.AiProvider
+import dev.apkforge.engine.OpenAiCompatAgent
 import dev.apkforge.engine.ForgeAgent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -69,52 +72,62 @@ import java.io.File
 private sealed class Msg {
     data class User(val text: String) : Msg()
     data class Assistant(val text: String) : Msg()
-    data class Tool(val tool: String, val summary: String, var result: String? = null, var error: Boolean = false) : Msg()
+    data class Tool(val tool: String, val summary: String, val result: String? = null, val error: Boolean = false) : Msg()
     data class Info(val text: String, val error: Boolean) : Msg()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit) {
+fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit,
+                initialPreset: AgentPreset? = null, initialPrompt: String? = null) {
     val prefs = ApkForgeApp.prefs
     val scope = rememberCoroutineScope()
-    var preset by remember { mutableStateOf(AgentPreset.EXPLAIN) }
+    var preset by remember {
+        mutableStateOf(initialPreset ?: if (target.isFile && !target.extension.equals("apk", true)) AgentPreset.FILE_ANALYST else AgentPreset.EXPLAIN)
+    }
     val messages = remember { mutableStateListOf<Msg>() }
     var input by remember { mutableStateOf("") }
     var job by remember { mutableStateOf<Job?>(null) }
     val listState = rememberLazyListState()
     var tokens by remember { mutableStateOf("") }
 
-    val apiKey = prefs.apiKey
-    val agent = remember(preset, target) {
-        if (apiKey.isBlank()) null else {
-            val effort = when (prefs.agentEffort) {
-                "low" -> BetaOutputConfig.Effort.LOW; "medium" -> BetaOutputConfig.Effort.MEDIUM
-                "xhigh" -> BetaOutputConfig.Effort.XHIGH; "max" -> BetaOutputConfig.Effort.MAX
-                else -> BetaOutputConfig.Effort.HIGH
-            }
-            // Entrada para jadx: proyecto (sus dex) o el propio APK.
-            val javaInput = target
-            ForgeAgent(
-                root = target,
-                apk = if (target.isFile && target.extension.equals("apk", true)) target else null,
-                config = AgentConfig(apiKey, prefs.agentModel, effort, prefs.agentAllowEdits),
-                preset = preset,
-                java = { runCatching { JavaSessions.get(javaInput, prefs.javaOptions()) }.getOrNull() },
-            ) { ev ->
-                scope.launch {
-                    when (ev) {
-                        is AgentEvent.Text -> messages += Msg.Assistant(ev.text)
-                        is AgentEvent.ToolCall -> messages += Msg.Tool(ev.tool, ev.summary)
-                        is AgentEvent.ToolResult -> {
-                            val last = messages.lastOrNull { it is Msg.Tool && (it as Msg.Tool).result == null } as? Msg.Tool
-                            if (last != null) { last.result = ev.preview; last.error = ev.isError }
-                        }
-                        is AgentEvent.Error -> messages += Msg.Info(ev.message, true)
-                        is AgentEvent.Done -> tokens = "entrada ${ev.inputTokens} · salida ${ev.outputTokens}" +
-                            (if (ev.cachedTokens > 0) " · caché ${ev.cachedTokens}" else "")
-                    }
+    val ready = prefs.aiReady()
+    val provider = prefs.aiProvider
+    val apiKey = if (ready) "ok" else "" // compat con la UI de abajo
+    val onEv: (AgentEvent) -> Unit = { ev ->
+        scope.launch {
+            when (ev) {
+                is AgentEvent.Text -> messages += Msg.Assistant(ev.text)
+                is AgentEvent.ToolCall -> messages += Msg.Tool(ev.tool, ev.summary)
+                is AgentEvent.ToolResult -> {
+                    val idx = messages.indexOfLast { it is Msg.Tool && (it as Msg.Tool).result == null }
+                    if (idx >= 0) messages[idx] = (messages[idx] as Msg.Tool).copy(result = ev.preview, error = ev.isError)
                 }
+                is AgentEvent.Error -> messages += Msg.Info(ev.message, true)
+                is AgentEvent.Done -> tokens = "entrada ${ev.inputTokens} · salida ${ev.outputTokens}" +
+                    (if (ev.cachedTokens > 0) " · caché ${ev.cachedTokens}" else "")
+            }
+        }
+    }
+    val agent: AiAgent? = remember(preset, target, provider) {
+        if (!ready) null else {
+            val apkFile = if (target.isFile && target.extension.equals("apk", true)) target else null
+            // jadx: proyecto (sus dex) o el propio APK; para otros archivos no hay Java.
+            val javaInput = if (target.isDirectory || apkFile != null) target else null
+            val java: () -> dev.apkforge.engine.JavaDecompiler? = {
+                javaInput?.let { runCatching { JavaSessions.get(it, prefs.javaOptions()) }.getOrNull() }
+            }
+            if (provider == AiProvider.CLAUDE) {
+                val effort = when (prefs.agentEffort) {
+                    "low" -> BetaOutputConfig.Effort.LOW; "medium" -> BetaOutputConfig.Effort.MEDIUM
+                    "xhigh" -> BetaOutputConfig.Effort.XHIGH; "max" -> BetaOutputConfig.Effort.MAX
+                    else -> BetaOutputConfig.Effort.HIGH
+                }
+                ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), effort, prefs.agentAllowEdits),
+                    preset, java, onEv)
+            } else {
+                OpenAiCompatAgent(target, apkFile, prefs.urlFor(provider), prefs.keyFor(provider), prefs.modelFor(provider),
+                    preset, prefs.agentAllowEdits, java, onEv)
             }
         }
     }
@@ -131,13 +144,21 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit) {
         }
     }
 
+    // "Analizar con IA" desde un archivo: arranca solo, sin que el usuario escriba nada.
+    var autoStarted by remember { mutableStateOf(false) }
+    LaunchedEffect(agent) {
+        if (!autoStarted && agent != null && initialPrompt != null && messages.isEmpty()) {
+            autoStarted = true; input = initialPrompt; send()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
                         Text("Agente IA", fontSize = 17.sp)
-                        Text(preset.title + "  ·  " + target.name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(preset.title + "  ·  " + provider.title.substringBefore(" ·") + "  ·  " + target.name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
@@ -157,8 +178,8 @@ fun AgentScreen(target: File, onBack: () -> Unit, onOpenSettings: () -> Unit) {
                 Surface(color = AccentWarm.copy(alpha = 0.12f), shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(12.dp).fillMaxWidth()) {
                     Column(Modifier.padding(14.dp)) {
-                        Text("Falta la clave de API de Claude", fontWeight = FontWeight.SemiBold)
-                        Text("Añádela en Ajustes para usar el agente. El análisis y la edición manuales funcionan sin ella.",
+                        Text("Configura un proveedor de IA", fontWeight = FontWeight.SemiBold)
+                        Text("En Ajustes elige Claude, o un modelo abierto gratis: OpenRouter, Groq u Ollama (en tu PC, sin clave). El análisis y la edición manuales funcionan sin IA.",
                             fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp))
                         AssistChip(onClick = onOpenSettings, label = { Text("Abrir Ajustes") })
                     }
@@ -211,6 +232,7 @@ private fun defaultPrompt(p: AgentPreset) = when (p) {
     AgentPreset.SECURITY -> "Haz una auditoría de seguridad de esta app."
     AgentPreset.MODDER -> "Dime qué puedo modificar y espera mis instrucciones."
     AgentPreset.CHAT -> "Hola, ¿qué puedes hacer con esta app?"
+    AgentPreset.FILE_ANALYST -> "Analiza este archivo: qué es, qué contiene y si está cifrado, descífralo."
 }
 
 @Composable

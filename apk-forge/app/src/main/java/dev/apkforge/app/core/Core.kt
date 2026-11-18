@@ -106,8 +106,34 @@ class Prefs(ctx: Context) {
         get() = p.getString("apiKey", "")!!
         set(v) = p.edit().putString("apiKey", v).apply()
     var agentModel: String
-        get() = p.getString("agentModel", "claude-opus-4-8")!!
+        get() = p.getString("agentModel", "claude-opus-5-5")!!.let { if (it == "claude-opus-4-8") "claude-opus-5-5" else it }
         set(v) = p.edit().putString("agentModel", v).apply()
+
+    /** Proveedor elegido: CLAUDE, OPENROUTER, GROQ, OLLAMA o CUSTOM. */
+    var aiProvider: dev.apkforge.engine.AiProvider
+        get() = runCatching { dev.apkforge.engine.AiProvider.valueOf(p.getString("aiProvider", "CLAUDE")!!) }
+            .getOrDefault(dev.apkforge.engine.AiProvider.CLAUDE)
+        set(v) = p.edit().putString("aiProvider", v.name).apply()
+
+    fun keyFor(pr: dev.apkforge.engine.AiProvider): String =
+        if (pr == dev.apkforge.engine.AiProvider.CLAUDE) apiKey else p.getString("key_${pr.name}", "")!!
+    fun setKeyFor(pr: dev.apkforge.engine.AiProvider, v: String) =
+        if (pr == dev.apkforge.engine.AiProvider.CLAUDE) apiKey = v else p.edit().putString("key_${pr.name}", v).apply()
+
+    fun modelFor(pr: dev.apkforge.engine.AiProvider): String =
+        if (pr == dev.apkforge.engine.AiProvider.CLAUDE) agentModel else p.getString("model_${pr.name}", pr.defaultModel)!!
+    fun setModelFor(pr: dev.apkforge.engine.AiProvider, v: String) =
+        if (pr == dev.apkforge.engine.AiProvider.CLAUDE) agentModel = v else p.edit().putString("model_${pr.name}", v).apply()
+
+    fun urlFor(pr: dev.apkforge.engine.AiProvider): String = p.getString("url_${pr.name}", pr.baseUrl)!!
+    fun setUrlFor(pr: dev.apkforge.engine.AiProvider, v: String) = p.edit().putString("url_${pr.name}", v).apply()
+
+    /** ¿Está el proveedor actual listo para usarse? */
+    fun aiReady(): Boolean {
+        val pr = aiProvider
+        return (!pr.needsKey || keyFor(pr).isNotBlank()) &&
+            (pr == dev.apkforge.engine.AiProvider.CLAUDE || urlFor(pr).isNotBlank()) && modelFor(pr).isNotBlank()
+    }
     var agentEffort: String
         get() = p.getString("agentEffort", "high")!!
         set(v) = p.edit().putString("agentEffort", v).apply()
