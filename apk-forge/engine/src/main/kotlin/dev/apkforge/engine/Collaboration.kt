@@ -285,7 +285,7 @@ object MessagePreparer {
     }
 
     data class Prepared(val text: String, val imageNotes: String?, val related: List<ContextFinder.Hit>, val thought: NeuralBrain.Thought? = null,
-                        val deliberation: NeuralBrain.Deliberation? = null)
+                        val deliberation: NeuralBrain.Deliberation? = null, val intent: String? = null)
 
     /** ¿Razonar en el móvil antes de cada pedido? (la app lo activa si hay modelo descargado) */
     @Volatile var localReasoning = true
@@ -309,7 +309,10 @@ object MessagePreparer {
         // "tu último cambio la rompió"…), la app lo entiende y le arma a la IA la tarea de autodiagnóstico,
         // sin que tengas que dar instrucciones técnicas. Igual que hablarle a un humano.
         val intent = if (project != null) RequestIntent.detect(project, userText) else null
-        val related = if (project != null) {
+        if (intent != null) listener.onProgress(RequestIntent.statusFor(userText))
+        // En un reporte de cierre/problema, lo relevante son el log y tus últimos cambios (ya en la tarea),
+        // no una búsqueda semántica: la saltamos para ir directo a razonar sobre la causa.
+        val related = if (project != null && intent == null) {
             listener.onProgress("La app busca archivos relacionados…")
             val q = userText + "\n" + (notes ?: "")
             val raw = runCatching { ContextFinder.find(project, q, 60) }.getOrDefault(emptyList())
@@ -328,7 +331,7 @@ object MessagePreparer {
             listener.onProgress("🛡 La app busca protecciones contra modificación…"); IntegrityScanner.cachedExplain(project)
         }.getOrNull()?.takeIf { it.contains("DETECTADA") } else null
         // El motor neuronal piensa: significado (CPU/GPU) + grafo del proyecto + lo aprendido
-        val thought = if (project != null) runCatching {
+        val thought = if (project != null && intent == null) runCatching {
             listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
             NeuralBrain.think(project, userText + "\n" + (notes ?: ""), related, listener)
         }.getOrNull() else null
@@ -356,7 +359,7 @@ object MessagePreparer {
             deliberation?.let { appendLine(); appendLine(); append(it.format()) }
             integrity?.let { appendLine(); appendLine(); append(it) }
         }
-        return Prepared(text, notes, related, thought, deliberation)
+        return Prepared(text, notes, related, thought, deliberation, intent)
     }
 }
 

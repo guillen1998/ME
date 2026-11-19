@@ -266,6 +266,10 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
                             if (t.risks.isNotEmpty()) add("⚠ ${t.risks.size} cambio(s) con riesgo de romper la compilación")
                         }
                     }
+                    prep.intent?.let {
+                        messages += AgentMsg.Info("🧠 La app te entendió y le pasó a la IA el diagnóstico (tus últimos cambios" +
+                            (if (it.contains("capturó el error")) " + el log del cierre" else "") + "). La IA va a razonar la causa, no a buscar archivos.", false)
+                    }
                     if (parts.isNotEmpty()) messages += AgentMsg.Info("🧩 La app: " + parts.joinToString(" · "), false)
                     prep.deliberation?.let { d ->
                         messages += AgentMsg.Info("🧠 Razonador local (${d.backend}, ${d.millis / 1000} s):\n${d.conclusion}", false)

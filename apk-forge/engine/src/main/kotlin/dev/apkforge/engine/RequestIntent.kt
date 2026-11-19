@@ -20,6 +20,17 @@ object RequestIntent {
         }
     }
 
+    /** Estado visible mientras la app razona sobre tu mensaje (para que veas que ENTENDIÓ). */
+    fun statusFor(text: String): String {
+        val t = norm(text)
+        return when {
+            crashes(t) -> "🧠 Entendí: la app se cierra. Reviso tus últimos cambios y busco el log del cierre…"
+            exportFails(t) -> "🧠 Entendí: falla la exportación. Reviso qué no compila…"
+            noChange(t) -> "🧠 Entendí: tu cambio no se refleja. Reviso qué se editó…"
+            else -> "La app prepara el contexto…"
+        }
+    }
+
     private fun crashes(t: String) = listOf(
         "se cierra", "se cierre", "se sale", "se cerro", "cierra sola", "no abre", "no abra", "ya no abre", "deja de abrir",
         "dejo de abrir", "no inicia", "no arranca", "crashe", "crash", "peta", "se rompe", "se rompio", "la rompiste",
