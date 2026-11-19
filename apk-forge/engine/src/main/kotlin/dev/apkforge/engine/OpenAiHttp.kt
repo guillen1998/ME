@@ -31,23 +31,25 @@ internal object OpenAiHttp {
      * Prueba un endpoint con VARIOS modelos y devuelve el real: qué funcionó (o el error exacto de
      * cada uno). Quita la pausa antes de probar, para que un fallo viejo no tape el resultado.
      */
-    fun probe(baseUrl: String, apiKey: String, models: List<String>): Pair<String?, String> {
+    fun probe(baseUrl: String, apiKey: String, models: List<String>, onTry: (String) -> Unit = {}): Pair<String?, String> {
         val errs = StringBuilder()
-        for (m in models) {
+        // probar como mucho 6 y con espera corta: si uno tarda, pasa al siguiente rápido
+        for (m in models.distinct().take(6)) {
+            onTry(m)
             val ep = AiEndpoint(baseUrl, apiKey, m, m)
             resetCooldown(ep)
             val body = com.google.gson.JsonObject().apply {
                 add("messages", gson.toJsonTree(listOf(mapOf("role" to "user", "content" to "Responde solo: OK"))))
                 addProperty("max_tokens", 20)
             }
-            val r = runCatching { chat(ep, body) }
+            val r = runCatching { chat(ep, body, readTimeoutMs = 25_000) }
             r.onSuccess { return m to "OK" }
             r.onFailure { errs.appendLine("$m: ${it.message?.take(160)}") ; resetCooldown(ep) }
         }
         return null to errs.toString().trim()
     }
 
-    fun chat(ep: AiEndpoint, body: JsonObject): JsonObject {
+    fun chat(ep: AiEndpoint, body: JsonObject, readTimeoutMs: Int = 300_000): JsonObject {
         if (isCooled(ep)) throw RetryableException("${ep.label}: en pausa (cuota agotada o no disponible)")
         val payload = body.deepCopy().apply { addProperty("model", ep.model) }
         val url = URL(ep.baseUrl.trimEnd('/').let { b -> when {
@@ -57,7 +59,7 @@ internal object OpenAiHttp {
         } })
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"; doOutput = true
-            connectTimeout = 30_000; readTimeout = 300_000
+            connectTimeout = 20_000; readTimeout = readTimeoutMs
             setRequestProperty("Content-Type", "application/json")
             if (ep.apiKey.isNotBlank()) setRequestProperty("Authorization", "Bearer ${ep.apiKey}")
             setRequestProperty("X-Title", "ApkForge")

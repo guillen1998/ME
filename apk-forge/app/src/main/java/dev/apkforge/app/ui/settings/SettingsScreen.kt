@@ -459,10 +459,10 @@ private fun GeminiCard(p: dev.apkforge.app.core.Prefs) {
             busy = true; test = "Probando varios modelos…"
             scope.launch {
                 val res = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    // prueba el elegido + nombres conocidos de Gemini; devuelve el que funcione o el error real
-                    val candidates = (listOf(model) + listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash",
-                        "gemini-2.5-flash-lite", "gemini-pro-latest", "gemini-2.5-pro", "gemini-1.5-flash")).filter { it.isNotBlank() }.distinct()
-                    dev.apkforge.engine.GeminiSetup.probe(gemini.baseUrl, key, candidates)
+                    // primero los RÁPIDOS (responden en 1-2 s); el "pro" al final porque tarda más
+                    val candidates = (listOf("gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash",
+                        "gemini-2.5-flash-lite", model, "gemini-pro-latest", "gemini-2.5-pro")).filter { it.isNotBlank() }.distinct()
+                    dev.apkforge.engine.GeminiSetup.probe(gemini.baseUrl, key, candidates) { m -> scope.launch { test = "Probando $m…" } }
                 }
                 test = if (res.first != null) {
                     model = res.first!!; p.setModelFor(gemini, model)
