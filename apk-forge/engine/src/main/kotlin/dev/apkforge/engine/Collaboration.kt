@@ -305,6 +305,10 @@ object MessagePreparer {
             listener.onProgress("La app analiza ${images.size} imagen(es)…")
             notes = runCatching { VisionAi.describe(images, userText, visionEndpoints) }.getOrElse { "(No se pudo analizar la imagen: ${it.message})" }
         }
+        // COMPRENSIÓN: si describes un problema con palabras normales ("se cierra", "ya no abre",
+        // "tu último cambio la rompió"…), la app lo entiende y le arma a la IA la tarea de autodiagnóstico,
+        // sin que tengas que dar instrucciones técnicas. Igual que hablarle a un humano.
+        val intent = if (project != null) RequestIntent.detect(project, userText) else null
         val related = if (project != null) {
             listener.onProgress("La app busca archivos relacionados…")
             val q = userText + "\n" + (notes ?: "")
@@ -339,6 +343,7 @@ object MessagePreparer {
                 .filter { it.isNotBlank() }.joinToString("\n\n"))
         }.getOrNull() else null
         val text = buildString {
+            intent?.let { append(it); appendLine(); appendLine("--- Mensaje original del usuario ---") }
             append(userText)
             notes?.let { appendLine(); appendLine(); appendLine("IMÁGENES ADJUNTAS (analizadas por la app):"); appendLine(it) }
             fileNotes?.let { appendLine(); appendLine(); append(it) }

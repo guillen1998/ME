@@ -242,6 +242,12 @@ fun ExportApkDialog(defaultName: String, detail: String, onDismiss: () -> Unit, 
                 Spacer(Modifier.size(8.dp))
                 Text("Firma: $signing", fontSize = 12.sp)
                 if (project != null) {
+                    var crash by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(prefs.crashCatcher) }
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                        androidx.compose.material3.Checkbox(crash, { crash = it; prefs.crashCatcher = it })
+                        Text("Capturar cierres: si al abrir se cierra, deja escrito el error para que la IA lo arregle y pueda diagnosticarlo",
+                            fontSize = 12.sp)
+                    }
                     var repair by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(prefs.autoRepair) }
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                         androidx.compose.material3.Checkbox(repair, { repair = it; prefs.autoRepair = it })

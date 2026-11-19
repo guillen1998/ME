@@ -52,6 +52,7 @@ class AgentToolbox(
         - Para editar archivos grandes (como smali) usa replace_lines por NÚMERO DE LÍNEA (lo que te da read_file): es mucho más fiable que copiar el texto exacto. Si replace_in_file falla con "aparece 0 veces", NO lo repitas: cambia a replace_lines.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
         - Trabaja solo en apps propias, de código abierto o con permiso; no ayudes a saltarse pagos, licencias o DRM de apps comerciales de terceros.
+        - Si el usuario dice que la app SE CIERRA / NO ABRE tras tus cambios: usa read_crash (lee el error real). Si no hay log, usa add_crash_catcher y pídele que exporte/instale/reproduzca; mientras, revisa list_changes y los archivos que editaste para hallar la regresión y arréglala con replace_lines.
         - IMPORTANTE: si tras un cambio la app "no cambia", se cierra, o falla al cargar la lista/el login, NO insistas editando la pantalla: usa check_integrity. Casi siempre es una comprobación de FIRMA (local o en el servidor) que se dispara al re-firmar el APK. Si la firma la valida el SERVIDOR, no se puede arreglar en el móvil: dilo claramente al usuario en vez de seguir intentando.
         - Si hay textos CIFRADOS (URLs, claves o mensajes ilegibles que pasan por un método), usa decrypt_strings: la app los descifra; para los pendientes, lee el descifrador, deduce el algoritmo y dáselo con decrypt_recipe.
         - Si el código está OFUSCADO (clases a, b, c…), no te rindas: usa deobfuscate (la app deduce nombres reales), deobf_info para estudiar las clases que falten y rename_symbol para guardar lo que deduzcas. Así tú y la app desofuscan juntos.
@@ -120,6 +121,10 @@ class AgentToolbox(
             mapOf("query" to str("Qué buscar")), listOf("query")))
         add(tool("web_fetch", "Lee una página web o una URL (JSON, texto, HTML) y devuelve su contenido legible. Úsalo para leer la documentación o lo que encontró web_search, o una URL que aparezca en la app.",
             mapOf("url" to str("La URL a leer")), listOf("url")))
+        add(tool("read_crash", "Lee el informe del ÚLTIMO CIERRE de la app (si el capturador estaba puesto y la app se cerró): el stack trace real + ubica las clases en su smali + lista lo que se editó. Úsalo cuando el usuario diga que la app 'se cierra', 'no abre' o 'dejó de funcionar'.",
+            mapOf(), listOf()))
+        if (allowEdits) add(tool("add_crash_catcher", "Inyecta un capturador de cierres en el proyecto. Tras exportar e instalar, si la app se cierra, deja el error escrito para que read_crash lo lea. Úsalo si el usuario reporta cierres y aún no hay log.",
+            mapOf(), listOf()))
         add(tool("check_integrity", "Comprueba si la app tiene PROTECCIONES CONTRA MODIFICACIÓN (comprobación de firma local o enviada al servidor, Play Integrity, root/emulador/depurador). Es la causa nº1 de que un mod 'deje de funcionar' al re-firmar aunque el cambio sea cosmético. Úsalo SIEMPRE que un cambio no se refleje o la app falle al cargar datos/login tras modificarla.",
             mapOf(), listOf()))
         add(tool("decrypt_strings", "La APP busca los textos CIFRADOS de la app (métodos descifradores llamados con constantes raras), los descifra ejecutando el método en un intérprete aislado o probando cifrados típicos, y devuelve los textos claros. Lo que no pueda, te lo pasa con el código del descifrador para que deduzcas el algoritmo.",
@@ -364,6 +369,18 @@ class AgentToolbox(
         "web_fetch" -> {
             val url = a["url"] as String
             "Contenido de $url:\n" + runCatching { WebTools.fetch(url) }.getOrElse { "No se pudo leer: ${it.message}" }
+        }
+        "read_crash" -> {
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            val pkg = runCatching { ApkProject.readInfo(p).packageName }.getOrNull() ?: throw EngineException("No sé el paquete de la app")
+            val f = CrashCatcher.crashFile(pkg)
+            if (!f.isFile) "No hay informe de cierre en ${f.path}. " + (if (CrashCatcher.isInjected(p)) "El capturador está puesto: pide al usuario que exporte, instale y abra la app hasta que se cierre." else "Usa add_crash_catcher, luego el usuario exporta, instala y reproduce el cierre.")
+            else CrashCatcher.diagnosis(p, f.readText())
+        }
+        "add_crash_catcher" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val p = projectDir() ?: throw EngineException("No es un proyecto")
+            if (CrashCatcher.inject(p)) "Capturador de cierres inyectado. Ahora exporta el APK, instálalo, ábrelo hasta que se cierre, y usa read_crash." else "Ya estaba puesto."
         }
         "check_integrity" -> {
             val p = projectDir() ?: throw EngineException("No es un proyecto")

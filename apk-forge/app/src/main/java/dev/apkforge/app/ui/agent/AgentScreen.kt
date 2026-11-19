@@ -467,6 +467,7 @@ private val quickTasks = listOf(
     "Cambiar diseño de lista" to "En la pantalla de la captura, haz que los elementos de la lista se muestren en cuadrícula de 3 columnas.",
     "¿Por qué mi mod se rompe?" to "Modifiqué la app y ahora falla (no carga datos, no inicia sesión o se cierra). Usa check_integrity para ver si hay comprobación de firma u otra protección contra modificación, y dime con claridad si tiene arreglo o no.",
     "Buscar en internet" to "Busca en internet (web_search) información sobre: ",
+    "La app se cierra al abrir" to "Exporté la app tras tus cambios y al abrirla se cierra sola. Usa read_crash para leer el error; si no hay log, usa add_crash_catcher, revisa list_changes y los archivos que editaste, encuentra qué lo rompió y arréglalo.",
 )
 
 /** Lee una imagen elegida y la reduce (máx. 1280 px, JPEG) para enviarla rápido. */

@@ -217,6 +217,10 @@ class Prefs(ctx: Context) {
         get() = p.getString("reasonMode", "always")!!
         set(v) { p.edit().putString("reasonMode", v).apply(); dev.apkforge.engine.MessagePreparer.localReasoning = v == "always" }
 
+    /** Al exportar: inyectar el capturador de cierres para diagnosticar crashes en ejecución. */
+    var crashCatcher: Boolean
+        get() = p.getBoolean("crashCatcher", true)
+        set(v) = p.edit().putBoolean("crashCatcher", v).apply()
     /** Al exportar: reparar errores (app + IA) y deshacer solo lo que no compile. */
     var autoRepair: Boolean
         get() = p.getBoolean("autoRepair", true)
@@ -227,6 +231,7 @@ class Prefs(ctx: Context) {
 
     /** Exporta un proyecto con el doctor de compilación (si está activado). */
     fun exportProject(dir: java.io.File, out: java.io.File, log: dev.apkforge.engine.ProgressListener): java.io.File {
+        if (crashCatcher) runCatching { dev.apkforge.engine.CrashCatcher.inject(dir, log) }
         val opts = dev.apkforge.engine.BuildOptions(signing = signingConfig())
         return if (autoRepair) dev.apkforge.engine.BuildDoctor.buildRepairing(dir, out, opts, AiFactory.textClient(this), log)
         else dev.apkforge.engine.ApkProject.build(dir, out, opts, log)
