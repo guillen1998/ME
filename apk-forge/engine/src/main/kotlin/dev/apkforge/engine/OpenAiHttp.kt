@@ -50,7 +50,11 @@ internal object OpenAiHttp {
     fun chat(ep: AiEndpoint, body: JsonObject): JsonObject {
         if (isCooled(ep)) throw RetryableException("${ep.label}: en pausa (cuota agotada o no disponible)")
         val payload = body.deepCopy().apply { addProperty("model", ep.model) }
-        val url = URL(ep.baseUrl.trimEnd('/').let { if (it.endsWith("/openai")) it else "$it/chat/completions" })
+        val url = URL(ep.baseUrl.trimEnd('/').let { b -> when {
+            b.endsWith("/chat/completions") -> b           // URL completa (p. ej. Gemini)
+            b.endsWith("pollinations.ai/openai") -> b       // Pollinations acepta el POST directo en /openai
+            else -> "$b/chat/completions"                   // base estándar (OVH, LLM7, Gemini, OpenRouter…)
+        } })
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"; doOutput = true
             connectTimeout = 30_000; readTimeout = 300_000
