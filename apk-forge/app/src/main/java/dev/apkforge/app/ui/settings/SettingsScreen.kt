@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,6 +73,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            SectionCard("IA potente gratis (Gemini)") { GeminiCard(p) }
             SectionCard("Firma de APKs") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(signMode == "test", { signMode = "test"; p.signMode = "test" })
@@ -409,5 +411,63 @@ private fun SignatureFingerprint(p: dev.apkforge.app.core.Prefs) {
                     fontSize = 11.sp, color = dev.apkforge.app.ui.AccentWarm, modifier = Modifier.padding(top = 2.dp))
             }
         }
+    }
+}
+
+/** Conecta Gemini (gratis, potente): sacar la clave, pegarla, probar, y que se sume al equipo o sea la principal. */
+@Composable
+private fun GeminiCard(p: dev.apkforge.app.core.Prefs) {
+    val gemini = dev.apkforge.engine.AiProvider.GEMINI
+    var key by remember { mutableStateOf(p.keyFor(gemini)) }
+    var model by remember { mutableStateOf(p.modelFor(gemini)) }
+    var asMain by remember { mutableStateOf(p.aiProvider == gemini) }
+    var test by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    fun open(url: String) = runCatching { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    Column {
+        Text("Gemini de Google es gratis y MUCHO más potente que los modelos sueltos. Con una clave gratis, razona de verdad (ideal para lo que viste que hace Claude). Se saca en 1 minuto y no se paga nada.",
+            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(6.dp))
+        Text("1) Saca tu clave gratis", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { open("https://aistudio.google.com/apikey") }) { Text("Abrir Google AI Studio", fontSize = 13.sp) }
+        }
+        Text("Inicia sesión con tu cuenta Google → \"Create API key\" → copia la clave (empieza por AIza...).", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(8.dp))
+        Text("2) Pégala aquí", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        OutlinedTextField(key, { key = it.trim(); p.setKeyFor(gemini, key) }, label = { Text("Clave de Gemini") }, singleLine = true,
+            visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(model, { model = it.trim(); p.setModelFor(gemini, model) }, label = { Text("Modelo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        Row(Modifier.horizontalScroll(rememberScrollState()).padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("gemini-flash-latest" to "Rápido", "gemini-pro-latest" to "Más listo", "gemini-flash-lite-latest" to "Ligero").forEach { (m, t) ->
+                androidx.compose.material3.FilterChip(model == m, { model = m; p.setModelFor(gemini, m) }, label = { Text("$t", fontSize = 11.sp) })
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Switch(asMain, { asMain = it; p.aiProvider = if (it) gemini else dev.apkforge.engine.AiProvider.BUILTIN })
+            Column(Modifier.padding(start = 8.dp)) {
+                Text(if (asMain) "Gemini como IA principal" else "Gemini se suma al equipo gratis", fontSize = 13.sp)
+                Text(if (asMain) "Todo lo hace Gemini." else "Se usa junto a los modelos gratis; si Gemini se satura, siguen los demás.",
+                    fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        Button(enabled = !busy && key.isNotBlank(), onClick = {
+            busy = true; test = "Probando…"
+            scope.launch {
+                test = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    runCatching {
+                        val c = dev.apkforge.engine.OpenAiTextClient(gemini.baseUrl, key, model.ifBlank { "gemini-flash-latest" })
+                        val r = c.complete("Responde solo: OK", "di OK")
+                        if (r.contains("OK", true)) "✔ Funciona. Gemini está listo." else "✔ Respondió: ${r.take(60)}"
+                    }.getOrElse { "✖ " + (it.message ?: "error").take(140) }
+                }
+                busy = false
+            }
+        }) { Text(if (busy) "Probando…" else "Probar Gemini", fontSize = 13.sp) }
+        test?.let { Text(it, fontSize = 12.sp, color = if (it.startsWith("✖")) dev.apkforge.app.ui.Danger else dev.apkforge.app.ui.Ok, modifier = Modifier.padding(top = 4.dp)) }
     }
 }
