@@ -31,10 +31,40 @@ internal object OpenAiHttp {
      * Prueba un endpoint con VARIOS modelos y devuelve el real: qué funcionó (o el error exacto de
      * cada uno). Quita la pausa antes de probar, para que un fallo viejo no tape el resultado.
      */
+    /** Pregunta al servidor qué modelos hay disponibles con esa clave (endpoint /models compatible con OpenAI). */
+    fun listModels(baseUrl: String, apiKey: String): List<String> = runCatching {
+        val root = baseUrl.trimEnd('/').removeSuffix("/chat/completions").trimEnd('/')
+        val conn = (URL("$root/models").openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"; connectTimeout = 20_000; readTimeout = 25_000
+            setRequestProperty("Authorization", "Bearer $apiKey")
+            setRequestProperty("x-goog-api-key", apiKey)
+        }
+        val code = conn.responseCode
+        val text = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty()
+        if (code !in 200..299) return emptyList()
+        val json = JsonParser.parseString(text).asJsonObject
+        json.getAsJsonArray("data")?.mapNotNull { it.asJsonObject.get("id")?.asString?.removePrefix("models/") }.orEmpty()
+    }.getOrDefault(emptyList())
+
+    /**
+     * Encuentra un modelo que FUNCIONE: pregunta a Google qué modelos hay con esa clave, elige un
+     * flash/pro de verdad y lo prueba (con espera amplia). Si no puede listar, prueba alias actuales.
+     */
     fun probe(baseUrl: String, apiKey: String, models: List<String>, onTry: (String) -> Unit = {}): Pair<String?, String> {
+        onTry("buscando modelos disponibles")
+        val live = listModels(baseUrl, apiKey)
+        fun good(id: String) = id.startsWith("gemini") && listOf("embedding", "aqa", "image", "imagen", "tts", "vision", "learnlm", "veo", "native-audio").none { id.contains(it) }
+        val fromLive = if (live.isEmpty()) emptyList() else buildList {
+            live.firstOrNull { it in models }?.let { add(it) }                               // el que pidió el usuario, si existe
+            addAll(live.filter { good(it) && it.contains("flash") && !it.contains("lite") }.sortedByDescending { it.contains("latest") })
+            addAll(live.filter { good(it) && it.contains("flash") })
+            addAll(live.filter { good(it) && it.contains("pro") })
+            addAll(live.filter { good(it) })
+        }.distinct()
+        // si no se pudo listar, usa alias que se auto-actualizan + lo que pidió el usuario
+        val candidates = (fromLive.ifEmpty { models } + listOf("gemini-flash-latest", "gemini-pro-latest", "gemini-flash-lite-latest")).distinct()
         val errs = StringBuilder()
-        // probar como mucho 6 y con espera corta: si uno tarda, pasa al siguiente rápido
-        for (m in models.distinct().take(6)) {
+        for (m in candidates.take(5)) {
             onTry(m)
             val ep = AiEndpoint(baseUrl, apiKey, m, m)
             resetCooldown(ep)
@@ -42,11 +72,12 @@ internal object OpenAiHttp {
                 add("messages", gson.toJsonTree(listOf(mapOf("role" to "user", "content" to "Responde solo: OK"))))
                 addProperty("max_tokens", 20)
             }
-            val r = runCatching { chat(ep, body, readTimeoutMs = 25_000) }
+            val r = runCatching { chat(ep, body, readTimeoutMs = 45_000) }
             r.onSuccess { return m to "OK" }
-            r.onFailure { errs.appendLine("$m: ${it.message?.take(160)}") ; resetCooldown(ep) }
+            r.onFailure { errs.appendLine("$m: ${it.message?.take(140)}") ; resetCooldown(ep) }
         }
-        return null to errs.toString().trim()
+        val listNote = if (live.isNotEmpty()) "Modelos que te da Google: " + live.filter { good(it) }.take(8).joinToString() + "\n" else "No se pudo listar tus modelos.\n"
+        return null to (listNote + errs.toString().trim())
     }
 
     fun chat(ep: AiEndpoint, body: JsonObject, readTimeoutMs: Int = 300_000): JsonObject {
