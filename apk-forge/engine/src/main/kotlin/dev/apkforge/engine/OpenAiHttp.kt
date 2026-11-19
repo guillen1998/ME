@@ -25,6 +25,27 @@ internal object OpenAiHttp {
     private fun key(ep: AiEndpoint) = ep.baseUrl + "|" + ep.model
     fun isCooled(ep: AiEndpoint) = (cooled[key(ep)] ?: 0L) > System.currentTimeMillis()
     fun cool(ep: AiEndpoint, millis: Long) { cooled[key(ep)] = System.currentTimeMillis() + millis }
+    fun resetCooldown(ep: AiEndpoint) { cooled.remove(key(ep)) }
+
+    /**
+     * Prueba un endpoint con VARIOS modelos y devuelve el real: qué funcionó (o el error exacto de
+     * cada uno). Quita la pausa antes de probar, para que un fallo viejo no tape el resultado.
+     */
+    fun probe(baseUrl: String, apiKey: String, models: List<String>): Pair<String?, String> {
+        val errs = StringBuilder()
+        for (m in models) {
+            val ep = AiEndpoint(baseUrl, apiKey, m, m)
+            resetCooldown(ep)
+            val body = com.google.gson.JsonObject().apply {
+                add("messages", gson.toJsonTree(listOf(mapOf("role" to "user", "content" to "Responde solo: OK"))))
+                addProperty("max_tokens", 20)
+            }
+            val r = runCatching { chat(ep, body) }
+            r.onSuccess { return m to "OK" }
+            r.onFailure { errs.appendLine("$m: ${it.message?.take(160)}") ; resetCooldown(ep) }
+        }
+        return null to errs.toString().trim()
+    }
 
     fun chat(ep: AiEndpoint, body: JsonObject): JsonObject {
         if (isCooled(ep)) throw RetryableException("${ep.label}: en pausa (cuota agotada o no disponible)")

@@ -12,8 +12,8 @@ android {
         applicationId = "dev.apkforge.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 26
-        versionName = "0.26.0"
+        versionCode = 27
+        versionName = "0.27.0"
         // Solo ARM de 64 bits (prácticamente todos los móviles actuales): el motor neuronal trae librerías nativas
         ndk { abiFilters += listOf("arm64-v8a") }
     }

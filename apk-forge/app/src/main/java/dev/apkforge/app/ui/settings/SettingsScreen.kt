@@ -456,15 +456,18 @@ private fun GeminiCard(p: dev.apkforge.app.core.Prefs) {
         }
         Spacer(Modifier.height(6.dp))
         Button(enabled = !busy && key.isNotBlank(), onClick = {
-            busy = true; test = "Probando…"
+            busy = true; test = "Probando varios modelos…"
             scope.launch {
-                test = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    runCatching {
-                        val c = dev.apkforge.engine.OpenAiTextClient(gemini.baseUrl, key, model.ifBlank { "gemini-flash-latest" })
-                        val r = c.complete("Responde solo: OK", "di OK")
-                        if (r.contains("OK", true)) "✔ Funciona. Gemini está listo." else "✔ Respondió: ${r.take(60)}"
-                    }.getOrElse { "✖ " + (it.message ?: "error").take(140) }
+                val res = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    // prueba el elegido + nombres conocidos de Gemini; devuelve el que funcione o el error real
+                    val candidates = (listOf(model) + listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash",
+                        "gemini-2.5-flash-lite", "gemini-pro-latest", "gemini-2.5-pro", "gemini-1.5-flash")).filter { it.isNotBlank() }.distinct()
+                    dev.apkforge.engine.GeminiSetup.probe(gemini.baseUrl, key, candidates)
                 }
+                test = if (res.first != null) {
+                    model = res.first!!; p.setModelFor(gemini, model)
+                    "✔ Funciona con el modelo \"" + res.first + "\" (lo dejé puesto). Gemini está listo."
+                } else "✖ Google rechazó la clave/los modelos:\n" + res.second.take(400)
                 busy = false
             }
         }) { Text(if (busy) "Probando…" else "Probar Gemini", fontSize = 13.sp) }
