@@ -245,6 +245,7 @@ class OpenAiCompatAgent(
      */
     private fun post(body: JsonObject): JsonObject {
         val errors = LinkedHashMap<String, String>()
+        val shown = HashSet<String>()
         for (round in 0 until 4) {
             for (attempt in endpoints.indices) {
                 val i = (current + attempt) % endpoints.size
@@ -254,14 +255,17 @@ class OpenAiCompatAgent(
                     if (i != current) { current = i; onEvent(AgentEvent.Text("↪ Sigo con ${ep.label}")) }
                     return res
                 } catch (e: OpenAiHttp.RetryableException) {
-                    errors[ep.label] = e.message ?: "error"
+                    val why = e.message ?: "error"
+                    errors[ep.label] = why
+                    if (shown.add(why)) onEvent(AgentEvent.Text("⚠ $why"))   // muestra el error REAL de esa IA (cuál y por qué), sin repetir
                 }
             }
             if (round == 3 || endpoints.all { OpenAiHttp.isCooled(it) }) break
             val wait = OpenAiHttp.waitSeconds(errors.values, round)
-            onEvent(AgentEvent.Text("⏳ Servicios de IA ocupados; reintento en $wait s…"))
+            onEvent(AgentEvent.Text("⏳ Reintento en $wait s…"))
             Thread.sleep(wait * 1000L)
         }
-        throw EngineException("Ningún servicio de IA respondió:\n" + errors.entries.joinToString("\n") { "• ${it.value}" })
+        throw EngineException((if (endpoints.size == 1) "La IA falló:\n" else "Ninguna IA respondió:\n") +
+            errors.entries.joinToString("\n") { "• ${it.value}" })
     }
 }

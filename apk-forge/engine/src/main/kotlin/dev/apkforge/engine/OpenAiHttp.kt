@@ -22,10 +22,11 @@ internal object OpenAiHttp {
 
     /** Modelos en pausa (cuota diaria agotada, piden clave o ya no existen): se saltan sin perder tiempo. */
     private val cooled = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val cooledWhy = java.util.concurrent.ConcurrentHashMap<String, String>()
     private fun key(ep: AiEndpoint) = ep.baseUrl + "|" + ep.model
     fun isCooled(ep: AiEndpoint) = (cooled[key(ep)] ?: 0L) > System.currentTimeMillis()
-    fun cool(ep: AiEndpoint, millis: Long) { cooled[key(ep)] = System.currentTimeMillis() + millis }
-    fun resetCooldown(ep: AiEndpoint) { cooled.remove(key(ep)) }
+    fun cool(ep: AiEndpoint, millis: Long, why: String = "") { cooled[key(ep)] = System.currentTimeMillis() + millis; if (why.isNotBlank()) cooledWhy[key(ep)] = why }
+    fun resetCooldown(ep: AiEndpoint) { cooled.remove(key(ep)); cooledWhy.remove(key(ep)) }
 
     /**
      * Prueba un endpoint con VARIOS modelos y devuelve el real: qué funcionó (o el error exacto de
@@ -81,7 +82,7 @@ internal object OpenAiHttp {
     }
 
     fun chat(ep: AiEndpoint, body: JsonObject, readTimeoutMs: Int = 300_000): JsonObject {
-        if (isCooled(ep)) throw RetryableException("${ep.label}: en pausa (cuota agotada o no disponible)")
+        if (isCooled(ep)) throw RetryableException("${ep.label}: en pausa — " + (cooledWhy[key(ep)] ?: "cuota agotada o no disponible"))
         val payload = body.deepCopy().apply { addProperty("model", ep.model) }
         val url = URL(ep.baseUrl.trimEnd('/').let { b -> when {
             b.endsWith("/chat/completions") -> b           // URL completa (p. ej. Gemini)
@@ -104,15 +105,16 @@ internal object OpenAiHttp {
                     JsonParser.parseString(text).asJsonObject.getAsJsonObject("error")?.get("message")?.asString
                 }.getOrNull() ?: text.take(300)
                 val low = detail.lowercase()
-                when {
-                    code == 429 && (low.contains("daily") || low.contains("quota") || low.contains("per day")) -> cool(ep, 60 * 60_000L)
-                    code == 401 || code == 403 || low.contains("missing api key") -> cool(ep, 6 * 60 * 60_000L)
-                    code == 404 || low.contains("model not found") || low.contains("does not exist") -> cool(ep, 6 * 60 * 60_000L)
-                }
                 val msg = when (code) {
-                    401, 403 -> "${ep.label}: clave no válida o sin permiso ($code)"
-                    429 -> "${ep.label}: límite de uso alcanzado ($detail)"
+                    401, 403 -> "${ep.label}: clave no válida o sin permiso (error $code: $detail)"
+                    429 -> "${ep.label}: límite de uso alcanzado (error 429: $detail)"
+                    404 -> "${ep.label}: modelo no disponible (error 404: $detail)"
                     else -> "${ep.label}: error $code ($detail)"
+                }
+                when {
+                    code == 429 && (low.contains("daily") || low.contains("quota") || low.contains("per day")) -> cool(ep, 60 * 60_000L, msg)
+                    code == 401 || code == 403 || low.contains("missing api key") -> cool(ep, 6 * 60 * 60_000L, msg)
+                    code == 404 || low.contains("model not found") || low.contains("does not exist") -> cool(ep, 6 * 60 * 60_000L, msg)
                 }
                 throw RetryableException(msg)
             }

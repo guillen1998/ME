@@ -20,6 +20,23 @@ object RequestIntent {
         }
     }
 
+    /**
+     * ¿Es un mensaje SIMPLE/conversacional (saludo, pregunta sobre la IA, agradecimiento)? Entonces
+     * no hace falta analizar el proyecto: se responde al instante. Solo lo claramente conversacional.
+     */
+    fun isChatty(text: String): Boolean {
+        val t = norm(text).trim()
+        if (t.length > 80) return false
+        val metas = listOf("que modelo", "cual modelo", "quien eres", "que eres", "que ia eres", "como te llamas",
+            "que puedes hacer", "que sabes hacer", "para que sirves", "hola", "buenas", "buenos dias", "buenas tardes",
+            "buenas noches", "gracias", "ok", "okay", "gracias!", "como estas", "quien te creo", "que version")
+        if (metas.any { t == it || t.startsWith("$it ") || t.startsWith("$it,") || t.startsWith("$it?") || t == "$it?" }) return true
+        // preguntas muy cortas que no nombran el proyecto/código
+        val codey = listOf("smali", "clase", "metodo", "archivo", "layout", "xml", "color", "boton", "pantalla", "canal",
+            "firma", "export", "compil", "crash", "cierra", "funcion", "codigo", "recurso", "icono", "texto", "modif", "cambia", "edita", "busca", "arregla")
+        return t.endsWith("?") && t.length <= 40 && codey.none { t.contains(it) }
+    }
+
     /** Estado visible mientras la app razona sobre tu mensaje (para que veas que ENTENDIÓ). */
     fun statusFor(text: String): String {
         val t = norm(text)

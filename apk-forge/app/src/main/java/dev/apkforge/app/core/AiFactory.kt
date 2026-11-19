@@ -8,6 +8,23 @@ import dev.apkforge.engine.OpenAiTextClient
 
 /** Crea el cliente de IA (Claude u otro proveedor) según los Ajustes. */
 object AiFactory {
+    /** Etiqueta del modelo de IA en uso ahora (para la cabecera): "Gemini: gemini-flash-latest", "Equipo gratis", etc. */
+    fun label(p: Prefs): String {
+        val pr = p.aiProvider
+        return when (pr) {
+            dev.apkforge.engine.AiProvider.BUILTIN -> {
+                val keyed = dev.apkforge.engine.AiProvider.entries.firstOrNull {
+                    it != dev.apkforge.engine.AiProvider.BUILTIN && it != dev.apkforge.engine.AiProvider.CLAUDE && it.needsKey && p.keyFor(it).isNotBlank()
+                }
+                if (keyed != null) "Equipo + ${p.modelFor(keyed)}" else "Equipo IA (gratis)"
+            }
+            dev.apkforge.engine.AiProvider.GEMINI -> "Gemini: ${p.modelFor(pr)}"
+            dev.apkforge.engine.AiProvider.CLAUDE -> "Claude: ${p.modelFor(pr)}"
+            dev.apkforge.engine.AiProvider.OLLAMA -> "Ollama: ${p.modelFor(pr)}"
+            else -> "${pr.title.substringBefore(" ·")}: ${p.modelFor(pr)}"
+        }
+    }
+
     fun effort(p: Prefs) = when (p.agentEffort) {
         "low" -> BetaOutputConfig.Effort.LOW; "medium" -> BetaOutputConfig.Effort.MEDIUM
         "xhigh" -> BetaOutputConfig.Effort.XHIGH; "max" -> BetaOutputConfig.Effort.MAX

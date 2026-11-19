@@ -310,37 +310,40 @@ object MessagePreparer {
         // sin que tengas que dar instrucciones técnicas. Igual que hablarle a un humano.
         val intent = if (project != null) RequestIntent.detect(project, userText) else null
         if (intent != null) listener.onProgress(RequestIntent.statusFor(userText))
-        // En un reporte de cierre/problema, lo relevante son el log y tus últimos cambios (ya en la tarea),
-        // no una búsqueda semántica: la saltamos para ir directo a razonar sobre la causa.
-        val related = if (project != null && intent == null) {
+        // VELOCIDAD: una pregunta simple ("qué modelo eres", "hola", "gracias") NO necesita analizar el
+        // proyecto. Saltamos todo el trabajo pesado y respondemos al instante. Solo las tareas reales
+        // de modificación (o un reporte de cierre) disparan el análisis completo.
+        val chatty = project != null && intent == null && attachments.isEmpty() && images.isEmpty() && RequestIntent.isChatty(userText)
+        val skipHeavy = intent != null || chatty
+        val related = if (project != null && !skipHeavy) {
             listener.onProgress("La app busca archivos relacionados…")
             val q = userText + "\n" + (notes ?: "")
             val raw = runCatching { ContextFinder.find(project, q, 60) }.getOrDefault(emptyList())
             runCatching { neuralRerank(project, q, raw) }.getOrDefault(raw.take(25))
         } else emptyList()
         // Desofuscación: la primera vez, la app deduce los nombres reales (segundos, sin internet)
-        if (project != null && !Deobfuscator.mappingFile(project).isFile) runCatching {
+        if (project != null && !skipHeavy && !Deobfuscator.mappingFile(project).isFile) runCatching {
             listener.onProgress("🔍 La app desofusca el proyecto (nombres reales)…"); Deobfuscator.analyze(project, ProgressListener.NONE)
         }
         // Textos cifrados: la primera vez, la app intenta descifrarlos sola (intérprete aislado + cifrados típicos)
-        if (project != null && !StringDecryptor.file(project).isFile) runCatching {
+        if (project != null && !skipHeavy && !StringDecryptor.file(project).isFile) runCatching {
             listener.onProgress("🔐 La app busca y descifra textos cifrados…"); StringDecryptor.run(project, null, ProgressListener.NONE, maxSites = 1500)
         }
         // Protecciones contra modificación (firma, Play Integrity…): se detectan una vez y se avisan
-        val integrity = if (project != null) runCatching {
+        val integrity = if (project != null && !chatty) runCatching {
             listener.onProgress("🛡 La app busca protecciones contra modificación…"); IntegrityScanner.cachedExplain(project)
         }.getOrNull()?.takeIf { it.contains("DETECTADA") } else null
         // El motor neuronal piensa: significado (CPU/GPU) + grafo del proyecto + lo aprendido
-        val thought = if (project != null && intent == null) runCatching {
+        val thought = if (project != null && !skipHeavy) runCatching {
             listener.onProgress("🧠 El motor neuronal razona sobre el proyecto…")
             NeuralBrain.think(project, userText + "\n" + (notes ?: ""), related, listener)
         }.getOrNull() else null
         // Conocimiento + razonamiento local: el modelo del móvil piensa con los hechos ya filtrados
-        val recipes = runCatching { AndroidKnowledge.find(userText) }.getOrDefault(emptyList())
-        val deobfCtx = if (project != null) runCatching {
+        val recipes = if (skipHeavy) emptyList() else runCatching { AndroidKnowledge.find(userText) }.getOrDefault(emptyList())
+        val deobfCtx = if (project != null && !chatty) runCatching {
             Deobfuscator.contextFor(project, related.map { it.path } + (thought?.ranked?.map { it.first } ?: emptyList()))
         }.getOrDefault("") else ""
-        val deliberation = if (localReasoning && NeuralBrain.reasonerLoader != null) runCatching {
+        val deliberation = if (!skipHeavy && localReasoning && NeuralBrain.reasonerLoader != null) runCatching {
             listener.onProgress("🧠 El razonador local piensa paso a paso…")
             NeuralBrain.deliberate(userText, listOf(AndroidKnowledge.format(recipes), thought?.format().orEmpty(), deobfCtx, notes.orEmpty())
                 .filter { it.isNotBlank() }.joinToString("\n\n"))

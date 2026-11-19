@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.FolderSpecial
 import androidx.compose.material.icons.filled.ViewSidebar
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.foundation.layout.heightIn
@@ -173,6 +175,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     }
     var resetCounter by remember { mutableIntStateOf(0) }
     var showHistory by remember { mutableStateOf(false) }
+    var showPresets by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val ready = prefs.aiReady()
     val provider = prefs.aiProvider
@@ -227,17 +230,34 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
             TopAppBar(
                 title = {
                     Column {
-                        Text("Agente IA", fontSize = 17.sp)
-                        Text(preset.title + "  ·  " + provider.title.substringBefore(" ·") + "  ·  " + target.name,
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Agente IA", fontSize = 17.sp)
+                            Spacer(Modifier.size(6.dp))
+                            Text(preset.title, fontSize = 11.sp, color = Accent, fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(dev.apkforge.app.core.AiFactory.label(prefs) + "  ·  " + target.name,
                             fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
-                    IconButton(onClick = { showSide = !showSide }) { Icon(Icons.Default.ViewSidebar, if (showSide) "Ocultar proyectos" else "Mostrar proyectos") }
-                    IconButton(onClick = { showHistory = true }) { Icon(Icons.Default.History, "Historial de conversaciones") }
-                    if (messages.isNotEmpty() && !running) IconButton(onClick = { AgentStore.drop(key); resetCounter++ }) {
-                        Icon(Icons.Default.DeleteSweep, "Nueva conversación")
+                    // Menú de 3 rayas: elegir el perfil del agente (modo de trabajo)
+                    Box {
+                        IconButton(onClick = { showPresets = true }) { Icon(Icons.Default.Menu, "Modo del agente") }
+                        androidx.compose.material3.DropdownMenu(showPresets, onDismissRequest = { showPresets = false }) {
+                            Text("Modo del agente", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                            AgentPreset.entries.forEach { pr ->
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { Text(pr.title + if (pr == preset) "  ✓" else "", fontWeight = if (pr == preset) FontWeight.Bold else FontWeight.Normal) },
+                                    onClick = { if (!running) preset = pr; showPresets = false })
+                            }
+                            androidx.compose.material3.HorizontalDivider()
+                            androidx.compose.material3.DropdownMenuItem(text = { Text("Historial de conversaciones") }, onClick = { showPresets = false; showHistory = true })
+                            androidx.compose.material3.DropdownMenuItem(text = { Text(if (showSide) "Ocultar proyectos" else "Ver proyectos") }, onClick = { showPresets = false; showSide = !showSide })
+                            if (messages.isNotEmpty() && !running)
+                                androidx.compose.material3.DropdownMenuItem(text = { Text("Nueva conversación") }, onClick = { showPresets = false; AgentStore.drop(key); resetCounter++ })
+                        }
                     }
                 },
             )
@@ -277,12 +297,6 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                             Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text("Reanudar sesión")
                         }
                     }
-                }
-            }
-            Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AgentPreset.entries.forEach { p ->
-                    FilterChip(preset == p, { if (!running) preset = p }, label = { Text(p.title) })
                 }
             }
 
