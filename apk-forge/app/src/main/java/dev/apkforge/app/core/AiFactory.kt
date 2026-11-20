@@ -18,10 +18,11 @@ object AiFactory {
                 }
                 if (keyed != null) "Equipo + ${p.modelFor(keyed)}" else "Equipo IA (gratis)"
             }
-            dev.apkforge.engine.AiProvider.GEMINI -> "Gemini: ${p.modelFor(pr)}"
             dev.apkforge.engine.AiProvider.CLAUDE -> "Claude: ${p.modelFor(pr)}"
             dev.apkforge.engine.AiProvider.OLLAMA -> "Ollama: ${p.modelFor(pr)}"
-            else -> "${pr.title.substringBefore(" ·")}: ${p.modelFor(pr)}"
+            dev.apkforge.engine.AiProvider.CUSTOM -> "Personalizado: ${p.modelFor(pr)}"
+            // OpenRouter / Gemini / Groq ahora trabajan EN EQUIPO (su modelo + todos los demás)
+            else -> "Equipo + ${p.modelFor(pr)}"
         }
     }
 

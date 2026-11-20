@@ -190,10 +190,15 @@ class Prefs(ctx: Context) {
 
     /** Cadena final de la IA integrada: tus modelos añadidos primero + los integrados activos. */
     fun builtinEndpoints(): List<dev.apkforge.engine.AiEndpoint> {
-        // Si guardaste una clave gratis (Gemini, OpenRouter, Groq…), ese modelo SE SUMA al equipo integrado
+        // Si guardaste una clave gratis (Gemini, OpenRouter, Groq…), SE SUMA al equipo integrado.
+        // OpenRouter aporta VARIOS modelos fuertes de golpe (no solo uno) para trabajar con muchos.
         val keyed = dev.apkforge.engine.AiProvider.entries.filter {
             it != dev.apkforge.engine.AiProvider.BUILTIN && it != dev.apkforge.engine.AiProvider.CLAUDE && it.needsKey && keyFor(it).isNotBlank()
-        }.map { dev.apkforge.engine.AiEndpoint(urlFor(it), keyFor(it), modelFor(it), "${modelFor(it)} (${it.title.substringBefore(" ·")})") }
+        }.flatMap {
+            if (it == dev.apkforge.engine.AiProvider.OPENROUTER)
+                dev.apkforge.engine.BuiltinAi.openRouterTeam(urlFor(it), keyFor(it), modelFor(it))
+            else listOf(dev.apkforge.engine.AiEndpoint(urlFor(it), keyFor(it), modelFor(it), "${modelFor(it)} (${it.title.substringBefore(" ·")})"))
+        }
         val list = customModels.filter { it.label !in disabledModels } + keyed.filter { it.label !in disabledModels } +
             dev.apkforge.engine.BuiltinAi.endpoints.filter { it.label !in disabledModels }
         return list.ifEmpty { dev.apkforge.engine.BuiltinAi.endpoints }

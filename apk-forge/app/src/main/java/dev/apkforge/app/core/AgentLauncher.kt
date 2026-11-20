@@ -31,31 +31,27 @@ object AgentLauncher {
         val apkFile = if (target.isFile && target.extension.equals("apk", true)) target else null
         val javaInput = if (target.isDirectory || apkFile != null) target else null
         val java: () -> JavaDecompiler? = { javaInput?.let { runCatching { JavaSessions.get(it, prefs.javaOptions()) }.getOrNull() } }
-        if (provider == AiProvider.BUILTIN) {
-            val eps = prefs.builtinEndpoints()
-            val exec = OpenAiCompatAgent(target, apkFile, eps, preset, allowEdits, java, session.onEvent)
-            // Equipo: un modelo planifica, el agente ejecuta con herramientas y OTRO modelo revisa los cambios
-            val project = (if (target.isDirectory) target else target.parentFile)?.takeIf { ApkProject.isProject(it) }
-            if (project == null || !allowEdits) return exec
-            val planners = BuiltinAi.plannerOrder(eps); val reviewers = BuiltinAi.reviewerOrder(eps)
-            val local = { if (prefs.reasonMode != "off") dev.apkforge.engine.NeuralBrain.reasoner() else null }
-            return AiTeam(project, exec, dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(planners), local),
-                dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(reviewers), local),
-                planners.first().label, reviewers.first().label, session.onEvent)
-        }
         if (provider == AiProvider.CLAUDE)
             return ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), allowEdits),
                 preset, java, session.onEvent)
-        // Tu modelo elegido (p. ej. Gemini) va PRIMERO. Si es un proveedor de nube con clave y se
-        // queda sin cuota, da 503 (saturado) o falla, la IA SIGUE SOLA con el equipo gratis detrás,
-        // sin que tengas que cambiar nada. Ollama/Personalizado (local/privado) no añaden respaldo
-        // público, para no filtrar tu código a servicios externos.
-        val primary = dev.apkforge.engine.AiEndpoint(prefs.urlFor(provider), prefs.keyFor(provider), prefs.modelFor(provider),
-            "${prefs.modelFor(provider)} (${provider.title.substringBefore(" ·")})")
-        val chain = if (provider.needsKey)
-            (listOf(primary) + BuiltinAi.endpoints).distinctBy { it.baseUrl + "|" + it.model }
-        else listOf(primary)
-        return OpenAiCompatAgent(target, apkFile, chain, preset, allowEdits, java, session.onEvent)
+        // Ollama / Personalizado: local o privado -> SOLO ese servicio, sin respaldo público, para no
+        // filtrar tu código a servicios externos.
+        if (provider == AiProvider.OLLAMA || provider == AiProvider.CUSTOM)
+            return OpenAiCompatAgent(target, apkFile, prefs.urlFor(provider), prefs.keyFor(provider), prefs.modelFor(provider),
+                preset, allowEdits, java, session.onEvent)
+        // Integrada O nube con clave (OpenRouter / Gemini / Groq): SIEMPRE trabaja en EQUIPO con TODOS
+        // los modelos disponibles. builtinEndpoints() incluye la clave que guardaste (aunque el proveedor
+        // activo sea esa nube) + todo el equipo gratis, ordenados de más potente a menos. Si uno se
+        // satura, sigue el siguiente solo. Un modelo planifica, el agente ejecuta y OTRO revisa.
+        val eps = prefs.builtinEndpoints()
+        val exec = OpenAiCompatAgent(target, apkFile, eps, preset, allowEdits, java, session.onEvent)
+        val project = (if (target.isDirectory) target else target.parentFile)?.takeIf { ApkProject.isProject(it) }
+        if (project == null || !allowEdits) return exec
+        val planners = BuiltinAi.plannerOrder(eps); val reviewers = BuiltinAi.reviewerOrder(eps)
+        val local = { if (prefs.reasonMode != "off") dev.apkforge.engine.NeuralBrain.reasoner() else null }
+        return AiTeam(project, exec, dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(planners), local),
+            dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(reviewers), local),
+            planners.first().label, reviewers.first().label, session.onEvent)
     }
 
     /**

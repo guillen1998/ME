@@ -54,6 +54,27 @@ object BuiltinAi {
         AiEndpoint(KILO, "", "kilo-auto/free", "Kilo Auto (gratis)"),
         AiEndpoint("https://text.pollinations.ai/openai", "", "openai-fast", "GPT-OSS 20B (Pollinations)"),
     )
+
+    /**
+     * Modelos GRATIS fuertes de OpenRouter (verificados: declaran tool calling), de más potente a
+     * menos. Cuando guardas tu clave de OpenRouter, TODOS estos se suman al equipo de golpe, así
+     * trabajas con muchos modelos sin elegir ninguno. `openrouter/free` además auto-enruta entre todos
+     * los modelos gratis disponibles. (Nivel gratis con tope diario; al agotarse, sigue el equipo de OVH.)
+     */
+    private val openRouterFree = listOf(
+        "nvidia/nemotron-3-ultra-550b-a55b:free" to "Nemotron 550B · OpenRouter",
+        "cohere/north-mini-code:free" to "North Mini · código · OpenRouter",
+        "inclusionai/ling-3.2-flash:free" to "Ling 3.2 Flash · 1M · OpenRouter",
+        "openrouter/free" to "OpenRouter Auto · mejor gratis",
+    )
+
+    /** Endpoints de OpenRouter para el equipo: tu modelo elegido primero (si es específico) + la lista fuerte. */
+    fun openRouterTeam(baseUrl: String, apiKey: String, userModel: String): List<AiEndpoint> {
+        val out = LinkedHashMap<String, AiEndpoint>()
+        if (userModel.isNotBlank()) out[userModel] = AiEndpoint(baseUrl, apiKey, userModel, "$userModel · OpenRouter")
+        openRouterFree.forEach { (m, label) -> out.getOrPut(m) { AiEndpoint(baseUrl, apiKey, m, label) } }
+        return out.values.toList()
+    }
 }
 
 /** Proveedores de IA. Los compatibles con OpenAI dan acceso a modelos de código abierto. */
@@ -69,7 +90,7 @@ enum class AiProvider(
     CLAUDE("Claude (Anthropic)", "", "claude-opus-5-5", true,
         "Clave en console.anthropic.com. El más capaz."),
     OPENROUTER("OpenRouter · modelos abiertos gratis", "https://openrouter.ai/api/v1", "openrouter/free", true,
-        "Clave gratis en openrouter.ai. 'openrouter/free' elige un modelo abierto gratis con herramientas; también puedes poner p. ej. moonshotai/kimi-k3:free, z-ai/glm-5.3:free o deepseek/deepseek-v4:free si están disponibles."),
+        "Clave gratis en openrouter.ai. Al guardarla, se SUMAN AL EQUIPO varios modelos gratis fuertes a la vez (Nemotron 550B, un coder dedicado y 'openrouter/free', que auto-enruta entre todos los gratis) junto al resto — trabajan en equipo y se alternan solos. No hace falta elegir modelo: deja 'openrouter/free'."),
     GEMINI("Google Gemini · clave gratis", "https://generativelanguage.googleapis.com/v1beta/openai", "gemini-flash-latest", true,
         "API oficial de Google con nivel gratuito: crea la clave gratis en aistudio.google.com (Get API key). Modelos: gemini-flash-latest, gemini-pro-latest."),
     GROQ("Groq · Llama muy rápido", "https://api.groq.com/openai/v1", "llama-3.3-70b-versatile", true,
