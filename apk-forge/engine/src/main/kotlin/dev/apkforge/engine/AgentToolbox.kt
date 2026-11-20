@@ -29,8 +29,18 @@ class AgentToolbox(
     /** Mapa del proyecto que la app prepara para la IA (vacío si no es un proyecto). */
     fun projectMap(): String = projectDir()?.let { runCatching { ProjectIndex.build(it) }.getOrDefault("") }.orEmpty()
 
-    private fun xmlWarn(f: File): String =
-        if (f.extension == "xml") XmlCheck.error(f.readText())?.let { "\n⚠ $it — corrígelo antes de seguir." } ?: "" else ""
+    /**
+     * Tras editar, la app "ejecuta"/valida el cambio: ensambla el smali (o revisa el XML). Si hay un
+     * error de sintaxis, lo devuelve con la línea para que la IA lo corrija enseguida; si está bien, lo
+     * confirma. En smali también detecta registros mal usados, que es lo que cierra la app al arrancar.
+     */
+    private fun xmlWarn(f: File): String = when (f.extension.lowercase()) {
+        "xml" -> XmlCheck.error(f.readText())?.let { "\n⚠ $it — corrígelo antes de seguir." } ?: ""
+        "smali" -> runCatching { CodeAssistant.validateSmali(f.readText()) }.getOrNull()?.let {
+            "\n⚠ ERROR DE SINTAXIS en ${f.name}: $it\nLo validé ensamblando la clase y NO compila (o cerraría la app). Corrígelo AHORA con replace_lines/replace_in_file antes de seguir."
+        } ?: "\n✓ Validado: la clase smali ensambla correctamente."
+        else -> ""
+    }
 
     fun systemPrompt(preset: AgentPreset): String = """
         Eres un experto en ingeniería inversa de Android integrado en ApkForge, una app móvil.
@@ -48,6 +58,7 @@ class AgentToolbox(
         - Si es un proyecto con cambios previos, consulta list_changes para saber qué se editó antes.
         - La app trabaja contigo: arriba tienes el MAPA DEL PROYECTO, y en los mensajes del usuario la app añade lo que se ve en sus capturas y los ARCHIVOS RELACIONADOS que encontró. Úsalos primero; si falta algo, usa find_related.
         - Puedes editar CUALQUIER cosa del proyecto: smali, XML, recursos, manifest, assets, imágenes y binarios (.so/.dex/.bin con hex_read + hex_patch, manteniendo el tamaño). No digas que algo no se puede editar: busca la forma con las herramientas.
+        - Tras CADA edición de smali o XML, la app valida el cambio sola (ensambla la clase). Si la respuesta de la herramienta trae "⚠ ERROR DE SINTAXIS", NO sigas: corrígelo enseguida (replace_lines/replace_in_file) hasta que diga "✓ Validado". Nunca dejes un archivo con error. Si rompiste algo y no lo arreglas, usa undo_last.
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - Para editar archivos grandes (como smali) usa replace_lines por NÚMERO DE LÍNEA (lo que te da read_file): es mucho más fiable que copiar el texto exacto. Si replace_in_file falla con "aparece 0 veces", NO lo repitas: cambia a replace_lines.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
