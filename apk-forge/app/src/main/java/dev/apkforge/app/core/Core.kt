@@ -199,7 +199,11 @@ class Prefs(ctx: Context) {
                 dev.apkforge.engine.BuiltinAi.openRouterTeam(urlFor(it), keyFor(it), modelFor(it))
             else listOf(dev.apkforge.engine.AiEndpoint(urlFor(it), keyFor(it), modelFor(it), "${modelFor(it)} (${it.title.substringBefore(" ·")})"))
         }
-        val list = customModels.filter { it.label !in disabledModels } + keyed.filter { it.label !in disabledModels } +
+        // El proveedor que TÚ seleccionas va PRIMERO (su modelo trabaja antes); detrás, el resto de tus
+        // claves (Gemini, Groq…) y, al final, el equipo básico gratis. Así turna de potente a básico.
+        val activeUrl = aiProvider.let { if (it != dev.apkforge.engine.AiProvider.BUILTIN && it != dev.apkforge.engine.AiProvider.CLAUDE && it.needsKey) urlFor(it) else "" }
+        val keyedOrdered = keyed.sortedByDescending { it.baseUrl == activeUrl }
+        val list = customModels.filter { it.label !in disabledModels } + keyedOrdered.filter { it.label !in disabledModels } +
             dev.apkforge.engine.BuiltinAi.endpoints.filter { it.label !in disabledModels }
         return list.ifEmpty { dev.apkforge.engine.BuiltinAi.endpoints }
     }

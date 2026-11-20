@@ -537,7 +537,7 @@ private fun loadFile(ctx: android.content.Context, uri: android.net.Uri): dev.ap
             if (idx >= 0 && c.moveToFirst()) c.getString(idx) else null
         }
     }.getOrNull() ?: uri.lastPathSegment?.substringAfterLast('/') ?: "archivo"
-    val bytes = ctx.contentResolver.openInputStream(uri)!!.use { it.readNBytes(20 * 1024 * 1024) }
+    val bytes = ctx.contentResolver.openInputStream(uri)!!.use { it.readNBytes(48 * 1024 * 1024) }
     dev.apkforge.engine.FileAnalyst.Attachment(name, bytes)
 }.getOrNull()
 
