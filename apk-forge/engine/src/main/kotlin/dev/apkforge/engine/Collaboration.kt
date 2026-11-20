@@ -308,13 +308,15 @@ object MessagePreparer {
         // COMPRENSIÓN: si describes un problema con palabras normales ("se cierra", "ya no abre",
         // "tu último cambio la rompió"…), la app lo entiende y le arma a la IA la tarea de autodiagnóstico,
         // sin que tengas que dar instrucciones técnicas. Igual que hablarle a un humano.
-        val intent = if (project != null) RequestIntent.detect(project, userText) else null
-        if (intent != null) listener.onProgress(RequestIntent.statusFor(userText))
+        // La app NO impone una interpretación de tu orden: no inyecta ningún "diagnóstico" ni te
+        // desvía a otra causa. La IA LEE tu orden tal cual y decide; para localizar la app igual le
+        // prepara los archivos relacionados y tiene list_changes/read_crash si los necesita.
+        val intent: String? = null
         // VELOCIDAD: una pregunta simple ("qué modelo eres", "hola", "gracias") NO necesita analizar el
-        // proyecto. Saltamos todo el trabajo pesado y respondemos al instante. Solo las tareas reales
-        // de modificación (o un reporte de cierre) disparan el análisis completo.
-        val chatty = project != null && intent == null && attachments.isEmpty() && images.isEmpty() && RequestIntent.isChatty(userText)
-        val skipHeavy = intent != null || chatty
+        // proyecto. Saltamos el trabajo pesado y respondemos al instante. Cualquier ORDEN real
+        // (modificar, arreglar, quitar, agregar…) dispara el análisis completo con búsqueda de archivos.
+        val chatty = project != null && attachments.isEmpty() && images.isEmpty() && RequestIntent.isChatty(userText)
+        val skipHeavy = chatty
         val related = if (project != null && !skipHeavy) {
             listener.onProgress("La app busca archivos relacionados…")
             val q = userText + "\n" + (notes ?: "")
