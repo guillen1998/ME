@@ -76,6 +76,27 @@ class OpenAiTextClient(private val endpoints: List<AiEndpoint>) : AiTextClient {
     }
 }
 
+/** Prueba rápida de un proveedor compatible con OpenAI (botón "Probar IA"): una llamada mínima.
+ *  Quita la pausa antes para ver el error REAL, y devuelve (funcionó, detalle/error). */
+object AiProbe {
+    fun test(baseUrl: String, apiKey: String, model: String): Pair<Boolean, String> {
+        val ep = AiEndpoint(baseUrl, apiKey, model, model)
+        OpenAiHttp.resetCooldown(ep)
+        val body = JsonObject().apply {
+            add("messages", Gson().toJsonTree(listOf(mapOf("role" to "user", "content" to "Responde solo: OK"))))
+            addProperty("max_tokens", 20)
+        }
+        return try {
+            val json = OpenAiHttp.chat(ep, body, readTimeoutMs = 45_000)
+            val txt = json.getAsJsonArray("choices")?.firstOrNull()?.asJsonObject
+                ?.getAsJsonObject("message")?.get("content")?.takeIf { !it.isJsonNull }?.asString
+            true to (txt?.trim()?.take(80).orEmpty().ifBlank { "OK" })
+        } catch (e: Throwable) {
+            false to (e.message ?: "error desconocido")
+        }
+    }
+}
+
 /** Resultado de una edición con IA: código nuevo + diff para revisarlo antes de aplicar. */
 data class AiEdit(val newCode: String, val diff: String, val added: Int, val removed: Int, val notes: String, val validated: Boolean?)
 

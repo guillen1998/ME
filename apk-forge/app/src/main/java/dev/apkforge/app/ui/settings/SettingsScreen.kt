@@ -118,6 +118,9 @@ fun SettingsScreen(onBack: () -> Unit) {
                 var url by remember(provider) { mutableStateOf(p.urlFor(provider)) }
                 var effort by remember { mutableStateOf(p.agentEffort) }
                 var allowEdits by remember { mutableStateOf(p.agentAllowEdits) }
+                var testMsg by remember(provider) { mutableStateOf<String?>(null) }
+                var testing by remember(provider) { mutableStateOf(false) }
+                val testScope = rememberCoroutineScope()
 
                 Text("Proveedor", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 dev.apkforge.engine.AiProvider.entries.forEach { pr ->
@@ -152,6 +155,27 @@ fun SettingsScreen(onBack: () -> Unit) {
                         androidx.compose.material3.AssistChip(onClick = { model = m; p.setModelFor(provider, m) }, label = { Text(m, fontSize = 11.sp) },
                             modifier = Modifier.padding(end = 6.dp))
                     }
+                }
+                // Botón "Probar IA": confirma que tu clave + modelo funcionan de verdad (como el de Gemini).
+                if (!builtin) {
+                    Spacer(Modifier.size(6.dp))
+                    Button(enabled = !testing && (!provider.needsKey || key.isNotBlank()), onClick = {
+                        testing = true; testMsg = "Probando…"
+                        testScope.launch {
+                            val res = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                runCatching {
+                                    if (provider == dev.apkforge.engine.AiProvider.CLAUDE)
+                                        true to dev.apkforge.engine.ClaudeTextClient(key, model, dev.apkforge.app.core.AiFactory.effort(p))
+                                            .complete("", "Responde solo: OK").trim().take(80).ifBlank { "OK" }
+                                    else dev.apkforge.engine.AiProbe.test(url, key, model)
+                                }.getOrElse { false to (it.message ?: "error") }
+                            }
+                            testMsg = if (res.first) "✔ Funciona. Respondió: “${res.second}”. Clave y modelo listos."
+                                      else "✖ No funcionó: ${res.second.take(400)}"
+                            testing = false
+                        }
+                    }) { Text(if (testing) "Probando…" else "Probar IA", fontSize = 13.sp) }
+                    testMsg?.let { Text(it, fontSize = 12.sp, color = if (it.startsWith("✖")) dev.apkforge.app.ui.Danger else dev.apkforge.app.ui.Ok, modifier = Modifier.padding(top = 4.dp)) }
                 }
                 if (provider == dev.apkforge.engine.AiProvider.CLAUDE) {
                     Text("Esfuerzo", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
