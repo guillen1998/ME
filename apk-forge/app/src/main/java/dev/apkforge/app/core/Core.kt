@@ -218,6 +218,10 @@ class Prefs(ctx: Context) {
     var agentEffort: String
         get() = p.getString("agentEffort", "high")!!
         set(v) = p.edit().putString("agentEffort", v).apply()
+    /** Modo individual: etiqueta del ÚNICO modelo a usar (vacío = modo equipo, todos turnando). */
+    var soloModelLabel: String
+        get() = p.getString("soloModelLabel", "")!!
+        set(v) = p.edit().putString("soloModelLabel", v).apply()
     /** Modelo que razona en el móvil (id de LocalReasoner.MODELS) y cuándo usarlo: always | offline | off. */
     var reasonerModel: String
         get() = p.getString("reasonerModel", "")!!

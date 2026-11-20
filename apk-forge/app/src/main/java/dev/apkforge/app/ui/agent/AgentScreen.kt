@@ -182,11 +182,13 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     var showHistory by remember { mutableStateOf(false) }
     var showPresets by remember { mutableStateOf(false) }
     var exportAsked by remember { mutableStateOf(false) }
+    var showModelPicker by remember { mutableStateOf(false) }
+    var soloLabel by remember { mutableStateOf(prefs.soloModelLabel) }
     val editToolNames = remember { setOf("write_file", "replace_lines", "insert_lines", "replace_in_file", "replace_all", "list_to_grid", "hex_patch", "delete_file", "move_file", "import_file", "rename_symbol", "decrypt_recipe") }
     val listState = rememberLazyListState()
     val ready = prefs.aiReady()
     val provider = prefs.aiProvider
-    val key = dev.apkforge.app.core.AgentLauncher.key(target, preset, resetCounter)
+    val key = run { soloLabel; dev.apkforge.app.core.AgentLauncher.key(target, preset, resetCounter) }
 
     val session = remember(key, ready) {
         AgentStore.session(key, preset.title) { s ->
@@ -225,6 +227,12 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
         session.loadChat(chat); session.persist()
     }
 
+    if (showModelPicker) ModelPickerDialog(
+        endpoints = remember(soloLabel, provider) { runCatching { prefs.builtinEndpoints() }.getOrDefault(emptyList()) },
+        current = soloLabel,
+        onDismiss = { showModelPicker = false },
+        onPick = { label -> prefs.soloModelLabel = label; soloLabel = label; showModelPicker = false })
+
     fun send() {
         val text = input.trim().ifEmpty {
             if (pendingImages.isNotEmpty()) "Analiza esta imagen." else if (pendingFiles.isNotEmpty()) "Analiza este archivo y dime qué es y qué contiene." else defaultPrompt(preset) }
@@ -243,8 +251,11 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                             Spacer(Modifier.size(6.dp))
                             Text(preset.title, fontSize = 11.sp, color = Accent, fontWeight = FontWeight.SemiBold)
                         }
-                        Text(dev.apkforge.app.core.AiFactory.label(prefs) + "  ·  " + target.name,
-                            fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { showModelPicker = true }) {
+                            Text((if (soloLabel.isNotBlank()) "Individual: $soloLabel" else dev.apkforge.app.core.AiFactory.label(prefs)) + "  ·  " + target.name,
+                                fontSize = 11.sp, color = Accent, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                            Icon(Icons.Default.KeyboardArrowDown, "Elegir IA", Modifier.size(16.dp), tint = Accent)
+                        }
                     }
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
@@ -596,6 +607,40 @@ private fun Thumb(bytes: ByteArray, sizeDp: Int) {
 }
 
 private fun Modifier.androidx_clip() = this.then(Modifier.clip(RoundedCornerShape(8.dp)))
+
+
+/**
+ * Selector de IA desde la cabecera: "Equipo" (todas trabajan y turnan cuando una se agota) o
+ * "Individual" (eliges UNA y solo esa trabaja). Lista todos los modelos disponibles.
+ */
+@Composable
+private fun ModelPickerDialog(endpoints: List<dev.apkforge.engine.AiEndpoint>, current: String, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("¿Cómo quieres que trabaje la IA?") },
+        text = {
+            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+                Row(Modifier.fillMaxWidth().clickable { onPick("") }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.RadioButton(current.isBlank(), { onPick("") })
+                    Column(Modifier.padding(start = 4.dp)) {
+                        Text("Equipo (recomendado)", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text("Todas trabajan juntas; cuando una agota su límite, sigue la siguiente sola.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                Text("O trabajar con UNA sola IA (individual):", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 4.dp))
+                if (endpoints.isEmpty()) Text("No hay modelos disponibles. Añade una clave en Ajustes.", fontSize = 12.sp, color = AccentWarm)
+                endpoints.forEach { ep ->
+                    Row(Modifier.fillMaxWidth().clickable { onPick(ep.label) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.RadioButton(current == ep.label, { onPick(ep.label) })
+                        Text(ep.label, fontSize = 13.sp, modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cerrar") } },
+    )
+}
 
 
 /** Conversaciones anteriores de esta carpeta y perfil (la más reciente arriba). Abrir una la recupera para reanudarla. */

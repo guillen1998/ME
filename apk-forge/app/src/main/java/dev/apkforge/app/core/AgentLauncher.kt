@@ -22,7 +22,7 @@ object AgentLauncher {
 
     /** Clave de sesión: la misma que usa la pantalla del agente, para que al abrirla veas el trabajo. */
     fun key(target: File, preset: AgentPreset, generation: Int = 0) =
-        "${target.absolutePath}|$preset|${ApkForgeApp.prefs.aiProvider}|$generation"
+        "${target.absolutePath}|$preset|${ApkForgeApp.prefs.aiProvider}|${ApkForgeApp.prefs.soloModelLabel}|$generation"
 
     fun create(target: File, preset: AgentPreset, session: AgentSession, allowEdits: Boolean): AiAgent? {
         val prefs = ApkForgeApp.prefs
@@ -31,6 +31,13 @@ object AgentLauncher {
         val apkFile = if (target.isFile && target.extension.equals("apk", true)) target else null
         val javaInput = if (target.isDirectory || apkFile != null) target else null
         val java: () -> JavaDecompiler? = { javaInput?.let { runCatching { JavaSessions.get(it, prefs.javaOptions()) }.getOrNull() } }
+        // MODO INDIVIDUAL: el usuario eligió en la cabecera una sola IA; se usa SOLO esa, sin equipo.
+        val solo = prefs.soloModelLabel
+        if (solo.isNotBlank()) {
+            val ep = prefs.builtinEndpoints().firstOrNull { it.label == solo }
+            if (ep != null) return OpenAiCompatAgent(target, apkFile, listOf(ep), preset, allowEdits, java, session.onEvent)
+            // si ese modelo ya no existe (quitaste la clave), cae al modo equipo de abajo
+        }
         if (provider == AiProvider.CLAUDE)
             return ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), allowEdits),
                 preset, java, session.onEvent)
