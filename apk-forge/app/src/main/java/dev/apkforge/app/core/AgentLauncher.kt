@@ -43,11 +43,19 @@ object AgentLauncher {
                 dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(reviewers), local),
                 planners.first().label, reviewers.first().label, session.onEvent)
         }
-        return if (provider == AiProvider.CLAUDE)
-            ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), allowEdits),
+        if (provider == AiProvider.CLAUDE)
+            return ForgeAgent(target, apkFile, AgentConfig(prefs.keyFor(provider), prefs.modelFor(provider), AiFactory.effort(prefs), allowEdits),
                 preset, java, session.onEvent)
-        else OpenAiCompatAgent(target, apkFile, prefs.urlFor(provider), prefs.keyFor(provider), prefs.modelFor(provider),
-            preset, allowEdits, java, session.onEvent)
+        // Tu modelo elegido (p. ej. Gemini) va PRIMERO. Si es un proveedor de nube con clave y se
+        // queda sin cuota, da 503 (saturado) o falla, la IA SIGUE SOLA con el equipo gratis detrás,
+        // sin que tengas que cambiar nada. Ollama/Personalizado (local/privado) no añaden respaldo
+        // público, para no filtrar tu código a servicios externos.
+        val primary = dev.apkforge.engine.AiEndpoint(prefs.urlFor(provider), prefs.keyFor(provider), prefs.modelFor(provider),
+            "${prefs.modelFor(provider)} (${provider.title.substringBefore(" ·")})")
+        val chain = if (provider.needsKey)
+            (listOf(primary) + BuiltinAi.endpoints).distinctBy { it.baseUrl + "|" + it.model }
+        else listOf(primary)
+        return OpenAiCompatAgent(target, apkFile, chain, preset, allowEdits, java, session.onEvent)
     }
 
     /**

@@ -221,7 +221,7 @@ class OpenAiCompatAgent(
                     } catch (t: Throwable) {
                         "Error: ${describe(t)}" to true
                     }
-                    onEvent(AgentEvent.ToolResult(name, out.take(300), err))
+                    onEvent(AgentEvent.ToolResult(name, out.take(4000), err))
                     messages.add(JsonObject().apply {
                         addProperty("role", "tool")
                         addProperty("tool_call_id", call.get("id")?.asString ?: name)

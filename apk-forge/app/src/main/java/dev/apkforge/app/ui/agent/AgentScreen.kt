@@ -32,6 +32,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.PlayArrow
@@ -44,7 +49,6 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -241,10 +245,23 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás") } },
                 actions = {
-                    // Menú de 3 rayas: elegir el perfil del agente (modo de trabajo)
+                    // Mostrar/ocultar el panel lateral de proyectos de un toque
+                    IconButton(onClick = { showSide = !showSide }) {
+                        Icon(Icons.Default.ViewSidebar, if (showSide) "Ocultar proyectos" else "Ver proyectos",
+                            tint = if (showSide) Accent else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    // Menú de 3 rayas: modo del agente, proyecto, historial
                     Box {
-                        IconButton(onClick = { showPresets = true }) { Icon(Icons.Default.Menu, "Modo del agente") }
+                        IconButton(onClick = { showPresets = true }) { Icon(Icons.Default.Menu, "Menú") }
                         androidx.compose.material3.DropdownMenu(showPresets, onDismissRequest = { showPresets = false }) {
+                            if (dev.apkforge.engine.ApkProject.isProject(target)) {
+                                Text("Proyecto", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                                androidx.compose.material3.DropdownMenuItem(text = { Text("Abrir archivos del proyecto") }, onClick = { showPresets = false; onOpenDir(target) })
+                                androidx.compose.material3.DropdownMenuItem(text = { Text("Copias de seguridad") }, onClick = { showPresets = false; onBackups(target) })
+                                androidx.compose.material3.DropdownMenuItem(text = { Text("Exportar APK") }, onClick = { showPresets = false; showExport = true })
+                                androidx.compose.material3.HorizontalDivider()
+                            }
                             Text("Modo del agente", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                             AgentPreset.entries.forEach { pr ->
@@ -254,7 +271,6 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
                             }
                             androidx.compose.material3.HorizontalDivider()
                             androidx.compose.material3.DropdownMenuItem(text = { Text("Historial de conversaciones") }, onClick = { showPresets = false; showHistory = true })
-                            androidx.compose.material3.DropdownMenuItem(text = { Text(if (showSide) "Ocultar proyectos" else "Ver proyectos") }, onClick = { showPresets = false; showSide = !showSide })
                             if (messages.isNotEmpty() && !running)
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("Nueva conversación") }, onClick = { showPresets = false; AgentStore.drop(key); resetCounter++ })
                         }
@@ -265,24 +281,11 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     ) { pad ->
         Row(Modifier.padding(pad).fillMaxSize().imePadding()) {
         if (showSide) {
-            ProjectsSidePanel(current = target, onSwitch = onSwitch, onExport = { exportDir = it })
+            ProjectsSidePanel(current = target, onSwitch = onSwitch, onExport = { exportDir = it },
+                onOpen = onOpenDir, onBackups = onBackups)
             androidx.compose.material3.VerticalDivider()
         }
         Column(Modifier.weight(1f).fillMaxHeight()) {
-            if (dev.apkforge.engine.ApkProject.isProject(target)) {
-                Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
-                    Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Proyecto", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(target.name, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        androidx.compose.material3.TextButton(onClick = { onOpenDir(target) }) { Text("Abrir") }
-                        androidx.compose.material3.TextButton(onClick = { onBackups(target) }) { Text("Copias") }
-                        androidx.compose.material3.Button(onClick = { showExport = true }) { Text("Exportar APK") }
-                    }
-                }
-            }
             if (session.needsResume.value && !running) {
                 Surface(color = AccentWarm.copy(alpha = 0.16f), shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
@@ -377,7 +380,8 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
  * (decompilaciones), cada uno con botón para exportarlo firmado. Tocar uno cambia la IA a ese proyecto.
  */
 @Composable
-private fun ProjectsSidePanel(current: File, onSwitch: (File) -> Unit, onExport: (File) -> Unit) {
+private fun ProjectsSidePanel(current: File, onSwitch: (File) -> Unit, onExport: (File) -> Unit,
+                             onOpen: (File) -> Unit, onBackups: (File) -> Unit) {
     val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
     val projects by androidx.compose.runtime.produceState<List<dev.apkforge.engine.ProjectInfo>>(emptyList(), current) {
         value = kotlinx.coroutines.withContext(dev.apkforge.app.core.Workers.dispatcher) {
@@ -385,14 +389,22 @@ private fun ProjectsSidePanel(current: File, onSwitch: (File) -> Unit, onExport:
         }
     }
     val active = AgentStore.activeTargets()
+    val isProj = dev.apkforge.engine.ApkProject.isProject(current)
     LazyColumn(
-        Modifier.width(if (wide) 240.dp else 150.dp).fillMaxHeight()
+        Modifier.width(if (wide) 240.dp else 168.dp).fillMaxHeight()
             .background(MaterialTheme.colorScheme.surfaceContainerLow).padding(vertical = 6.dp),
     ) {
         item {
             Text("Editando", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
             SideProject(current.name, isCurrent = true, working = active[current.absolutePath] == true,
-                exportable = dev.apkforge.engine.ApkProject.isProject(current), onClick = {}, onExport = { onExport(current) })
+                exportable = isProj, onClick = {}, onExport = { onExport(current) })
+            // Acciones del proyecto que edita la IA: abrir sus archivos, ver copias, exportar.
+            if (isProj) Row(Modifier.padding(start = 14.dp, end = 6.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                androidx.compose.material3.TextButton(onClick = { onOpen(current) },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp)) { Text("Abrir", fontSize = 11.sp) }
+                androidx.compose.material3.TextButton(onClick = { onBackups(current) },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp)) { Text("Copias", fontSize = 11.sp) }
+            }
             androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
             Text("Proyectos", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
         }
@@ -436,6 +448,19 @@ private fun defaultPrompt(p: AgentPreset) = when (p) {
     AgentPreset.CHAT -> "Hola, ¿qué puedes hacer con esta app?"
 }
 
+/** Botón pequeño para copiar un texto al portapapeles (con aviso). */
+@Composable
+private fun CopyButton(text: String, label: String = "Copiar") {
+    val clip = LocalClipboardManager.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    androidx.compose.material3.TextButton(
+        onClick = { clip.setText(AnnotatedString(text)); android.widget.Toast.makeText(ctx, "Copiado", android.widget.Toast.LENGTH_SHORT).show() },
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+    ) {
+        Icon(Icons.Default.ContentCopy, null, Modifier.size(14.dp)); Spacer(Modifier.size(4.dp)); Text(label, fontSize = 11.sp)
+    }
+}
+
 @Composable
 private fun MessageBubble(m: AgentMsg) {
     when (m) {
@@ -448,21 +473,40 @@ private fun MessageBubble(m: AgentMsg) {
                     if (m.images.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
                         m.images.take(4).forEach { Thumb(it, 72) }
                     }
-                    Text(m.text, fontSize = 14.sp)
+                    SelectionContainer { Text(m.text, fontSize = 14.sp) }
                 }
             }
         }
-        is AgentMsg.Assistant -> SelectionContainer { Text(m.text, fontSize = 14.sp, lineHeight = 20.sp) }
-        is AgentMsg.Tool -> Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Build, null, Modifier.size(14.dp), tint = if (m.error) Danger else Ok)
-                    Spacer(Modifier.size(6.dp))
-                    Text(m.tool, fontFamily = Mono, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    if (m.summary.isNotBlank()) { Spacer(Modifier.size(6.dp)); Text(m.summary, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        is AgentMsg.Assistant -> Column(Modifier.fillMaxWidth()) {
+            SelectionContainer { Text(m.text, fontSize = 14.sp, lineHeight = 20.sp) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { CopyButton(m.text) }
+        }
+        // Tarjeta de herramienta PLEGADA: ves de un vistazo qué hace y en qué archivo; al tocar se
+        // abre y muestra TODO lo que tocó (el contenido/diff) para revisar si editó algo mal. Copiable.
+        is AgentMsg.Tool -> {
+            var open by remember(m) { mutableStateOf(false) }
+            val canOpen = !m.result.isNullOrBlank()
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().then(if (canOpen) Modifier.clickable { open = !open } else Modifier)) {
+                Column(Modifier.padding(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Build, null, Modifier.size(14.dp), tint = if (m.error) Danger else Ok)
+                        Spacer(Modifier.size(6.dp))
+                        Text(m.tool, fontFamily = Mono, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        if (m.summary.isNotBlank()) { Spacer(Modifier.size(6.dp)); Text(m.summary, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false)) }
+                        if (canOpen) { Spacer(Modifier.weight(1f)); Icon(if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, if (open) "Ocultar" else "Ver detalle", Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    }
+                    if (open && canOpen) {
+                        Spacer(Modifier.size(6.dp))
+                        SelectionContainer {
+                            Box(Modifier.fillMaxWidth().heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
+                                Text(m.result!!, fontFamily = Mono, fontSize = 11.sp,
+                                    color = if (m.error) Danger else MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { CopyButton(m.result!!) }
+                    }
                 }
-                m.result?.let { Text(it, fontFamily = Mono, fontSize = 11.sp, maxLines = 4, overflow = TextOverflow.Ellipsis,
-                    color = if (m.error) Danger else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp)) }
             }
         }
         is AgentMsg.Info -> Text(m.text, fontSize = 12.sp, color = if (m.error) Danger else MaterialTheme.colorScheme.onSurfaceVariant)

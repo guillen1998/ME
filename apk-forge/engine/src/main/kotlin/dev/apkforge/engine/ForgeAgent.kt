@@ -155,7 +155,7 @@ class ForgeAgent(
                             } catch (t: Throwable) {
                                 "Error: ${describe(t)}" to true
                             }
-                            onEvent(AgentEvent.ToolResult(use.name(), out.take(300), err))
+                            onEvent(AgentEvent.ToolResult(use.name(), out.take(4000), err))
                             BetaContentBlockParam.ofToolResult(
                                 BetaToolResultBlockParam.builder()
                                     .toolUseId(use.id()).content(toolbox.clip(out)).isError(err).build()

@@ -109,12 +109,14 @@ internal object OpenAiHttp {
                     401, 403 -> "${ep.label}: clave no válida o sin permiso (error $code: $detail)"
                     429 -> "${ep.label}: límite de uso alcanzado (error 429: $detail)"
                     404 -> "${ep.label}: modelo no disponible (error 404: $detail)"
+                    500, 502, 503, 504 -> "${ep.label}: saturado ahora mismo (error $code) — sigo con otro modelo"
                     else -> "${ep.label}: error $code ($detail)"
                 }
                 when {
                     code == 429 && (low.contains("daily") || low.contains("quota") || low.contains("per day")) -> cool(ep, 60 * 60_000L, msg)
                     code == 401 || code == 403 || low.contains("missing api key") -> cool(ep, 6 * 60 * 60_000L, msg)
                     code == 404 || low.contains("model not found") || low.contains("does not exist") -> cool(ep, 6 * 60 * 60_000L, msg)
+                    code in 500..599 -> cool(ep, 45_000L, msg)   // servidor saturado/caído: pausa corta y sigue otro modelo
                 }
                 throw RetryableException(msg)
             }
