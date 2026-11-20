@@ -55,7 +55,8 @@ object AgentLauncher {
         val project = (if (target.isDirectory) target else target.parentFile)?.takeIf { ApkProject.isProject(it) }
         if (project == null || !allowEdits) return exec
         val planners = BuiltinAi.plannerOrder(eps); val reviewers = BuiltinAi.reviewerOrder(eps)
-        val local = { if (prefs.reasonMode != "off") dev.apkforge.engine.NeuralBrain.reasoner() else null }
+        // La IA local NO responde ni planifica: es solo apoyo (búsqueda). Planner/revisor usan solo la nube.
+        val local: () -> dev.apkforge.engine.AiTextClient? = { null }
         return AiTeam(project, exec, dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(planners), local),
             dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(reviewers), local),
             planners.first().label, reviewers.first().label, session.onEvent)

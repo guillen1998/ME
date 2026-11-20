@@ -31,9 +31,8 @@ object AiFactory {
     fun textClient(p: Prefs): AiTextClient? {
         if (!p.aiReady()) return null
         val pr = p.aiProvider
-        if (pr == AiProvider.BUILTIN) return dev.apkforge.engine.FallbackTextClient(OpenAiTextClient(p.builtinEndpoints())) {
-            if (p.reasonMode != "off") dev.apkforge.engine.NeuralBrain.reasoner() else null
-        }
+        // La IA local NO responde: solo la nube. (El motor neuronal sigue ayudando en la búsqueda.)
+        if (pr == AiProvider.BUILTIN) return OpenAiTextClient(p.builtinEndpoints())
         return if (pr == AiProvider.CLAUDE) ClaudeTextClient(p.keyFor(pr), p.modelFor(pr), effort(p))
         else OpenAiTextClient(p.urlFor(pr), p.keyFor(pr), p.modelFor(pr))
     }

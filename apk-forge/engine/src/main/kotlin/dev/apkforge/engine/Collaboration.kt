@@ -343,11 +343,9 @@ object MessagePreparer {
         val deobfCtx = if (project != null && !chatty) runCatching {
             Deobfuscator.contextFor(project, related.map { it.path } + (thought?.ranked?.map { it.first } ?: emptyList()))
         }.getOrDefault("") else ""
-        val deliberation = if (!skipHeavy && localReasoning && NeuralBrain.reasonerLoader != null) runCatching {
-            listener.onProgress("🧠 El razonador local piensa paso a paso…")
-            NeuralBrain.deliberate(userText, listOf(AndroidKnowledge.format(recipes), thought?.format().orEmpty(), deobfCtx, notes.orEmpty())
-                .filter { it.isNotBlank() }.joinToString("\n\n"))
-        }.getOrNull() else null
+        // La IA local NO razona ni responde: es solo apoyo de BÚSQUEDA (el motor neuronal de abajo).
+        // Por eso no "delibera" ni inyecta su razonamiento en el prompt de la nube.
+        val deliberation: NeuralBrain.Deliberation? = null
         val text = buildString {
             intent?.let { append(it); appendLine(); appendLine("--- Mensaje original del usuario ---") }
             append(userText)
