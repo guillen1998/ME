@@ -12,7 +12,7 @@ object ChatHistory {
     /** kind: user | assistant | tool | info */
     data class Msg(
         val kind: String, val text: String = "", val tool: String = "", val summary: String = "",
-        val result: String? = null, val error: Boolean = false, val images: Int = 0,
+        val result: String? = null, val error: Boolean = false, val images: Int = 0, val at: Long = 0,
     )
 
     data class Chat(val title: String = "", val running: Boolean = false, val updated: Long = 0, val messages: List<Msg> = emptyList())

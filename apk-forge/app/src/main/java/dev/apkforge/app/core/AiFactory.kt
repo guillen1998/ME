@@ -11,18 +11,14 @@ object AiFactory {
     /** Etiqueta del modelo de IA en uso ahora (para la cabecera): "Gemini: gemini-flash-latest", "Equipo gratis", etc. */
     fun label(p: Prefs): String {
         val pr = p.aiProvider
+        val n = runCatching { p.builtinEndpoints().size }.getOrDefault(0)
         return when (pr) {
-            dev.apkforge.engine.AiProvider.BUILTIN -> {
-                val keyed = dev.apkforge.engine.AiProvider.entries.firstOrNull {
-                    it != dev.apkforge.engine.AiProvider.BUILTIN && it != dev.apkforge.engine.AiProvider.CLAUDE && it.needsKey && p.keyFor(it).isNotBlank()
-                }
-                if (keyed != null) "Equipo + ${p.modelFor(keyed)}" else "Equipo IA (gratis)"
-            }
+            dev.apkforge.engine.AiProvider.BUILTIN -> if (n > 0) "Equipo de $n IAs (gratis)" else "Equipo IA (gratis)"
             dev.apkforge.engine.AiProvider.CLAUDE -> "Claude: ${p.modelFor(pr)}"
             dev.apkforge.engine.AiProvider.OLLAMA -> "Ollama: ${p.modelFor(pr)}"
             dev.apkforge.engine.AiProvider.CUSTOM -> "Personalizado: ${p.modelFor(pr)}"
-            // OpenRouter / Gemini / Groq ahora trabajan EN EQUIPO (su modelo + todos los demás)
-            else -> "Equipo + ${p.modelFor(pr)}"
+            // Nube con clave (OpenRouter/Gemini/Groq): tu modelo LIDERA y va turnando con el resto.
+            else -> "Equipo de $n · 1ª: ${p.modelFor(pr)}"
         }
     }
 

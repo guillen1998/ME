@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.History
@@ -180,6 +181,8 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     var resetCounter by remember { mutableIntStateOf(0) }
     var showHistory by remember { mutableStateOf(false) }
     var showPresets by remember { mutableStateOf(false) }
+    var exportAsked by remember { mutableStateOf(false) }
+    val editToolNames = remember { setOf("write_file", "replace_lines", "insert_lines", "replace_in_file", "replace_all", "list_to_grid", "hex_patch", "delete_file", "move_file", "import_file", "rename_symbol", "decrypt_recipe") }
     val listState = rememberLazyListState()
     val ready = prefs.aiReady()
     val provider = prefs.aiProvider
@@ -195,6 +198,7 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
     val tokens by session.tokens
 
     LaunchedEffect(messages.size) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1) }
+    LaunchedEffect(running) { if (running) exportAsked = false }   // nueva tarea -> volver a ofrecer exportar al terminar
     // "Analizar con IA" desde un archivo: arranca solo.
     LaunchedEffect(session) {
         if (initialPrompt != null && messages.isEmpty() && session.agent != null && !running)
@@ -334,6 +338,35 @@ private fun AgentChat(target: File, onBack: () -> Unit, onOpenSettings: () -> Un
             }
             if (tokens.isNotEmpty()) Text(tokens, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 14.dp))
 
+            // Ventana de contexto: cuánta memoria de la charla se está usando antes de que se resuma sola.
+            if (messages.isNotEmpty()) {
+                val chars = messages.sumOf { m -> when (m) {
+                    is AgentMsg.User -> m.text.length
+                    is AgentMsg.Assistant -> m.text.length
+                    is AgentMsg.Tool -> (m.result?.length ?: 0) + m.summary.length + m.tool.length
+                    is AgentMsg.Info -> m.text.length
+                } }
+                val pct = (chars / 220_000f).coerceIn(0f, 1f)
+                Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Contexto ${(pct * 100).toInt()}%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.size(8.dp))
+                    androidx.compose.material3.LinearProgressIndicator(progress = { pct }, modifier = Modifier.weight(1f).height(4.dp),
+                        color = if (pct > 0.85f) AccentWarm else Accent)
+                    if (pct > 0.85f) { Spacer(Modifier.size(6.dp)); Text("se resume solo", fontSize = 10.sp, color = AccentWarm) }
+                }
+            }
+
+            // Al terminar una edición: ofrecer exportar el APK (si dices No, igual puedes desde el menú ☰).
+            if (isProject && !running && !exportAsked && messages.any { it is AgentMsg.Tool && it.tool in editToolNames }) {
+                Surface(color = Ok.copy(alpha = 0.14f), shape = RoundedCornerShape(12.dp), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
+                    Row(Modifier.padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("✅ Cambios finalizados. ¿Exportar APK?", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        androidx.compose.material3.TextButton(onClick = { exportAsked = true }) { Text("No") }
+                        androidx.compose.material3.Button(onClick = { exportAsked = true; showExport = true }) { Text("Sí, exportar") }
+                    }
+                }
+            }
+
             if (isProject && !running) Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 quickTasks.forEach { (label, prompt) ->
@@ -448,6 +481,8 @@ private fun defaultPrompt(p: AgentPreset) = when (p) {
     AgentPreset.CHAT -> "Hola, ¿qué puedes hacer con esta app?"
 }
 
+private fun fmtTime(at: Long): String = if (at <= 0L) "" else java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(at))
+
 /** Botón pequeño para copiar un texto al portapapeles (con aviso). */
 @Composable
 private fun CopyButton(text: String, label: String = "Copiar") {
@@ -474,12 +509,16 @@ private fun MessageBubble(m: AgentMsg) {
                         m.images.take(4).forEach { Thumb(it, 72) }
                     }
                     SelectionContainer { Text(m.text, fontSize = 14.sp) }
-                }
+                    Text(fmtTime(m.at), fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.align(Alignment.End).padding(top = 2.dp))
+}
             }
         }
         is AgentMsg.Assistant -> Column(Modifier.fillMaxWidth()) {
             SelectionContainer { Text(m.text, fontSize = 14.sp, lineHeight = 20.sp) }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { CopyButton(m.text) }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(fmtTime(m.at), fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                Spacer(Modifier.weight(1f)); CopyButton(m.text)
+            }
         }
         // Tarjeta de herramienta PLEGADA: ves de un vistazo qué hace y en qué archivo; al tocar se
         // abre y muestra TODO lo que tocó (el contenido/diff) para revisar si editó algo mal. Copiable.

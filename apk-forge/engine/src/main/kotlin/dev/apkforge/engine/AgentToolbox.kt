@@ -1,6 +1,9 @@
 package dev.apkforge.engine
 
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /** Definición de herramienta independiente del proveedor de IA (Claude, OpenRouter, Groq, Ollama…). */
 data class ToolSpec(
@@ -49,7 +52,7 @@ class AgentToolbox(
 
         Tu tarea en esta sesión: ${preset.goal}
 
-        ${projectMap()}
+        ${projectMap()}${memorySection()}
 
         Reglas:
         - Basa todo en lo que veas con las herramientas; no inventes clases ni archivos. Cita rutas y nombres.
@@ -59,6 +62,8 @@ class AgentToolbox(
         - La app trabaja contigo: arriba tienes el MAPA DEL PROYECTO, y en los mensajes del usuario la app añade lo que se ve en sus capturas y los ARCHIVOS RELACIONADOS que encontró. Úsalos primero; si falta algo, usa find_related.
         - Puedes editar CUALQUIER cosa del proyecto: smali, XML, recursos, manifest, assets, imágenes y binarios (.so/.dex/.bin con hex_read + hex_patch, manteniendo el tamaño). No digas que algo no se puede editar: busca la forma con las herramientas.
         - Tras CADA edición de smali o XML, la app valida el cambio sola (ensambla la clase). Si la respuesta de la herramienta trae "⚠ ERROR DE SINTAXIS", NO sigas: corrígelo enseguida (replace_lines/replace_in_file) hasta que diga "✓ Validado". Nunca dejes un archivo con error. Si rompiste algo y no lo arreglas, usa undo_last.
+        - Si arriba hay MEMORIA DEL PROYECTO, respétala: te dice qué se tocó antes y qué NO romper. Tras un cambio importante o un hallazgo útil, usa remember(...) para anotar qué hiciste, dónde y por qué; esa memoria la verán las IAs que sigan el proyecto.
+        - Al TERMINAR una tarea en la que editaste archivos, cierra tu último mensaje con una línea EXACTA: "✅ Cambios finalizados con éxito." para que el usuario sepa que ya puede exportar el APK.
         - Edita SOLO archivos del proyecto (smali/, resources/, AndroidManifest.xml, root/): son los que entran al APK al exportar. La carpeta android-studio/ es solo de lectura para el PC y no cambia el APK.
         - Para editar archivos grandes (como smali) usa replace_lines por NÚMERO DE LÍNEA (lo que te da read_file): es mucho más fiable que copiar el texto exacto. Si replace_in_file falla con "aparece 0 veces", NO lo repitas: cambia a replace_lines.
         - ${if (allowEdits) "Puedes editar archivos con write_file/replace_in_file (se guarda copia de seguridad)." else "Edición DESACTIVADA: si hace falta cambiar algo, explica el cambio exacto en vez de hacerlo."}
@@ -138,6 +143,8 @@ class AgentToolbox(
             mapOf(), listOf()))
         add(tool("check_integrity", "Comprueba si la app tiene PROTECCIONES CONTRA MODIFICACIÓN (comprobación de firma local o enviada al servidor, Play Integrity, root/emulador/depurador). Es la causa nº1 de que un mod 'deje de funcionar' al re-firmar aunque el cambio sea cosmético. Úsalo SIEMPRE que un cambio no se refleje o la app falle al cargar datos/login tras modificarla.",
             mapOf(), listOf()))
+        add(tool("remember", "Guarda un PUNTO CLAVE en la memoria del proyecto (qué cambiaste y dónde, por qué, o una advertencia tipo 'no tocar X porque Y'). Se conserva entre sesiones y se le muestra a CUALQUIER IA que trabaje luego en este proyecto, para que sepa dónde y cómo tocar sin romper nada. Úsalo tras un cambio importante o cuando descubras algo que otros deban saber.",
+            mapOf("note" to str("El punto clave, en 1-2 frases claras")), listOf("note")))
         add(tool("decrypt_strings", "La APP busca los textos CIFRADOS de la app (métodos descifradores llamados con constantes raras), los descifra ejecutando el método en un intérprete aislado o probando cifrados típicos, y devuelve los textos claros. Lo que no pueda, te lo pasa con el código del descifrador para que deduzcas el algoritmo.",
             mapOf("filter" to str("Opcional: solo textos que contengan esto")), listOf()))
         add(tool("decrypt_recipe", "Cuando deduzcas el algoritmo de un descifrador, dale a la app la receta de pasos; la app la aplica a TODOS sus textos y solo la acepta si salen legibles. Pasos: base64, hex, reverse, rot(n), add(n), xor(key|n), xorchars(key|n), aes(key,mode,iv), rc4(key).",
@@ -401,6 +408,15 @@ class AgentToolbox(
             val p = projectDir() ?: throw EngineException("No es un proyecto")
             IntegrityScanner.scan(p).explain()
         }
+        "remember" -> {
+            val note = (a["note"] as String).trim()
+            if (note.isBlank()) "Nota vacía, no guardé nada." else {
+                val f = memFile(); f.parentFile?.mkdirs()
+                val stamp = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+                f.appendText("- [$stamp] $note\n")
+                "Guardado en la memoria del proyecto (lo verán las próximas IAs)."
+            }
+        }
         "decrypt_strings" -> {
             val p = projectDir() ?: throw EngineException("No es un proyecto")
             val rep = StringDecryptor.run(p)
@@ -636,6 +652,17 @@ class AgentToolbox(
              else "Usa read_file para ver el contenido actual y copiar el texto exacto.")
     }
 
+    /** Archivo de MEMORIA del proyecto: puntos clave que se conservan entre sesiones y ven todas las IAs. */
+    private fun memFile(): File {
+        val base = if (root.isDirectory) root else root.parentFile
+        return File(base, "$META_DIR/memory.md")
+    }
+    private fun memorySection(): String {
+        val t = runCatching { memFile().takeIf { it.isFile }?.readText()?.trim() }.getOrNull()
+        return if (t.isNullOrBlank()) "" else
+            "\n\nMEMORIA DEL PROYECTO (puntos clave de sesiones anteriores; respétalos para saber dónde/cómo tocar sin romper nada):\n$t\n"
+    }
+
     private fun backup(f: File) {
         if (!f.isFile) return
         val base = if (root.isDirectory) root else root.parentFile
@@ -653,6 +680,7 @@ class AgentToolbox(
         "project_map" -> ""
         "hex_read", "hex_patch", "delete_file", "restore_file" -> "${a["path"]}"
         "undo_last" -> "último cambio"
+        "remember" -> "${(a["note"] as? String)?.take(40)}"
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"
         "web_search" -> "“${a["query"]}”"

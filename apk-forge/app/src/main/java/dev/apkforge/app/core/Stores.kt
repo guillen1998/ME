@@ -141,10 +141,11 @@ object ScanStore {
 // ---------------------------------------------------------------- Agente IA
 
 sealed class AgentMsg {
-    data class User(val text: String, val images: List<ByteArray> = emptyList(), val files: List<String> = emptyList()) : AgentMsg()
-    data class Assistant(val text: String) : AgentMsg()
-    data class Tool(val tool: String, val summary: String, val result: String? = null, val error: Boolean = false) : AgentMsg()
-    data class Info(val text: String, val error: Boolean) : AgentMsg()
+    abstract val at: Long
+    data class User(val text: String, val images: List<ByteArray> = emptyList(), val files: List<String> = emptyList(), override val at: Long = System.currentTimeMillis()) : AgentMsg()
+    data class Assistant(val text: String, override val at: Long = System.currentTimeMillis()) : AgentMsg()
+    data class Tool(val tool: String, val summary: String, val result: String? = null, val error: Boolean = false, override val at: Long = System.currentTimeMillis()) : AgentMsg()
+    data class Info(val text: String, val error: Boolean, override val at: Long = System.currentTimeMillis()) : AgentMsg()
 }
 
 /**
@@ -171,11 +172,12 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
     fun loadChat(c: dev.apkforge.engine.ChatHistory.Chat) {
         messages.clear()
         c.messages.forEach { m ->
+            val t = m.at.takeIf { it > 0 } ?: c.updated
             messages += when (m.kind) {
-                "user" -> AgentMsg.User(m.text + if (m.images > 0) "\n[${m.images} imagen(es)]" else "")
-                "assistant" -> AgentMsg.Assistant(m.text)
-                "tool" -> AgentMsg.Tool(m.tool, m.summary, m.result, m.error)
-                else -> AgentMsg.Info(m.text, m.error)
+                "user" -> AgentMsg.User(m.text + if (m.images > 0) "\n[${m.images} imagen(es)]" else "", at = t)
+                "assistant" -> AgentMsg.Assistant(m.text, at = t)
+                "tool" -> AgentMsg.Tool(m.tool, m.summary, m.result, m.error, at = t)
+                else -> AgentMsg.Info(m.text, m.error, at = t)
             }
         }
         needsResume.value = messages.isNotEmpty()
@@ -185,10 +187,10 @@ class AgentSession(val key: String, val title: String, val store: File? = null) 
 
     private fun toSaved(): List<dev.apkforge.engine.ChatHistory.Msg> = messages.map { m ->
         when (m) {
-            is AgentMsg.User -> dev.apkforge.engine.ChatHistory.Msg("user", m.text, images = m.images.size)
-            is AgentMsg.Assistant -> dev.apkforge.engine.ChatHistory.Msg("assistant", m.text)
-            is AgentMsg.Tool -> dev.apkforge.engine.ChatHistory.Msg("tool", tool = m.tool, summary = m.summary, result = m.result, error = m.error)
-            is AgentMsg.Info -> dev.apkforge.engine.ChatHistory.Msg("info", m.text, error = m.error)
+            is AgentMsg.User -> dev.apkforge.engine.ChatHistory.Msg("user", m.text, images = m.images.size, at = m.at)
+            is AgentMsg.Assistant -> dev.apkforge.engine.ChatHistory.Msg("assistant", m.text, at = m.at)
+            is AgentMsg.Tool -> dev.apkforge.engine.ChatHistory.Msg("tool", tool = m.tool, summary = m.summary, result = m.result, error = m.error, at = m.at)
+            is AgentMsg.Info -> dev.apkforge.engine.ChatHistory.Msg("info", m.text, error = m.error, at = m.at)
         }
     }
 
