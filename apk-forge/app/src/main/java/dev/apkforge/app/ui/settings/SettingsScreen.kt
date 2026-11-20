@@ -146,6 +146,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     dev.apkforge.engine.AiProvider.CLAUDE -> listOf("claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5")
                     dev.apkforge.engine.AiProvider.OPENROUTER -> listOf("openrouter/free", "qwen/qwen3-coder:free", "deepseek/deepseek-chat-v3.1:free", "meta-llama/llama-3.3-70b-instruct:free")
                     dev.apkforge.engine.AiProvider.GROQ -> listOf("llama-3.3-70b-versatile", "qwen/qwen3-32b", "openai/gpt-oss-120b")
+                    dev.apkforge.engine.AiProvider.GROK -> listOf("grok-4.7", "grok-build-0.1", "grok-4.6", "grok-4.5")
                     dev.apkforge.engine.AiProvider.GEMINI -> listOf("gemini-flash-latest", "gemini-pro-latest", "gemini-flash-lite-latest")
                     dev.apkforge.engine.AiProvider.OLLAMA -> listOf("qwen2.5-coder:7b", "llama3.1:8b", "qwen3:8b")
                     dev.apkforge.engine.AiProvider.CUSTOM, dev.apkforge.engine.AiProvider.BUILTIN -> emptyList()

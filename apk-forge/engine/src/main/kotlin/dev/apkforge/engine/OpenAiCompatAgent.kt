@@ -95,6 +95,8 @@ enum class AiProvider(
         "API oficial de Google con nivel gratuito: crea la clave gratis en aistudio.google.com (Get API key). Modelos: gemini-flash-latest, gemini-pro-latest."),
     GROQ("Groq · Llama muy rápido", "https://api.groq.com/openai/v1", "llama-3.3-70b-versatile", true,
         "Clave gratis en console.groq.com. Solo modelos abiertos."),
+    GROK("Grok · xAI (la IA de X)", "https://api.x.ai/v1", "grok-4.7", true,
+        "Grok de xAI. Saca la clave en console.x.ai (puede pedir facturación/créditos; no siempre es gratis). Modelos: grok-4.7 (potente), grok-build-0.1 (código). Compatible con OpenAI; se suma al equipo y turna con el resto. Usa 'Probar IA' para confirmar el modelo."),
     OLLAMA("Ollama · en tu PC, sin clave", "http://192.168.1.10:11434/v1", "qwen2.5-coder:7b", false,
         "Instala Ollama en tu PC, 'ollama pull qwen2.5-coder:7b', y pon aquí la IP del PC. Todo local y gratis."),
     CUSTOM("Personalizado (API compatible OpenAI)", "", "", false,
