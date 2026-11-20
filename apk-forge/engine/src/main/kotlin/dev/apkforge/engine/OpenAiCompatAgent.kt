@@ -23,35 +23,34 @@ data class AiEndpoint(val baseUrl: String, val apiKey: String, val model: String
  * si uno se satura o falla, se pasa al siguiente automáticamente.
  */
 object BuiltinAi {
-    /** PLANIFICADOR: los modelos de razonamiento más grandes primero. REVISOR: otra familia distinta. */
-    fun plannerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { rank(it, listOf("397B", "kimi", "DeepSeek-V4.1")) }
-    fun reviewerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { rank(it, listOf("glm-5.3", "gpt-oss-120b", "gpt-oss:120b", "codestral")) }
+    /** PLANIFICADOR: los coders/razonadores más potentes primero. REVISOR: otra familia distinta, para cruzar. */
+    fun plannerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { rank(it, listOf("DeepSeek-V4.1", "397B", "gpt-oss-120b")) }
+    fun reviewerOrder(list: List<AiEndpoint> = endpoints) = list.sortedBy { rank(it, listOf("Llama-3_3", "qwen3.6-35b", "Qwen3.8-27B", "gpt-oss-120b")) }
     private fun rank(e: AiEndpoint, prefs: List<String>) = prefs.indexOfFirst { e.model.contains(it, ignoreCase = true) }.let { if (it < 0) prefs.size else it }
 
     private const val OVH = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
-    private const val LLM7 = "https://api.llm7.io/v1"
+    private const val KILO = "https://api.kilo.ai/api/openrouter"
 
     /**
-     * Probados sin clave y con herramientas (tool calling). Se alternan servicios para repartir los
-     * límites de cada uno: si un modelo está ocupado, sigue el siguiente sin que lo notes.
-     * Incluye los modelos chinos abiertos más potentes: DeepSeek, Kimi, Qwen, GLM, MiMo y MiniMax.
+     * VERIFICADOS EN VIVO: responden SIN clave y saben usar herramientas (tool calling), ordenados de
+     * más potente a menos para que el trabajo salga bien a la primera. OVH es la columna: DeepSeek
+     * V4.1 (coder dedicado, 1M de contexto), Qwen 3.5 397B (MoE enorme), GPT-OSS 120B, Qwen 3.6/3.8 y
+     * Llama 3.3 70B. Kilo (auto-enruta al mejor modelo gratis) y Pollinations como respaldo. Si uno se
+     * satura o cae, sigue el siguiente sin que lo notes.
+     *
+     * (LLM7 se quitó de la lista sin clave: ahora todos sus modelos exigen fondos/suscripción —
+     * 402/429/401 —, lo que solo generaba "ocupado". Puedes añadir tu propia clave LLM7/OpenRouter en
+     * Ajustes y ese modelo se suma al equipo.)
      */
     val endpoints = listOf(
-        AiEndpoint(OVH, "", "DeepSeek-V4.1-Flash-1017", "DeepSeek V4.1 Flash (OVH)"),
-        AiEndpoint(LLM7, "", "kimi-k2.7-code", "Kimi K2.7 Code (LLM7)"),
+        AiEndpoint(OVH, "", "DeepSeek-V4.1-Flash-1017", "DeepSeek V4.1 · código · 1M (OVH)"),
         AiEndpoint(OVH, "", "Qwen3.5-397B-A17B", "Qwen 3.5 397B (OVH)"),
-        AiEndpoint(LLM7, "", "glm-5.3-flash", "GLM 5.3 Flash (LLM7)"),
         AiEndpoint(OVH, "", "gpt-oss-120b", "GPT-OSS 120B (OVH)"),
-        AiEndpoint(LLM7, "", "DeepSeek-V4-Flash-0731", "DeepSeek V4 Flash (LLM7)"),
-        AiEndpoint(LLM7, "", "codestral-latest", "Codestral · código (LLM7)"),
         AiEndpoint(OVH, "", "qwen3.6-35b-a3b", "Qwen 3.6 35B (OVH)"),
-        AiEndpoint(LLM7, "", "mimo-v2.6-flash", "MiMo v2.6 Flash · Xiaomi (LLM7)"),
-        AiEndpoint("https://api.kilo.ai/api/openrouter", "", "kilo-auto/free", "Kilo Auto (gratis)"),
-        AiEndpoint(LLM7, "", "minimax-m2.7", "MiniMax M2.7 (LLM7)"),
         AiEndpoint(OVH, "", "Qwen3.8-27B", "Qwen 3.8 27B (OVH)"),
-        AiEndpoint(LLM7, "", "gpt-oss:120b", "GPT-OSS 120B (LLM7)"),
-        AiEndpoint(LLM7, "", "gemma4:31b", "Gemma 4 31B (LLM7)"),
         AiEndpoint(OVH, "", "Meta-Llama-3_3-70B-Instruct", "Llama 3.3 70B (OVH)"),
+        AiEndpoint(KILO, "", "kilo-auto/efficient", "Kilo Auto · mejor modelo gratis"),
+        AiEndpoint(KILO, "", "kilo-auto/free", "Kilo Auto (gratis)"),
         AiEndpoint("https://text.pollinations.ai/openai", "", "openai-fast", "GPT-OSS 20B (Pollinations)"),
     )
 }
@@ -65,7 +64,7 @@ enum class AiProvider(
     val help: String,
 ) {
     BUILTIN("ApkForge IA · integrada, gratis, sin clave", "", "auto", false,
-        "Ya viene lista: une 16 modelos abiertos gratuitos (DeepSeek, Kimi K2.7 Code, Qwen 397B, GLM 5.3, MiMo, MiniMax, Codestral, GPT-OSS 120B…) que trabajan en equipo: uno planifica, otro ejecuta y otro revisa; si uno está ocupado, sigue otro. No necesitas configurar nada."),
+        "Ya viene lista: une modelos abiertos gratuitos VERIFICADOS que responden sin clave y saben editar código y usar herramientas — DeepSeek V4.1 (coder, 1M de contexto), Qwen 3.5 397B, GPT-OSS 120B, Qwen 3.6/3.8 y Llama 3.3 70B. Trabajan en equipo: uno planifica, otro ejecuta y otro revisa; si uno se satura, sigue otro. No configuras nada."),
     CLAUDE("Claude (Anthropic)", "", "claude-opus-5-5", true,
         "Clave en console.anthropic.com. El más capaz."),
     OPENROUTER("OpenRouter · modelos abiertos gratis", "https://openrouter.ai/api/v1", "openrouter/free", true,
