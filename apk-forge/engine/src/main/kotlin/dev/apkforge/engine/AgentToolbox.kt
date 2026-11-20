@@ -158,6 +158,10 @@ class AgentToolbox(
                     "end_line" to int("Última línea a reemplazar (incluida)"), "new" to str("Texto nuevo (varias líneas permitidas; vacío = borrar)")), listOf("path", "start_line", "end_line", "new")))
             add(tool("insert_lines", "Inserta texto DESPUÉS de una línea, sin borrar nada (usa after_line=0 para ponerlo al principio).",
                 mapOf("path" to str("Ruta relativa"), "after_line" to int("Insertar después de esta línea (0 = al inicio)"), "new" to str("Texto a insertar")), listOf("path", "after_line", "new")))
+            add(tool("undo_last", "DESHACE el último cambio (el más reciente). Restaura los archivos a como estaban justo antes de esa edición. Cada llamada retrocede un paso más en el historial. Úsalo cuando un cambio tuyo rompió algo (la app se cierra, no compila) para volver atrás y probar otra cosa.",
+                emptyMap(), emptyList()))
+            add(tool("restore_file", "Restaura UN archivo a su copia de seguridad más reciente (lo deja como estaba antes del último cambio en ese archivo). Úsalo si editaste mal un archivo concreto y quieres recuperarlo sin tocar el resto.",
+                mapOf("path" to str("Ruta relativa del archivo a restaurar")), listOf("path")))
         }
     }
 
@@ -529,6 +533,45 @@ class AgentToolbox(
             ChangeLog.record(f, text, after, "IA", "replace_in_file")
             "Reemplazado en ${f.name}" + xmlWarn(f)
         }
+        "undo_last" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val base = if (root.isDirectory) root else root.parentFile!!
+            val snaps = File(base, "$META_DIR/backup").listFiles { d -> d.isDirectory }
+                ?.sortedByDescending { it.name.toLongOrNull() ?: 0L }.orEmpty()
+            if (snaps.isEmpty()) "No hay ningún cambio que deshacer."
+            else {
+                val snap = snaps.first()
+                val restored = mutableListOf<String>()
+                snap.walkTopDown().filter { it.isFile }.forEach { b ->
+                    val rel = b.relativeTo(snap).path
+                    val target = File(base, rel)
+                    val before = if (target.isFile && target.length() < 4_000_000) target.readText() else null
+                    target.parentFile?.mkdirs()
+                    b.copyTo(target, overwrite = true)
+                    val afterTxt = if (target.length() < 4_000_000) target.readText() else null
+                    ChangeLog.record(target, before, afterTxt, "IA", "deshacer")
+                    restored += rel
+                }
+                snap.deleteRecursively()   // consumido: la próxima vez deshace el cambio anterior (retroceso real)
+                "↩ Deshecho el último cambio. Restaurado(s) ${restored.size} archivo(s):\n" + restored.joinToString("\n")
+            }
+        }
+        "restore_file" -> {
+            if (!allowEdits) throw EngineException("Edición desactivada")
+            val rel = (a["path"] as String).trimStart('/')
+            val base = if (root.isDirectory) root else root.parentFile!!
+            val snaps = File(base, "$META_DIR/backup").listFiles { d -> d.isDirectory }
+                ?.sortedByDescending { it.name.toLongOrNull() ?: 0L }.orEmpty()
+            val copy = snaps.map { File(it, rel) }.firstOrNull { it.isFile }
+                ?: throw EngineException("No hay copia de seguridad de $rel.")
+            val target = File(base, rel)
+            val before = if (target.isFile && target.length() < 4_000_000) target.readText() else null
+            target.parentFile?.mkdirs()
+            copy.copyTo(target, overwrite = true)
+            val afterTxt = if (target.length() < 4_000_000) target.readText() else null
+            ChangeLog.record(target, before, afterTxt, "IA", "restaurar")
+            "↩ Restaurado $rel desde su copia más reciente."
+        }
         else -> throw EngineException("Herramienta desconocida: $name")
     }
 
@@ -597,7 +640,8 @@ class AgentToolbox(
         "list_changes" -> if (a["only_pending"] == true) "pendientes" else "todos"
         "find_related" -> "“${a["text"]}”"
         "project_map" -> ""
-        "hex_read", "hex_patch", "delete_file" -> "${a["path"]}"
+        "hex_read", "hex_patch", "delete_file", "restore_file" -> "${a["path"]}"
+        "undo_last" -> "último cambio"
         "move_file" -> "${a["from"]} → ${a["to"]}"
         "import_file" -> "${a["source"]} → ${a["to"]}"
         "web_search" -> "“${a["query"]}”"

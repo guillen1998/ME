@@ -49,6 +49,7 @@ object BuiltinAi {
         AiEndpoint(OVH, "", "qwen3.6-35b-a3b", "Qwen 3.6 35B (OVH)"),
         AiEndpoint(OVH, "", "Qwen3.8-27B", "Qwen 3.8 27B (OVH)"),
         AiEndpoint(OVH, "", "Meta-Llama-3_3-70B-Instruct", "Llama 3.3 70B (OVH)"),
+        AiEndpoint(OVH, "", "Qwen3.5-9B", "Qwen 3.5 9B · rápido (OVH)"),
         AiEndpoint(KILO, "", "kilo-auto/efficient", "Kilo Auto · mejor modelo gratis"),
         AiEndpoint(KILO, "", "kilo-auto/free", "Kilo Auto (gratis)"),
         AiEndpoint("https://text.pollinations.ai/openai", "", "openai-fast", "GPT-OSS 20B (Pollinations)"),
